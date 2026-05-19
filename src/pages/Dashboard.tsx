@@ -40,8 +40,8 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Project Overview</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Project Overview</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Welcome to CaraBase. Manage your database, authentication, and rules.
         </p>
       </div>
@@ -49,24 +49,24 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((item) => (
           <Link key={item.name} to={item.href}>
-            <Card className="hover:border-blue-200 hover:shadow-md transition-all cursor-pointer h-full border-slate-200/60 shadow-sm">
+            <Card className="hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-md transition-all cursor-pointer h-full border-slate-200/60 dark:border-slate-800 shadow-sm">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-slate-500">
+                <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
                   {item.name}
                 </CardTitle>
-                <item.icon className="h-5 w-5 text-slate-400" />
+                <item.icon className="h-5 w-5 text-slate-400 dark:text-slate-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-slate-900">{item.stat}</div>
-                <p className="text-xs text-slate-500 mt-1">{item.desc}</p>
+                <div className="text-3xl font-bold text-slate-900 dark:text-slate-50">{item.stat}</div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{item.desc}</p>
               </CardContent>
             </Card>
           </Link>
         ))}
       </div>
 
-      <Card className="mt-8 border-slate-200/60 shadow-sm overflow-hidden">
-        <div className="px-6 py-8 md:px-8 md:py-10 bg-slate-900 text-white rounded-t-xl">
+      <Card className="mt-8 border-slate-200/60 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="px-6 py-8 md:px-8 md:py-10 bg-slate-900 dark:bg-slate-950 text-white rounded-t-xl">
           <div className="flex items-center gap-3">
               <Database className="h-6 w-6 text-blue-400" />
               <h2 className="text-2xl font-semibold">Ready to build</h2>

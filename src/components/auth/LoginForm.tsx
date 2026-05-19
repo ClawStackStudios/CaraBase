@@ -134,10 +134,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onBack }) => {
   }
 
   return (
-    <div className="w-full max-w-sm mx-auto p-6 bg-white rounded-2xl shadow-xl border-t-2 border-emerald-500 relative">
+    <div className="w-full max-w-sm mx-auto p-6 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border-t-2 border-emerald-500 dark:border-slate-800 relative transition-colors duration-300">
       <button 
         onClick={onBack}
-        className="absolute top-6 left-6 text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 bg-transparent hover:bg-slate-50 py-1 px-2 rounded transition-colors"
+        className="absolute top-6 left-6 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800 py-1 px-2 rounded transition-colors"
       >
         <ArrowLeft className="w-3 h-3" /> Back to Home
       </button>
@@ -147,19 +147,19 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onBack }) => {
           <span className="text-3xl">🦞</span>
         </div>
         <div className="text-center">
-            <h2 className="text-sm font-semibold text-slate-900 tracking-tight flex items-center gap-1 justify-center">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-200 tracking-tight flex items-center gap-1 justify-center">
                 Cara<span className="text-emerald-700">Base©™</span>
             </h2>
         </div>
-        <h1 className="text-xl font-bold text-slate-900 mt-4 tracking-tight">Welcome Back</h1>
-        <p className="text-sm text-slate-500 mt-1">Login with your CaraBase©™ identity</p>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-50 mt-4 tracking-tight">Welcome Back</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Login with your CaraBase©™ identity</p>
       </div>
 
-      <div className="flex rounded-md overflow-hidden bg-slate-100 mb-6 p-1 border border-slate-200">
+      <div className="flex rounded-md overflow-hidden bg-slate-100 dark:bg-slate-800 mb-6 p-1 border border-slate-200 dark:border-slate-700">
         <button
           onClick={() => setMode('upload')}
           className={`flex-1 py-2 text-sm font-medium rounded transition-colors flex items-center justify-center gap-2 ${
-            mode === 'upload' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
+            mode === 'upload' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-750'
           }`}
         >
           <Upload className="w-4 h-4" /> Upload File
@@ -167,7 +167,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onBack }) => {
         <button
           onClick={() => setMode('paste')}
           className={`flex-1 py-2 text-sm font-medium rounded transition-colors flex items-center justify-center gap-2 ${
-             mode === 'paste' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
+             mode === 'paste' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-750'
           }`}
         >
           <FileText className="w-4 h-4" /> Paste ClawKey™
@@ -176,14 +176,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onBack }) => {
 
       {mode === 'upload' && (
         <div className="mb-6">
-            <div className="text-sm font-medium text-slate-900 mb-2">Your Identity File</div>
+            <div className="text-sm font-medium text-slate-900 dark:text-slate-200 mb-2">Your Identity File</div>
             <div
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => document.getElementById('identity-upload')?.click()}
                 className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-                    selectedFile ? 'border-emerald-500 bg-emerald-50' : 'border-slate-300 hover:border-emerald-400 hover:bg-slate-50'
+                    selectedFile ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20' : 'border-slate-300 dark:border-slate-700 hover:border-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800/45'
                 }`}
             >
                 <input
@@ -205,17 +205,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onBack }) => {
                 ) : (
                     <div className="flex flex-col items-center">
                         <Upload className="w-6 h-6 text-slate-400 mb-2" />
-                        <p className="text-sm font-medium text-slate-900 mb-1">Click to upload your identity file</p>
-                        <p className="text-xs text-slate-500">.json files only</p>
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-200 mb-1">Click to upload your identity file</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">.json files only</p>
                     </div>
                 )}
             </div>
 
-            <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
-                <Lock className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div className="mt-6 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl p-4 flex gap-3">
+                <Lock className="w-5 h-5 text-amber-500 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                 <div>
-                    <h3 className="text-xs font-semibold text-amber-800 mb-1">Can't find your identity file?</h3>
-                    <p className="text-[11px] leading-relaxed text-amber-700">
+                    <h3 className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1">Can't find your identity file?</h3>
+                    <p className="text-[11px] leading-relaxed text-amber-700 dark:text-amber-400">
                         Your identity file is the only way to access your account. If you've lost it, you'll need to create a new account.
                     </p>
                 </div>
@@ -225,30 +225,30 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onBack }) => {
 
       {mode === 'paste' && (
         <div className="mb-6">
-             <div className="text-sm font-medium text-slate-900 mb-2">ClawKey™</div>
+             <div className="text-sm font-medium text-slate-900 dark:text-slate-200 mb-2">ClawKey™</div>
              <input 
                 type="password"
                 placeholder="hu-..."
                 value={pastedKey}
                 onChange={(e) => setPastedKey(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 mb-6"
+                className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 mb-6"
              />
 
-             <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex gap-3">
-                 <div className="text-emerald-600 bg-white rounded-full p-0.5 shadow-sm">
+             <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 rounded-xl p-4 flex gap-3">
+                 <div className="text-emerald-600 dark:text-emerald-400 bg-white dark:bg-slate-900 rounded-full p-0.5 shadow-sm">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                     </svg>
                  </div>
                  <div>
-                    <h3 className="text-xs font-semibold text-emerald-800 mb-1">One-Field Login</h3>
-                    <p className="text-[11px] leading-relaxed text-emerald-700">
+                    <h3 className="text-xs font-semibold text-emerald-800 dark:text-emerald-300 mb-1">One-Field Login</h3>
+                    <p className="text-[11px] leading-relaxed text-emerald-700 dark:text-emerald-400">
                         Your ClawKey™ is all you need to login. Advanced options are available for troubleshooting.
                     </p>
                  </div>
              </div>
              
-             <button className="text-[11px] text-slate-500 mt-4 hover:text-slate-800 transition-colors">
+             <button className="text-[11px] text-slate-500 dark:text-slate-400 mt-4 hover:text-slate-800 dark:hover:text-slate-200 transition-colors bg-transparent border-0 cursor-pointer">
                  Show Advanced Options (UUID/Username)
              </button>
         </div>

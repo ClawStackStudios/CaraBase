@@ -335,6 +335,16 @@ async function runTests() {
 
   console.log("\n--- Phase 6: Public Storage File Downloads ---");
   try {
+     // Clean up any existing dummy row first to ensure test idempotence
+     await fetch(`${BASE_URL}/api/system/query`, {
+       method: 'POST',
+       headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+       body: JSON.stringify({ 
+         query: "DELETE FROM _carabase_storage WHERE filename = 'dummy-disk.txt'", 
+         method: 'run'
+       })
+     });
+
      // Create a dummy file row in _carabase_storage using system API query
      const dummyId = crypto.randomUUID();
      await fetch(`${BASE_URL}/api/system/query`, {

@@ -80,21 +80,21 @@ export default function Policies() {
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Row Level Security Policies</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Row Level Security Policies</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Restrict rows returned by the API when using Public API Keys. Equivalent to PostgreSQL RLS, powered by dynamic SQLite WHERE clauses.
         </p>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3 text-sm text-blue-900">
+      <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-xl p-4 flex gap-3 text-sm text-blue-900 dark:text-blue-200">
           <Info className="w-5 h-5 text-blue-600 shrink-0" />
           <p>
               By default, tables have <strong>NO</strong> access allowed via Public API Keys unless a policy permits it. 
-              Write conditions using standard SQLite syntax (e.g. <code className="font-mono bg-blue-100 px-1 rounded">is_public = 1</code>).
+              Write conditions using standard SQLite syntax (e.g. <code className="font-mono bg-blue-100 dark:bg-blue-900/60 px-1 rounded text-blue-950 dark:text-blue-200">is_public = 1</code>).
           </p>
       </div>
 
-      <Card className="shadow-sm border-slate-200">
+      <Card className="shadow-sm border-slate-200 dark:border-slate-800">
         <CardHeader>
           <CardTitle>Create New Policy</CardTitle>
           <CardDescription>Grant access to specific tables based on a SQL condition.</CardDescription>
@@ -102,9 +102,9 @@ export default function Policies() {
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 items-end">
              <div className="w-full md:w-48 space-y-1">
-                 <label className="text-xs font-medium text-slate-500 uppercase">Target Table</label>
+                 <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Target Table</label>
                  <select 
-                   className="flex h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm"
+                   className="flex h-9 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-1 text-sm shadow-sm"
                    value={newTargetTable}
                    onChange={(e) => setNewTargetTable(e.target.value)}
                  >
@@ -113,9 +113,9 @@ export default function Policies() {
                  </select>
              </div>
              <div className="w-full md:w-32 space-y-1">
-                 <label className="text-xs font-medium text-slate-500 uppercase">Action</label>
+                 <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Action</label>
                  <select 
-                   className="flex h-9 w-full rounded-md border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm"
+                   className="flex h-9 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-1 text-sm shadow-sm"
                    value={newAction}
                    onChange={(e) => setNewAction(e.target.value)}
                  >
@@ -127,7 +127,7 @@ export default function Policies() {
                  </select>
              </div>
              <div className="flex-1 space-y-1">
-                 <label className="text-xs font-medium text-slate-500 uppercase">Definition (WHERE clause)</label>
+                 <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Definition (WHERE clause)</label>
                  <Input 
                    placeholder="e.g. 1=1 OR author_id = 'xxx'" 
                    value={newDefinition} 
@@ -141,30 +141,30 @@ export default function Policies() {
       </Card>
 
       <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-slate-900 border-b border-slate-200 pb-2">Active Policies</h3>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-800 pb-2">Active Policies</h3>
           {policies.length === 0 ? (
-              <div className="p-8 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50 text-slate-500">
-                  <Shield className="w-12 h-12 mx-auto text-slate-300 mb-3" />
+              <div className="p-8 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400">
+                  <Shield className="w-12 h-12 mx-auto text-slate-300 dark:text-slate-700 mb-3" />
                   <p>No security policies defined.</p>
                   <p className="text-sm">Public API Keys currently have 0 access to the database.</p>
               </div>
           ) : (
               <div className="grid gap-4">
                   {policies.map(policy => (
-                      <div key={policy.id} className="bg-white border text-sm border-slate-200 p-4 rounded-xl flex items-center justify-between shadow-sm">
+                      <div key={policy.id} className="bg-white dark:bg-slate-900 border text-sm border-slate-200 dark:border-slate-800 p-4 rounded-xl flex items-center justify-between shadow-sm">
                           <div className="flex items-center gap-4">
-                              <div className="h-10 w-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
+                              <div className="h-10 w-10 bg-blue-50 dark:bg-blue-950/40 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400">
                                   <Shield className="w-5 h-5"/>
                               </div>
                               <div>
                                   <div className="flex items-center gap-2 mb-1">
-                                      <span className="font-semibold text-slate-900">{policy.table_name}</span>
-                                      <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-xs font-medium">{policy.action}</span>
+                                      <span className="font-semibold text-slate-900 dark:text-slate-100">{policy.table_name}</span>
+                                      <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded text-xs font-medium">{policy.action}</span>
                                   </div>
-                                  <code className="text-slate-500 text-xs font-mono">{policy.definition}</code>
+                                  <code className="text-slate-500 dark:text-slate-400 text-xs font-mono">{policy.definition}</code>
                               </div>
                           </div>
-                          <Button variant="ghost" size="sm" onClick={() => removePolicy(policy.id)} className="text-slate-400 hover:text-red-600 hover:bg-red-50">
+                          <Button variant="ghost" size="sm" onClick={() => removePolicy(policy.id)} className="text-slate-400 dark:text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20">
                               <Trash2 className="w-4 h-4" />
                           </Button>
                       </div>

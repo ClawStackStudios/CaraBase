@@ -23,20 +23,20 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
 
   // Step 1: Welcome screen
   const renderWelcome = () => (
-    <div className="max-w-md w-full mx-auto p-8 bg-white rounded-2xl shadow-xl border-t-2 border-emerald-500">
-      <h1 className="text-3xl font-bold mb-6 text-slate-900 tracking-tight">Before we begin...</h1>
-      <div className="space-y-5 text-slate-700 text-sm leading-relaxed">
+    <div className="max-w-md w-full mx-auto p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border-t-2 border-emerald-500 dark:border-slate-800 transition-colors duration-300">
+      <h1 className="text-3xl font-bold mb-6 text-slate-900 dark:text-slate-50 tracking-tight">Before we begin...</h1>
+      <div className="space-y-5 text-slate-700 dark:text-slate-300 text-sm leading-relaxed">
         <p>
-          <strong className="text-slate-900 font-semibold block mb-1">No password required.</strong> Your identity lives in a single, unique key file.
+          <strong className="text-slate-900 dark:text-slate-100 font-semibold block mb-1">No password required.</strong> Your identity lives in a single, unique key file.
         </p>
         <p>
-          <strong className="text-slate-900 font-semibold block mb-1">This file IS your account.</strong> Lose it, and your account is gone forever — there is no recovery.
+          <strong className="text-slate-900 dark:text-slate-100 font-semibold block mb-1">This file IS your account.</strong> Lose it, and your account is gone forever — there is no recovery.
         </p>
         <p>
-          <strong className="text-slate-900 font-semibold block mb-1">Store it safely.</strong> Keep copies in secure locations (password manager, encrypted drive).
+          <strong className="text-slate-900 dark:text-slate-100 font-semibold block mb-1">Store it safely.</strong> Keep copies in secure locations (password manager, encrypted drive).
         </p>
         <p>
-          <strong className="text-slate-900 font-semibold block mb-1">You are in control.</strong> No cloud, no accounts, no servers deciding your fate. Your key, your ocean.
+          <strong className="text-slate-900 dark:text-slate-100 font-semibold block mb-1">You are in control.</strong> No cloud, no accounts, no servers deciding your fate. Your key, your ocean.
         </p>
       </div>
       <button
@@ -50,12 +50,12 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
 
   // Step 2: Profile entry
   const renderProfile = () => (
-    <div className="max-w-md w-full mx-auto p-8 bg-white rounded-2xl shadow-xl border-t-2 border-emerald-500">
-      <h1 className="text-2xl font-bold mb-6 text-slate-900 tracking-tight">Create Your Identity</h1>
+    <div className="max-w-md w-full mx-auto p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border-t-2 border-emerald-500 dark:border-slate-800 transition-colors duration-300">
+      <h1 className="text-2xl font-bold mb-6 text-slate-900 dark:text-slate-50 tracking-tight">Create Your Identity</h1>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Username <span className="text-rose-500">*</span>
           </label>
           <input
@@ -63,12 +63,12 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
             value={username}
             onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
             placeholder="alice"
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Display Name <span className="text-slate-400 font-normal">(optional)</span>
           </label>
           <input
@@ -76,7 +76,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             placeholder="Alice"
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
           />
         </div>
       </div>
@@ -101,10 +101,10 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
 
   // Step 3: Generating spinner
   const renderGenerating = () => (
-    <div className="max-w-md w-full mx-auto p-8 bg-white rounded-2xl shadow-xl border-t-2 border-emerald-500 text-center">
-      <div className="animate-spin inline-block w-12 h-12 border-4 border-emerald-100 border-t-emerald-500 rounded-full mb-6"></div>
-      <h1 className="text-2xl font-bold mb-3 text-slate-900 tracking-tight">Hatching your identity...</h1>
-      <p className="text-slate-500 text-sm">Generating cryptographic keys from the chaos of randomness.</p>
+    <div className="max-w-md w-full mx-auto p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border-t-2 border-emerald-500 dark:border-slate-800 text-center transition-colors duration-300">
+      <div className="animate-spin inline-block w-12 h-12 border-4 border-emerald-100 dark:border-emerald-950/20 border-t-emerald-500 rounded-full mb-6"></div>
+      <h1 className="text-2xl font-bold mb-3 text-slate-900 dark:text-slate-50 tracking-tight">Hatching your identity...</h1>
+      <p className="text-slate-500 dark:text-slate-400 text-sm">Generating cryptographic keys from the chaos of randomness.</p>
     </div>
   )
 
@@ -131,41 +131,41 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
 
   // Step 4: Complete
   const renderComplete = () => (
-    <div className="max-w-md w-full mx-auto p-8 bg-white rounded-2xl shadow-xl border-t-2 border-emerald-500">
-      <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mb-4 text-emerald-600 text-xl font-bold">✓</div>
-      <h1 className="text-2xl font-bold mb-6 text-slate-900 tracking-tight">Identity Hatched!</h1>
+    <div className="max-w-md w-full mx-auto p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border-t-2 border-emerald-500 dark:border-slate-800 transition-colors duration-300">
+      <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/40 rounded-full flex items-center justify-center mb-4 text-emerald-600 text-xl font-bold">✓</div>
+      <h1 className="text-2xl font-bold mb-6 text-slate-900 dark:text-slate-50 tracking-tight">Identity Hatched!</h1>
 
-      <div className="space-y-4 mb-8 bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-inner">
+      <div className="space-y-4 mb-8 bg-slate-50 dark:bg-slate-950 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-inner">
         <div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Username</p>
-          <p className="font-mono text-sm text-slate-800">{username}</p>
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Username</p>
+          <p className="font-mono text-sm text-slate-800 dark:text-slate-200">{username}</p>
         </div>
         <div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex justify-between items-center">
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1 flex justify-between items-center">
             <span>ClawKey</span>
             <span className="text-emerald-600">{clipboardMessage}</span>
           </p>
-          <p className="font-mono text-xs text-slate-800 break-all leading-relaxed">
+          <p className="font-mono text-xs text-slate-800 dark:text-slate-200 break-all leading-relaxed">
             {generatedKey}
           </p>
         </div>
         <div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">UUID</p>
-          <p className="font-mono text-[11px] text-slate-600">{generatedUUID}</p>
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">UUID</p>
+          <p className="font-mono text-[11px] text-slate-600 dark:text-slate-400">{generatedUUID}</p>
         </div>
       </div>
 
       <div className="space-y-3">
         <button
           onClick={() => copyClawKey()}
-          className="w-full px-4 py-2.5 bg-slate-100 text-slate-800 hover:bg-slate-200 font-medium rounded-xl transition-colors text-sm border border-slate-300"
+          className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium rounded-xl transition-colors text-sm border border-slate-300 dark:border-slate-700 cursor-pointer"
         >
           Copy ClawKey
         </button>
 
         <button
           onClick={() => downloadIdentityFile()}
-          className="w-full px-4 py-2.5 bg-slate-800 text-white hover:bg-slate-900 font-medium rounded-xl transition-colors text-sm shadow-md"
+          className="w-full px-4 py-2.5 bg-slate-800 dark:bg-slate-950 text-white dark:text-slate-250 hover:bg-slate-900 dark:hover:bg-slate-900/80 font-medium rounded-xl transition-colors text-sm shadow-md cursor-pointer border-0"
         >
           Download Identity File
         </button>
@@ -173,21 +173,21 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
         <button
           onClick={() => completeSetup()}
           disabled={!hasDownloaded || isProcessing}
-          className="w-full px-4 py-3 bg-gradient-to-br from-emerald-400 to-teal-500 text-white font-medium rounded-xl transition-all shadow-md shadow-emerald-500/20 hover:shadow-emerald-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+          className="w-full px-4 py-3 bg-gradient-to-br from-emerald-400 to-teal-500 text-white font-medium rounded-xl transition-all shadow-md shadow-emerald-500/20 hover:shadow-emerald-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none cursor-pointer border-0"
         >
           {isProcessing ? 'Setting up...' : 'Complete Setup'}
         </button>
         
         <button
           onClick={onComplete}
-          className="w-full px-4 py-2 text-slate-500 hover:text-slate-800 text-sm font-medium pt-4"
+          className="w-full px-4 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 text-sm font-medium pt-4 bg-transparent border-0 cursor-pointer"
         >
           Cancel & Back to Home
         </button>
       </div>
 
       {!hasDownloaded && (
-        <p className="mt-4 text-xs font-medium text-amber-600 text-center bg-amber-50 py-2 rounded-lg">
+        <p className="mt-4 text-xs font-medium text-amber-600 dark:text-amber-400 text-center bg-amber-50 dark:bg-amber-950/20 py-2 rounded-lg">
           Download the identity file before proceeding.
         </p>
       )}
@@ -293,7 +293,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 transition-colors duration-300">
       {step === 'welcome' && renderWelcome()}
       {step === 'profile' && renderProfile()}
       {step === 'generating' && renderGenerating()}

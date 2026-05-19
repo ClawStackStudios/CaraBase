@@ -79,8 +79,8 @@ export default function TableEditor() {
     <div className="max-w-7xl mx-auto h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Table Editor</h1>
-          <p className="text-sm text-slate-500">Create tables and view database records.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Table Editor</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Create tables and view database records.</p>
         </div>
         {!isCreating && (
           <Button onClick={() => setIsCreating(true)} className="gap-2">
@@ -90,16 +90,16 @@ export default function TableEditor() {
       </div>
 
       {isCreating && (
-        <Card className="mb-6 border-blue-200 shadow-sm border bg-blue-50/30">
+        <Card className="mb-6 border-blue-200 dark:border-blue-900 shadow-sm border bg-blue-50/30 dark:bg-blue-950/20">
           <CardContent className="pt-6">
-            <h3 className="text-lg font-medium mb-4">Create New Table</h3>
+            <h3 className="text-lg font-medium mb-4 text-slate-900 dark:text-slate-100">Create New Table</h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-1 block">Table Name</label>
+                <label className="text-sm font-medium mb-1 block text-slate-700 dark:text-slate-350">Table Name</label>
                 <Input value={newTableName} onChange={(e) => setNewTableName(e.target.value)} placeholder="e.g., users, posts, products" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium block">Columns</label>
+                <label className="text-sm font-medium block text-slate-700 dark:text-slate-350">Columns</label>
                 {newColumns.map((col, idx) => (
                   <div key={idx} className="flex gap-2 items-center">
                     <Input 
@@ -112,7 +112,7 @@ export default function TableEditor() {
                       }} 
                     />
                     <select 
-                      className="flex h-9 w-40 rounded-md border border-slate-200 bg-white px-3 py-1 text-sm shadow-sm"
+                      className="flex h-9 w-40 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-1 text-sm shadow-sm"
                       value={col.type}
                       onChange={(e) => {
                         const newC = [...newColumns];
@@ -148,13 +148,13 @@ export default function TableEditor() {
 
       <div className="flex-1 flex gap-6 overflow-hidden min-h-[500px]">
         {/* Table List Sidebar */}
-        <div className="w-64 bg-white border border-slate-200 rounded-lg overflow-y-auto shadow-sm">
-          <div className="p-3 border-b border-slate-100 flex items-center gap-2">
-            <Search className="h-4 w-4 text-slate-400" />
+        <div className="w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-y-auto shadow-sm">
+          <div className="p-3 border-b border-slate-100 dark:border-slate-850 flex items-center gap-2">
+            <Search className="h-4 w-4 text-slate-400 dark:text-slate-500" />
             <input 
               type="text" 
               placeholder="Search tables..." 
-              className="text-sm w-full outline-none bg-transparent"
+              className="text-sm w-full outline-none bg-transparent text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-550"
             />
           </div>
           <div className="p-2 space-y-1">
@@ -162,38 +162,38 @@ export default function TableEditor() {
               <button
                 key={t.name}
                 onClick={() => setSelectedTable(t.name)}
-                className={`w-full text-left px-3 py-2 text-sm rounded-md flex items-center gap-2 transition-colors ${selectedTable === t.name ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}`}
+                className={`w-full text-left px-3 py-2 text-sm rounded-md flex items-center gap-2 transition-colors border-0 cursor-pointer ${selectedTable === t.name ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40'}`}
               >
                 <Table2 className="h-4 w-4 opacity-70" />
                 {t.name}
               </button>
             ))}
             {tables.length === 0 && !loading && (
-              <p className="text-sm text-slate-500 p-4 text-center">No tables yet.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-450 p-4 text-center">No tables yet.</p>
             )}
           </div>
         </div>
 
         {/* Table View */}
-        <div className="flex-1 bg-white border border-slate-200 rounded-lg shadow-sm flex flex-col overflow-hidden">
+        <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm flex flex-col overflow-hidden">
           {selectedTable ? (
             <>
-              <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+              <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/20">
                  <div className="flex items-center gap-2">
-                    <DatabaseZap className="h-4 w-4 text-slate-500" />
-                    <h3 className="font-medium text-slate-800">{selectedTable}</h3>
+                    <DatabaseZap className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                    <h3 className="font-medium text-slate-800 dark:text-slate-200">{selectedTable}</h3>
                  </div>
                  <Button variant="outline" size="sm">Insert Row</Button>
               </div>
               <div className="overflow-auto flex-1">
                 <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-slate-500 bg-slate-50 sticky top-0 border-b border-slate-200">
+                  <thead className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950/50 sticky top-0 border-b border-slate-200 dark:border-slate-800">
                     <tr>
                       {columns.map(col => (
                         <th key={col.name} className="px-4 py-3 font-medium whitespace-nowrap">
                            <div className="flex items-center gap-1">
                              {col.name} 
-                             <span className="text-[10px] text-slate-400 font-normal uppercase">{col.type}</span>
+                             <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal uppercase">{col.type}</span>
                            </div>
                         </th>
                       ))}
@@ -202,16 +202,16 @@ export default function TableEditor() {
                   <tbody>
                     {rows.length === 0 ? (
                       <tr>
-                        <td colSpan={Math.max(columns.length, 1)} className="px-4 py-8 text-center text-slate-500">
+                        <td colSpan={Math.max(columns.length, 1)} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
                           No rows found in this table.
                         </td>
                       </tr>
                     ) : (
                       rows.map((row, i) => (
-                        <tr key={i} className="border-b last:border-0 border-slate-100 hover:bg-slate-50/50">
+                        <tr key={i} className="border-b last:border-0 border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-950/20 transition-colors">
                           {columns.map(col => (
-                            <td key={col.name} className="px-4 py-2 text-slate-700 truncate max-w-[200px]">
-                              {row[col.name] !== null ? String(row[col.name]) : <span className="text-slate-400 italic">null</span>}
+                            <td key={col.name} className="px-4 py-2 text-slate-700 dark:text-slate-350 truncate max-w-[200px]">
+                              {row[col.name] !== null ? String(row[col.name]) : <span className="text-slate-400 dark:text-slate-550 italic">null</span>}
                             </td>
                           ))}
                         </tr>
@@ -222,8 +222,8 @@ export default function TableEditor() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-slate-500 flex-col">
-              <Table2 className="h-12 w-12 text-slate-200 mb-4" />
+            <div className="flex-1 flex items-center justify-center text-slate-500 dark:text-slate-400 flex-col">
+              <Table2 className="h-12 w-12 text-slate-200 dark:text-slate-800 mb-4" />
               <p>Select a table to view its data.</p>
             </div>
           )}

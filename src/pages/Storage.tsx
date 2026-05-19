@@ -80,8 +80,8 @@ export default function Storage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Storage Buckets</h1>
-          <p className="text-slate-500 mt-1">Manage physical files uploaded to the CaraBase instance.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Storage Buckets</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Manage physical files uploaded to the CaraBase instance.</p>
         </div>
         <div>
             <input type="file" id="file-upload" className="hidden" onChange={handleFileChange} />
@@ -102,54 +102,54 @@ export default function Storage() {
         </CardHeader>
         <CardContent>
             {files.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
-                    <UploadCloud className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-                    <h3 className="text-lg font-medium text-slate-900 mb-1">No files yet</h3>
-                    <p>Start uploading files through the /storage/v1 POST endpoint.</p>
-                </div>
+                 <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+                     <UploadCloud className="h-12 w-12 mx-auto text-slate-300 dark:text-slate-700 mb-4" />
+                     <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-1">No files yet</h3>
+                     <p>Start uploading files through the /storage/v1 POST endpoint.</p>
+                 </div>
             ) : (
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                    <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b">
-                        <tr>
-                        <th className="px-4 py-3">File Name</th>
-                        <th className="px-4 py-3">Original Name</th>
-                        <th className="px-4 py-3">Size</th>
-                        <th className="px-4 py-3">Type</th>
-                        <th className="px-4 py-3">Date</th>
-                        <th className="px-4 py-3">Actions</th>
-                        </tr>
-                    </thead>
+                     <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
+                         <tr>
+                         <th className="px-4 py-3">File Name</th>
+                         <th className="px-4 py-3">Original Name</th>
+                         <th className="px-4 py-3">Size</th>
+                         <th className="px-4 py-3">Type</th>
+                         <th className="px-4 py-3">Date</th>
+                         <th className="px-4 py-3">Actions</th>
+                         </tr>
+                     </thead>
                     <tbody>
-                        {files.map((file) => (
-                        <tr key={file.id} className="border-b hover:bg-slate-50">
-                            <td className="px-4 py-3 font-medium text-slate-900 flex items-center gap-3">
-                                {getFileIcon(file.mime_type)}
-                                <span className="truncate max-w-[200px]" title={file.filename}>{file.filename}</span>
-                            </td>
-                            <td className="px-4 py-3 text-slate-500">{file.original_name}</td>
-                            <td className="px-4 py-3 text-slate-500">{formatSize(file.size)}</td>
-                            <td className="px-4 py-3 text-slate-500">{file.mime_type}</td>
-                            <td className="px-4 py-3 text-slate-500">{new Date(file.created_at).toLocaleString()}</td>
-                            <td className="px-4 py-3">
+                         {files.map((file) => (
+                         <tr key={file.id} className="border-b dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-950/20 transition-colors">
+                             <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100 flex items-center gap-3">
+                                 {getFileIcon(file.mime_type)}
+                                 <span className="truncate max-w-[200px]" title={file.filename}>{file.filename}</span>
+                             </td>
+                             <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{file.original_name}</td>
+                             <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{formatSize(file.size)}</td>
+                             <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{file.mime_type}</td>
+                             <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{new Date(file.created_at).toLocaleString()}</td>
+                             <td className="px-4 py-3">
                                 <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(`${window.location.origin}/storage/v1/file/${file.id}`);
-                                        alert("URL copied!");
-                                    }}
-                                    className="p-1 text-slate-400 hover:text-blue-600 transition-colors"
-                                    title="Copy public URL"
-                                >
-                                    <Copy className="h-4 w-4" />
-                                </button>
-                                <button
-                                    onClick={() => deleteFile(file.id, file.original_name)}
-                                    className="p-1 text-slate-400 hover:text-red-500 transition-colors"
-                                    title="Delete file"
-                                >
-                                    <Trash className="h-4 w-4" />
-                                </button>
+                                 <button
+                                     onClick={() => {
+                                         navigator.clipboard.writeText(`${window.location.origin}/storage/v1/file/${file.id}`);
+                                         alert("URL copied!");
+                                     }}
+                                     className="p-1 text-slate-400 hover:text-blue-600 dark:text-slate-500 dark:hover:text-blue-400 transition-colors bg-transparent border-0 cursor-pointer"
+                                     title="Copy public URL"
+                                 >
+                                     <Copy className="h-4 w-4" />
+                                 </button>
+                                 <button
+                                     onClick={() => deleteFile(file.id, file.original_name)}
+                                     className="p-1 text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 transition-colors bg-transparent border-0 cursor-pointer"
+                                     title="Delete file"
+                                 >
+                                     <Trash className="h-4 w-4" />
+                                 </button>
                                 </div>
                             </td>
                         </tr>
