@@ -1,0 +1,636 @@
+import express from 'express';
+import path from 'path';
+import { createServer as createViteServer } from 'vite';
+import { v4 as uuidv4 } from 'uuid';
+import { EventEmitter } from 'events';
+import multer from 'multer';
+import crypto from 'crypto';
+import fs from 'fs';
+
+// Use the new db and auth router
+import db, { rlsContext } from './src/server/db.js';
+import authRouter from './src/server/routes/auth.js';
+import agentKeysRouter from './src/server/routes/agentKeys.js';
+import { createAuditLogger } from './src/server/utils/auditLogger.js';
+
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+const realtimeEmitter = new EventEmitter();
+
+async function startServer() {
+  const app = express();
+  app.set('trust proxy', 1);
+  app.use(express.json());
+
+  // Ensure directories exist
+  const dataDir = path.join(process.cwd(), 'data');
+  const storageDir = path.join(dataDir, 'storage');
+  if (!fs.existsSync(storageDir)) {
+    fs.mkdirSync(storageDir, { recursive: true });
+  }
+
+  const storageOptions = multer.diskStorage({
+    destination: function (req, file, cb) { cb(null, storageDir) },
+    filename: function (req, file, cb) {
+      const ext = path.extname(file.originalname);
+      cb(null, uuidv4() + ext);
+    }
+  });
+  const upload = multer({ storage: storageOptions });
+
+  // --- Core API Routes ---
+  app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+  app.get('/api/info', (req, res) => res.json({ name: 'CaraBase', version: '2.0.0' }));
+
+  // --- Mount Auth & Agent Key Routers ---
+  app.use('/api/auth', authRouter);
+  app.use('/api/agent-keys', agentKeysRouter);
+
+  // --- System API: Internal dashboard management ---
+  const authenticateSession = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Missing Authentication' });
+    }
+    const token = authHeader.substring(7).trim();
+    try {
+      // Depending on if the new api_tokens table uses api- prefix as key, token_hash may be needed.
+      // Wait, in auth.ts, token is stored in api_tokens.key, but token_hash is in api_tokens.token_hash
+      // We look up by token hash via crypto
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+      const sessionRow = db.prepare('SELECT * FROM api_tokens WHERE token_hash = ? AND revoked_at IS NULL').get(tokenHash);
+      
+      if (!sessionRow) {
+         return res.status(401).json({ error: 'Invalid Session Token' });
+      }
+      (req as any).userSession = sessionRow;
+      next();
+    } catch (e: any) {
+      res.status(500).json({ error: 'Authentication Error: ' + e.message });
+    }
+  };
+
+  const systemApi = express.Router();
+  systemApi.use(authenticateSession);
+
+  systemApi.get('/tables', (req, res) => {
+    try {
+      const tables = db.prepare(`
+        SELECT name FROM sqlite_schema 
+        WHERE type='table' AND name NOT LIKE '_carabase_%' AND name NOT LIKE 'sqlite_%' AND name NOT IN ('users', 'api_tokens', 'agent_keys', 'audit_logs');
+      `).all();
+      res.json(tables);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.post('/tables', (req, res) => {
+    const { tableName, columns } = req.body;
+    if (!tableName || !Array.isArray(columns)) {
+      return res.status(400).json({ error: 'Invalid payload' });
+    }
+    const safeIdent = (str: string) => str.replace(/[^a-zA-Z0-9_]/g, '');
+    const safeTable = safeIdent(tableName);
+    if (!safeTable) return res.status(400).json({ error: 'Invalid table name' });
+
+    let colsDef = columns.map(c => {
+      const name = safeIdent(c.name);
+      let def = `${name} ${c.type || 'TEXT'}`;
+      if (c.primaryKey) def += ' PRIMARY KEY';
+      if (c.unique) def += ' UNIQUE';
+      if (!c.nullable && !c.primaryKey) def += ' NOT NULL';
+      if (c.defaultValue) def += ` DEFAULT '${c.defaultValue.replace(/'/g, "''")}'`;
+      return def;
+    }).join(', ');
+
+    try {
+      db.exec(`CREATE TABLE ${safeTable} (${colsDef})`);
+      res.json({ success: true, table: safeTable });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.get('/tables/:name/columns', (req, res) => {
+    const safeTable = req.params.name.replace(/[^a-zA-Z0-9_]/g, '');
+    try {
+      const columns = db.prepare(`PRAGMA table_info(${safeTable})`).all();
+      res.json(columns);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.post('/query', (req, res) => {
+    const { query, method = 'all', params = [] } = req.body;
+    try {
+      if (method === 'run') {
+        const result = db.prepare(query).run(...params);
+        res.json(result);
+      } else {
+        const rows = db.prepare(query).all(...params);
+        res.json(rows);
+      }
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.get('/tables/:name/rows', (req, res) => {
+      const safeTable = req.params.name.replace(/[^a-zA-Z0-9_]/g, '');
+      const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      try {
+          const rows = db.prepare(`SELECT * FROM ${safeTable} LIMIT ? OFFSET ?`).all(limit, offset);
+          res.json(rows);
+      } catch (e: any) {
+          res.status(500).json({ error: e.message });
+      }
+  });
+
+  // legacy API mapping mostly replacing DB calls
+  systemApi.get('/keys', (req, res) => {
+    try {
+      const keys = db.prepare(`SELECT id, name, type, created_at, substr(key, 1, 8) || '...' as partial_key FROM _carabase_api_keys`).all();
+      res.json(keys);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.post('/keys', (req, res) => {
+    const { name, type } = req.body;
+    if (!name || (type !== 'public' && type !== 'private')) return res.status(400).json({ error: 'Invalid parameters' });
+    const id = uuidv4();
+    const prefix = type === 'public' ? 'pk_' : 'sk_';
+    const key = prefix + crypto.randomBytes(32).toString('hex');
+    try {
+      db.prepare('INSERT INTO _carabase_api_keys (id, name, key, type) VALUES (?, ?, ?, ?)').run(id, name, key, type);
+      res.json({ id, name, type, key });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.delete('/keys/:id', (req, res) => {
+    try {
+      db.prepare('DELETE FROM _carabase_api_keys WHERE id = ?').run(req.params.id);
+      res.json({ success: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  const authenticateDataApi = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    let apiKey = (req.headers['apikey'] as string) || (req.query.apikey as string);
+    let sessionToken: string | undefined;
+
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.substring(7).trim();
+      if (token.startsWith('pk_') || token.startsWith('sk_')) {
+        apiKey = token;
+      } else {
+        sessionToken = token;
+      }
+    }
+
+    if (!apiKey) {
+      return res.status(401).json({ error: 'Missing API Key (apikey header or Bearer token required)' });
+    }
+
+    try {
+      const apiKeyRow = db.prepare('SELECT * FROM _carabase_api_keys WHERE key = ?').get(apiKey) as any;
+      if (!apiKeyRow) {
+         return res.status(401).json({ error: 'Invalid API Key' });
+      }
+      (req as any).apiKey = apiKeyRow;
+
+      if (sessionToken) {
+        if (sessionToken.startsWith('api-')) {
+          const hashedToken = crypto.createHash('sha256').update(sessionToken).digest('hex');
+          const tokenRow = db.prepare('SELECT * FROM api_tokens WHERE token_hash = ? AND revoked_at IS NULL').get(hashedToken) as any;
+          if (tokenRow) {
+            const isExpired = new Date(tokenRow.expires_at) < new Date();
+            if (!isExpired) {
+              if (tokenRow.owner_type === 'human') {
+                (req as any).userUuid = tokenRow.owner_key;
+                const userRow = db.prepare('SELECT username FROM users WHERE uuid = ?').get(tokenRow.owner_key) as any;
+                if (userRow) {
+                  (req as any).username = userRow.username;
+                }
+              } else if (tokenRow.owner_type === 'agent') {
+                const agentRow = db.prepare('SELECT user_uuid, name FROM agent_keys WHERE api_key_hash = ? AND is_active = 1').get(tokenRow.owner_key) as any;
+                if (agentRow) {
+                  (req as any).userUuid = agentRow.user_uuid;
+                  (req as any).username = `agent:${agentRow.name}`;
+                }
+              }
+            }
+          }
+        } else if (sessionToken.startsWith('hu-')) {
+          const keyHash = crypto.createHash('sha256').update(sessionToken).digest('hex');
+          const userRow = db.prepare('SELECT uuid, username FROM users WHERE key_hash = ?').get(keyHash) as any;
+          if (userRow) {
+            (req as any).userUuid = userRow.uuid;
+            (req as any).username = userRow.username;
+          }
+        }
+      }
+
+      next();
+    } catch (e: any) {
+      res.status(500).json({ error: 'Authentication Error: ' + e.message });
+    }
+  };
+
+  const validateTargetTable = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+     const table = req.params.table;
+     if (!table || table.startsWith('_carabase_') || table.startsWith('sqlite_') || ['users', 'api_tokens', 'agent_keys', 'audit_logs'].includes(table)) {
+          return res.status(403).json({ error: 'Forbidden table' });
+     }
+     (req as any).safeTable = table.replace(/[^a-zA-Z0-9_]/g, '');
+     next();
+  }
+
+  const applyRls = (table: string, action: string, req: express.Request) => {
+      const policies = db.prepare("SELECT * FROM _carabase_policies WHERE table_name = ? AND (action = ? OR action = 'ALL')").all(table, action);
+      const apiKey = (req as any).apiKey;
+      if (apiKey.type === 'private') return '1=1';
+      if (policies.length === 0) return '0=1';
+      return '(' + policies.map((p: any) => '(' + p.definition + ')').join(' OR ') + ')';
+  }
+
+  // Parse custom filters (supporting standard and eq. syntax)
+  const parseQueryFilters = (query: any) => {
+    const filters: string[] = [];
+    const values: any[] = [];
+    for (const key of Object.keys(query)) {
+      if (key === 'apikey' || key === 'limit' || key === 'offset') continue;
+      const val = query[key];
+      if (typeof val === 'string') {
+        const cleanKey = key.replace(/[^a-zA-Z0-9_]/g, '');
+        if (val.startsWith('eq.')) {
+          filters.push(`${cleanKey} = ?`);
+          values.push(val.substring(3));
+        } else {
+          filters.push(`${cleanKey} = ?`);
+          values.push(val);
+        }
+      }
+    }
+    return {
+      whereClause: filters.length > 0 ? filters.join(' AND ') : '1=1',
+      values
+    };
+  };
+
+  const externalApi = express.Router();
+  externalApi.use(authenticateDataApi);
+
+  externalApi.get('/:table', validateTargetTable, (req, res) => {
+      const table = (req as any).safeTable;
+      const rlsFilter = applyRls(table, 'SELECT', req);
+      const isSSE = req.headers.accept && req.headers.accept.includes('text/event-stream');
+
+      if (isSSE) {
+          if (rlsFilter === '0=1') return res.status(403).json({ error: 'Violates row-level security policy' });
+          res.setHeader('Content-Type', 'text/event-stream');
+          res.setHeader('Cache-Control', 'no-cache');
+          res.setHeader('Connection', 'keep-alive');
+          res.flushHeaders();
+          res.write(`data: ${JSON.stringify({ type: 'connected', table })}\n\n`);
+
+          const listener = (eventData: any) => res.write(`data: ${JSON.stringify(eventData)}\n\n`);
+          const eventName = `table_change_${table}`;
+          realtimeEmitter.on(eventName, listener);
+          req.on('close', () => realtimeEmitter.off(eventName, listener));
+      } else {
+          try {
+              rlsContext.run({ userUuid: (req as any).userUuid || null, username: (req as any).username || null }, () => {
+                  const rows = db.prepare(`SELECT * FROM ${table} WHERE ${rlsFilter}`).all();
+                  res.json(rows);
+              });
+          } catch (e: any) {
+              res.status(500).json({ error: e.message });
+          }
+      }
+  });
+
+  externalApi.post('/:table', validateTargetTable, (req, res) => {
+      const table = (req as any).safeTable;
+      const rlsFilter = applyRls(table, 'INSERT', req);
+      
+      const data = req.body;
+      const keys = Object.keys(data).map(k => k.replace(/[^a-zA-Z0-9_]/g, ''));
+      const values = Object.values(data);
+      const marks = keys.map(() => '?').join(',');
+      
+      try {
+          rlsContext.run({ userUuid: (req as any).userUuid || null, username: (req as any).username || null }, () => {
+              const isBypassed = (req as any).apiKey.type === 'private';
+              
+              if (isBypassed) {
+                  const result = db.prepare(`INSERT INTO ${table} (${keys.join(',')}) VALUES (${marks})`).run(...values);
+                  realtimeEmitter.emit(`table_change_${table}`, {
+                      action: 'INSERT',
+                      data: { id: result.lastInsertRowid, ...data }
+                  });
+                  return res.json({ success: true, id: result.lastInsertRowid });
+              }
+
+              if (rlsFilter === '0=1') {
+                  throw new Error('RLS_VIOLATION');
+              }
+
+              // Transaction-based policy check
+              const lastId = db.transaction(() => {
+                  const result = db.prepare(`INSERT INTO ${table} (${keys.join(',')}) VALUES (${marks})`).run(...values);
+                  const lastId = result.lastInsertRowid;
+                  
+                  const check = db.prepare(`SELECT 1 FROM ${table} WHERE rowid = ? AND (${rlsFilter})`).get(lastId);
+                  if (!check) {
+                      throw new Error('RLS_VIOLATION');
+                  }
+                  
+                  realtimeEmitter.emit(`table_change_${table}`, {
+                      action: 'INSERT',
+                      data: { id: lastId, ...data }
+                  });
+                  return lastId;
+              })();
+
+              res.json({ success: true, id: lastId });
+          });
+      } catch (e: any) {
+          if (e.message === 'RLS_VIOLATION') {
+              res.status(403).json({ error: 'Violates row-level security policy for INSERT' });
+          } else {
+              res.status(500).json({ error: e.message });
+          }
+      }
+  });
+
+  externalApi.patch('/:table', validateTargetTable, (req, res) => {
+      const table = (req as any).safeTable;
+      const rlsSelectFilter = applyRls(table, 'SELECT', req);
+      const rlsUpdateFilter = applyRls(table, 'UPDATE', req);
+
+      const { whereClause, values: filterValues } = parseQueryFilters(req.query);
+      const data = req.body;
+      const keys = Object.keys(data).map(k => k.replace(/[^a-zA-Z0-9_]/g, ''));
+      const updateValues = Object.values(data);
+      
+      if (keys.length === 0) {
+          return res.status(400).json({ error: 'No fields to update' });
+      }
+
+      const setClause = keys.map(k => `${k} = ?`).join(', ');
+
+      try {
+          rlsContext.run({ userUuid: (req as any).userUuid || null, username: (req as any).username || null }, () => {
+              const isBypassed = (req as any).apiKey.type === 'private';
+
+              if (isBypassed) {
+                  const result = db.prepare(`UPDATE ${table} SET ${setClause} WHERE ${whereClause}`).run(...updateValues, ...filterValues);
+                  return res.json({ success: true, changes: result.changes });
+              }
+
+              if (rlsUpdateFilter === '0=1') {
+                  throw new Error('RLS_VIOLATION');
+              }
+
+              const changes = db.transaction(() => {
+                  const targetRows = db.prepare(`SELECT rowid AS carabase_rowid, * FROM ${table} WHERE (${whereClause}) AND (${rlsSelectFilter}) AND (${rlsUpdateFilter})`).all(...filterValues) as any[];
+                  
+                  if (targetRows.length === 0) {
+                      throw new Error('RLS_VIOLATION_OR_NOT_FOUND');
+                  }
+
+                  const result = db.prepare(`UPDATE ${table} SET ${setClause} WHERE (${whereClause}) AND (${rlsSelectFilter}) AND (${rlsUpdateFilter})`).run(...updateValues, ...filterValues);
+
+                  for (const row of targetRows) {
+                      const check = db.prepare(`SELECT 1 FROM ${table} WHERE rowid = ? AND (${rlsUpdateFilter})`).get(row.carabase_rowid);
+                      if (!check) {
+                          throw new Error('RLS_UPDATE_CHECK_VIOLATION');
+                      }
+                  }
+
+                  for (const row of targetRows) {
+                      realtimeEmitter.emit(`table_change_${table}`, {
+                          action: 'UPDATE',
+                          data: { ...row, ...data }
+                      });
+                  }
+
+                  return result.changes;
+              })();
+
+              res.json({ success: true, changes });
+          });
+      } catch (e: any) {
+          if (e.message === 'RLS_VIOLATION' || e.message === 'RLS_VIOLATION_OR_NOT_FOUND' || e.message === 'RLS_UPDATE_CHECK_VIOLATION') {
+              res.status(403).json({ error: 'Violates row-level security policy for UPDATE or rows not found' });
+          } else {
+              res.status(500).json({ error: e.message });
+          }
+      }
+  });
+
+  externalApi.delete('/:table', validateTargetTable, (req, res) => {
+      const table = (req as any).safeTable;
+      const rlsSelectFilter = applyRls(table, 'SELECT', req);
+      const rlsDeleteFilter = applyRls(table, 'DELETE', req);
+
+      const { whereClause, values: filterValues } = parseQueryFilters(req.query);
+
+      try {
+          rlsContext.run({ userUuid: (req as any).userUuid || null, username: (req as any).username || null }, () => {
+              const isBypassed = (req as any).apiKey.type === 'private';
+
+              if (isBypassed) {
+                  const result = db.prepare(`DELETE FROM ${table} WHERE ${whereClause}`).run(...filterValues);
+                  return res.json({ success: true, changes: result.changes });
+              }
+
+              if (rlsDeleteFilter === '0=1') {
+                  throw new Error('RLS_VIOLATION');
+              }
+
+              const changes = db.transaction(() => {
+                  const targetRows = db.prepare(`SELECT rowid AS carabase_rowid, * FROM ${table} WHERE (${whereClause}) AND (${rlsSelectFilter}) AND (${rlsDeleteFilter})`).all(...filterValues) as any[];
+                  
+                  if (targetRows.length === 0) {
+                      throw new Error('RLS_VIOLATION_OR_NOT_FOUND');
+                  }
+
+                  const result = db.prepare(`DELETE FROM ${table} WHERE (${whereClause}) AND (${rlsSelectFilter}) AND (${rlsDeleteFilter})`).run(...filterValues);
+
+                  for (const row of targetRows) {
+                      realtimeEmitter.emit(`table_change_${table}`, {
+                          action: 'DELETE',
+                          data: row
+                      });
+                  }
+
+                  return result.changes;
+              })();
+
+              res.json({ success: true, changes });
+          });
+      } catch (e: any) {
+          if (e.message === 'RLS_VIOLATION' || e.message === 'RLS_VIOLATION_OR_NOT_FOUND') {
+              res.status(403).json({ error: 'Violates row-level security policy for DELETE or rows not found' });
+          } else {
+              res.status(500).json({ error: e.message });
+          }
+      }
+  });
+
+  app.use('/rest/v1', externalApi);
+
+  const storageApi = express.Router();
+  storageApi.use(authenticateDataApi);
+
+  storageApi.post('/upload', upload.single('file'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    const id = uuidv4();
+    try {
+      db.prepare('INSERT INTO _carabase_storage (id, original_name, filename, mime_type, size) VALUES (?, ?, ?, ?, ?)').run(id, req.file.originalname, req.file.filename, req.file.mimetype, req.file.size);
+      res.json({ success: true, id, filename: req.file.filename });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Public direct file retrieval route (mounted before auth router for anonymous sharing)
+  app.get('/storage/v1/file/:id', (req, res) => {
+     try {
+       const row = db.prepare('SELECT * FROM _carabase_storage WHERE id = ?').get(req.params.id) as any;
+       if (!row) return res.status(404).json({ error: 'File not found' });
+       const filePath = path.join(storageDir, row.filename);
+       if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File physically missing' });
+       res.setHeader('Content-Type', row.mime_type);
+       res.sendFile(filePath);
+     } catch(e: any) {
+       res.status(500).json({ error: e.message });
+     }
+  });
+
+  app.use('/storage/v1', storageApi);
+
+  systemApi.get('/storage', (req, res) => {
+      try {
+          const files = db.prepare('SELECT * FROM _carabase_storage ORDER BY created_at DESC').all();
+          res.json(files);
+      } catch (e: any) {
+          res.status(500).json({ error: e.message });
+      }
+  });
+
+  systemApi.post('/storage/upload', upload.single('file'), (req, res) => {
+      if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+      const id = uuidv4();
+      try {
+        db.prepare('INSERT INTO _carabase_storage (id, original_name, filename, mime_type, size) VALUES (?, ?, ?, ?, ?)').run(id, req.file.originalname, req.file.filename, req.file.mimetype, req.file.size);
+        res.json({ success: true, id, filename: req.file.filename });
+      } catch (e: any) {
+        res.status(500).json({ error: e.message });
+      }
+  });
+
+  systemApi.delete('/storage/:id', (req, res) => {
+      try {
+          const row = db.prepare('SELECT * FROM _carabase_storage WHERE id = ?').get(req.params.id) as any;
+          if (row) {
+             const filePath = path.join(storageDir, row.filename);
+             if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+             db.prepare('DELETE FROM _carabase_storage WHERE id = ?').run(req.params.id);
+          }
+          res.json({ success: true });
+      } catch (e: any) {
+          res.status(500).json({ error: e.message });
+      }
+  });
+
+  systemApi.get('/policies', (req, res) => {
+      try {
+          const policies = db.prepare('SELECT * FROM _carabase_policies').all();
+          res.json(policies);
+      } catch (e: any) {
+          res.status(500).json({ error: e.message });
+      }
+  });
+
+  systemApi.post('/policies', (req, res) => {
+      const { table_name, action, definition } = req.body;
+      const id = uuidv4();
+      try {
+          db.prepare('INSERT INTO _carabase_policies (id, table_name, action, definition) VALUES (?, ?, ?, ?)').run(id, table_name, action, definition);
+          res.json({ id, table_name, action, definition });
+      } catch (e: any) {
+          res.status(500).json({ error: e.message });
+      }
+  });
+
+  systemApi.delete('/policies/:id', (req, res) => {
+      try {
+          db.prepare('DELETE FROM _carabase_policies WHERE id = ?').run(req.params.id);
+          res.json({ success: true });
+      } catch (e: any) {
+          res.status(500).json({ error: e.message });
+      }
+  });
+
+  app.use('/api/system', systemApi);
+
+  if (process.env.NODE_ENV !== 'production') {
+    const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+    app.get('*all', (req, res) => res.sendFile(path.join(distPath, 'index.html')));
+  }
+
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`\n[Database] Checking migrations...`);
+    console.log(`[Database] Migrations complete.`);
+    console.log(`\n🔑 System auth and REST routes ready.`);
+    console.log(`🦞 CaraBase API running on port ${PORT}`);
+    console.log(`   Local API URL: http://localhost:${PORT}`);
+  });
+
+  // Graceful Shutdown Hook
+  const audit = createAuditLogger(db);
+  function handleShutdown(signal: string) {
+    console.log(`\n[Server] Received ${signal}. Shutting down gracefully...`);
+    
+    try {
+      audit.log('SYSTEM_SHUTDOWN', {
+        action: 'shutdown',
+        outcome: 'success',
+        details: { signal }
+      });
+    } catch (err: any) {
+      console.error('[Shutdown Log Error]', err.message);
+    }
+
+    try {
+      db.close(); // Close SQLite database handles immediately to preserve data integrity
+      console.log('[Database] 🗄️ Database connections closed securely.');
+    } catch (dbErr: any) {
+      console.error('[Database Close Error]', dbErr.message);
+    }
+
+    // Force exit immediately after db close to release the port for the next tsx-watch spawn
+    console.log('[Server] Releasing port and exiting.');
+    process.exit(0);
+  }
+
+  process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+  process.on('SIGINT', () => handleShutdown('SIGINT'));
+}
+
+startServer();
