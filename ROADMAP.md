@@ -12,9 +12,9 @@
 - [x] Storage: Includes integrated file storage for handling user uploads.
 - [x] Real-time: Provides real-time updates via Server-Sent Events (SSE)
 - [x] Implement Server-Sent Events (SSE) for the '/rest/v1/:table' endpoint to push realtime database changes to connected clients.
-- [ ] The application has a theme toggle functionality that uses a circular reveal animation. Add support for a dark mode. Apply dark mode styles globally and ensure the theme toggle button correctly switches between light and dark themes.
-- [ ] The application needs a dark mode. Globally apply dark mode styles and ensure the existing theme toggle button correctly switches between light and dark themes. This should leverage the CSS variables or a similar mechanism for theming.
-- [ ] Add realtime database functionality to CaraBase. Users should be able to subscribe to database changes and receive updates in real-time, similar to how services like Firebase or Supabase offer this feature. Ensure efficient handling of concurrent connections and data broadcasts.
+- [x] The application has a theme toggle functionality that uses a circular reveal animation. Add support for a dark mode. Apply dark mode styles globally and ensure the theme toggle button correctly switches between light and dark themes.
+- [x] The application needs a dark mode. Globally apply dark mode styles and ensure the existing theme toggle button correctly switches between light and dark themes. This should leverage the CSS variables or a similar mechanism for theming.
+- [x] Add realtime database functionality to CaraBase. Users should be able to subscribe to database changes and receive updates in real-time, similar to how services like Firebase or Supabase offer this feature. Ensure efficient handling of concurrent connections and data broadcasts.
 - [ ] Develop a feature within the CaraBase web UI that allows users to automatically generate RESTful APIs for their SQLite databases. The builder should let users define endpoints, specify HTTP methods (GET, POST, PUT, DELETE), and configure request/response schemas based on their database tables. Include options for pagination, filtering, and sorting.
 
 
@@ -25,16 +25,16 @@
 - [ ] Provide clearer visual feedback to the user when data operations (add, delete, update) are in progress or have failed. This could include loading spinners, success/error messages, or disabling buttons during operations to prevent duplicate requests.
 - [x] Implement confirmation dialogs for destructive actions within the CaraBase application. Specifically, add dialogs before revoking API keys or deleting RLS policies to prevent accidental data loss.
 - [ ] Implement user role management to assign different permissions (e.g., admin, editor, viewer) to users, allowing for granular access control within the application.
-- [ ] Add audit logging to track all significant user actions (e.g., data modifications, API key revocations, policy changes) and store these logs for security and compliance purposes.
+- [x] Add audit logging to track all significant user actions (e.g., data modifications, API key revocations, policy changes) and store these logs for security and compliance purposes.
 - [ ] Storage abstraction interface layer for local FS uploads.
-- [ ] For operations involving multiple database writes (e.g., creating a table and its initial policies), implement database transactions to ensure atomicity. If any part of the operation fails, roll back all changes to maintain data consistency.
-- [ ] Implement server-side validation for all incoming data in API endpoints related to data manipulation (e.g., creating/updating tables, managing policies, API keys). Ensure data conforms to expected types, formats, and constraints before processing to prevent corruption.
-- [ ] Enhance error handling for API requests (POST /api/system/keys, DELETE /api/system/keys/:id) and database operations. Ensure all errors are caught, logged appropriately, and returned to the client with meaningful messages. Consider a centralized error handling middleware.
+- [x] For operations involving multiple database writes (e.g., creating a table and its initial policies), implement database transactions to ensure atomicity. If any part of the operation fails, roll back all changes to maintain data consistency.
+- [x] Implement server-side validation for all incoming data in API endpoints related to data manipulation (e.g., creating/updating tables, managing policies, API keys). Ensure data conforms to expected types, formats, and constraints before processing to prevent corruption.
+- [x] Enhance error handling for API requests (POST /api/system/keys, DELETE /api/system/keys/:id) and database operations. Ensure all errors are caught, logged appropriately, and returned to the client with meaningful messages. Consider a centralized error handling middleware.
 - [x] In the API Keys page, implement the functionality to generate a new API key. When a user provides a name and type (public/private) for a new API key, generate a unique key, store it in the database, and display it to the user. Ensure the generated key is only shown once upon creation.
 - [x] Add confirmation dialogs for destructive actions like deleting tables or revoking API keys.
 - [ ] Implement a daily automated backup mechanism for the SQLite database. The backups should be stored in a separate directory, ideally configurable via environment variables, and the system should retain a reasonable number of recent backups to allow for restoration.
 - [x] The CaraBase application has a page for managing Row Level Security (RLS) policies. Add functionality to delete existing policies. Include a confirmation dialog to prevent accidental deletion.
-- [ ] Create a new page or section in the dashboard to display audit logs. This should show details of user actions, including timestamp, event type, actor, action, and outcome. Allow filtering and searching of logs.
+- [x] Create a new page or section in the dashboard to display audit logs. This should show details of user actions, including timestamp, event type, actor, action, and outcome. Allow filtering and searching of logs.
 
 ## Phase 3: Table Editor
 - [ ] Add a feature to fetch data from the '/rest/v1/:table' endpoint for a selected table and display it in a table format.

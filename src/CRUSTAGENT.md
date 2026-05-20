@@ -34,3 +34,11 @@ Row-Level Security (RLS) is achieved via `applyRls` in `server.ts` combined with
 
 - **Anonymous Downloads**: Public files are shared securely via `/storage/v1/file/:id` which bypasses API auth middleware for easy browser embedding.
 - **System Upload Endpoint**: Secured dashboard uploads are routed to `/api/system/storage/upload` via `FormData` and are guarded by human/agent session tokens.
+
+## Network Hardening & Testing Topology
+
+- **Loopback Rate-Limit Bypass**: E2E automated test runs fire requests extremely rapidly. In `src/server/middleware/rateLimiter.ts`, loopback IP blocks are explicitly checked and bypassed so test suites can run without trigger flakiness, while keeping production rate limits set to 10 requests per 60 seconds per IP.
+- **Fallback Route Boundary**: Any route that does not match Express routing but has backend prefixes (`/api`, `/storage`, `/rest`) is intercepted and rejected with a JSON `404 Not Found` in both dev and production modes. This prevents frontend SPA servers (like Vite) from serving source code or mapping directory traversals when an attacker crafts custom URL paths.
+- **Security Audit Console**: Structured system events (such as logins, token creations, and key revocations) are saved into the `audit_logs` schema. The frontend dashboard fetches this feed from `GET /api/system/audit-logs` and displays them dynamically in `src/pages/Dashboard.tsx` with a real-time filter, outcome status indicators, and JSON inspection drawers.
+
+**Maintained by CrustAgent©™**

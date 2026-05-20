@@ -554,6 +554,15 @@ async function startServer() {
       }
   });
 
+  systemApi.get('/audit-logs', (req, res) => {
+      try {
+          const logs = db.prepare('SELECT * FROM audit_logs ORDER BY timestamp DESC LIMIT 500').all();
+          res.json(logs);
+      } catch (e: any) {
+          res.status(500).json({ error: e.message });
+      }
+  });
+
   systemApi.get('/policies', (req, res) => {
       try {
           const policies = db.prepare('SELECT * FROM _carabase_policies').all();
@@ -587,11 +596,23 @@ async function startServer() {
 
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });
+    // Prevent Vite from intercepting any /api, /storage, or /rest routes that were not matched
+    app.use((req, res, next) => {
+      if (req.path.startsWith('/api') || req.path.startsWith('/storage') || req.path.startsWith('/rest')) {
+        return res.status(404).json({ error: 'Not Found' });
+      }
+      next();
+    });
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*all', (req, res) => res.sendFile(path.join(distPath, 'index.html')));
+    app.get('*all', (req, res) => {
+      if (req.path.startsWith('/api') || req.path.startsWith('/storage') || req.path.startsWith('/rest')) {
+        return res.status(404).json({ error: 'Not Found' });
+      }
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
   }
 
   const server = app.listen(PORT, '0.0.0.0', () => {
