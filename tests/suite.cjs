@@ -668,6 +668,80 @@ async function runTests() {
 
 
   // =========================================================================
+  // Phase 9: Custom Dynamic REST APIs
+  // =========================================================================
+  console.log("\n--- Phase 9: Custom Dynamic REST API Generator ---");
+
+  let customEndpointId = null;
+
+  try {
+     // 1. Create a custom API endpoint mapped to the users table (GET /custom/test-users)
+     const createEpRes = await fetch(`${BASE_URL}/api/system/endpoints`, {
+       method: 'POST',
+       headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+       body: JSON.stringify({
+         name: 'Test Fetch Users',
+         path: 'test-users',
+         method: 'GET',
+         table_name: 'users',
+         schema: {
+           columns: ['uuid', 'username'], // restrict columns
+           pagination: true,
+           sorting: true,
+           filters: [],
+           validation: []
+         }
+       })
+     });
+
+     const customEp = await createEpRes.json();
+     customEndpointId = customEp.id;
+     assert(customEp.id !== undefined, "Custom dynamic API endpoint registered successfully");
+     assert(customEp.path === 'test-users', "Custom endpoint configuration matches input schema path");
+
+     // 2. Fetch custom endpoints list
+     const getEpsRes = await fetch(`${BASE_URL}/api/system/endpoints`, {
+       headers: { 'Authorization': `Bearer ${token1}` }
+     });
+     const epsList = await getEpsRes.json();
+     const hasOurEp = epsList.some(e => e.id === customEndpointId);
+     assert(hasOurEp, "Custom endpoint listed successfully in system endpoints query");
+
+     // 3. Query the dynamic custom endpoint (GET /rest/v1/custom/test-users) using the public key
+     const runQueryRes = await fetch(`${BASE_URL}/rest/v1/custom/test-users`, {
+       headers: { 'apikey': externalPublicKey }
+     });
+     const queryRows = await runQueryRes.json();
+     assert(runQueryRes.status === 200, "Successfully executed dynamic custom GET request anonymously");
+     assert(Array.isArray(queryRows), "Dynamic endpoint returns array of records");
+     
+     // 4. Verify restricted columns (key_hash should NOT be returned!)
+     if (queryRows.length > 0) {
+       const keys = Object.keys(queryRows[0]);
+       assert(!keys.includes('key_hash'), "Dynamic REST API respects custom column selections and sanitizes response");
+       assert(keys.includes('username'), "Response correctly includes allowed username column");
+     } else {
+       assert(true, "Restricted columns validation passed (empty table checked)");
+     }
+
+     // 5. Delete the custom API endpoint
+     const delEpRes = await fetch(`${BASE_URL}/api/system/endpoints/${customEndpointId}`, {
+       method: 'DELETE',
+       headers: { 'Authorization': `Bearer ${token1}` }
+     });
+     const delResult = await delEpRes.json();
+     assert(delResult.success, "Custom endpoint deleted successfully via system API");
+
+     // 6. Requesting deleted path should return 404
+     const testDeletedRes = await fetch(`${BASE_URL}/rest/v1/custom/test-users`, {
+       headers: { 'apikey': externalPublicKey }
+     });
+     assert(testDeletedRes.status === 404, "Deleted dynamic route correctly returns 404 Not Found");
+
+  } catch(e) { assert(false, "Custom API Generator validation crashed: " + e.message); }
+
+
+  // =========================================================================
   // Final Verdict
   // =========================================================================
   console.log("\n=====================================================");

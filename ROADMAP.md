@@ -15,7 +15,7 @@
 - [x] The application has a theme toggle functionality that uses a circular reveal animation. Add support for a dark mode. Apply dark mode styles globally and ensure the theme toggle button correctly switches between light and dark themes.
 - [x] The application needs a dark mode. Globally apply dark mode styles and ensure the existing theme toggle button correctly switches between light and dark themes. This should leverage the CSS variables or a similar mechanism for theming.
 - [x] Add realtime database functionality to CaraBase. Users should be able to subscribe to database changes and receive updates in real-time, similar to how services like Firebase or Supabase offer this feature. Ensure efficient handling of concurrent connections and data broadcasts.
-- [ ] Develop a feature within the CaraBase web UI that allows users to automatically generate RESTful APIs for their SQLite databases. The builder should let users define endpoints, specify HTTP methods (GET, POST, PUT, DELETE), and configure request/response schemas based on their database tables. Include options for pagination, filtering, and sorting.
+- [x] Develop a feature within the CaraBase web UI that allows users to automatically generate RESTful APIs for their SQLite databases. The builder should let users define endpoints, specify HTTP methods (GET, POST, PUT, DELETE), and configure request/response schemas based on their database tables. Include options for pagination, filtering, and sorting.
 
 
 ## Phase 2: Structural Integrity

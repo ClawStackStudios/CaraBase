@@ -17,6 +17,7 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const realtimeEmitter = new EventEmitter();
 
 async function startServer() {
+  const audit = createAuditLogger(db);
   const app = express();
   app.set('trust proxy', 1);
   app.use(express.json());
@@ -288,6 +289,217 @@ async function startServer() {
 
   const externalApi = express.Router();
   externalApi.use(authenticateDataApi);
+
+  // Dynamic REST API Generator Catch-all Interceptor Router
+  externalApi.all('/custom/:path(*)', async (req, res) => {
+      const path = req.params.path;
+      const method = req.method.toUpperCase();
+
+      try {
+          const endpoint = db.prepare('SELECT * FROM _carabase_custom_endpoints WHERE path = ? AND method = ?').get(path, method) as any;
+          if (!endpoint) {
+              return res.status(404).json({ error: `Custom endpoint not found for path: /custom/${path} and method: ${method}` });
+          }
+
+          const schema = JSON.parse(endpoint.schema);
+          const table = endpoint.table_name;
+
+          // 1. Validate request body against builder parameters (POST / PATCH / PUT)
+          if (['POST', 'PATCH', 'PUT'].includes(method)) {
+              if (schema.validation && Array.isArray(schema.validation)) {
+                  for (const rule of schema.validation) {
+                      const val = req.body[rule.field];
+                      if (rule.required && (val === undefined || val === null || val === '')) {
+                          return res.status(400).json({ error: `Field '${rule.field}' is required` });
+                      }
+                      if (val !== undefined && val !== null) {
+                          if (rule.type === 'number' && isNaN(Number(val))) {
+                              return res.status(400).json({ error: `Field '${rule.field}' must be a number` });
+                          }
+                          if (rule.type === 'boolean' && typeof val !== 'boolean' && val !== 'true' && val !== 'false' && val !== 1 && val !== 0) {
+                              return res.status(400).json({ error: `Field '${rule.field}' must be a boolean` });
+                          }
+                      }
+                  }
+              }
+          }
+
+          // 2. Process dynamic DB operations
+          if (method === 'GET') {
+              let columnsList = '*';
+              if (schema.columns && Array.isArray(schema.columns) && schema.columns.length > 0) {
+                  columnsList = schema.columns.map((c: string) => c.replace(/[^a-zA-Z0-9_]/g, '')).join(', ');
+              }
+
+              const rlsSelectFilter = applyRls(table, 'SELECT', req);
+              const { whereClause: queryWhere, values: queryValues } = parseQueryFilters(req.query);
+
+              // Pre-configured static builder filter rules
+              let staticWhere = '1=1';
+              const staticValues: any[] = [];
+              if (schema.filters && Array.isArray(schema.filters)) {
+                  for (const f of schema.filters) {
+                      if (f.field && f.operator && f.value !== undefined) {
+                          const cleanField = f.field.replace(/[^a-zA-Z0-9_]/g, '');
+                          const op = f.operator.toUpperCase();
+                          if (['=', '!=', '>', '<', '>=', '<=', 'LIKE'].includes(op)) {
+                              staticWhere += ` AND ${cleanField} ${op} ?`;
+                              staticValues.push(f.value);
+                          }
+                      }
+                  }
+              }
+
+              const combinedWhere = `(${rlsSelectFilter}) AND (${queryWhere}) AND (${staticWhere})`;
+              const allValues = [...queryValues, ...staticValues];
+
+              // Pagination options
+              let paginationSql = '';
+              if (schema.pagination) {
+                  const limit = parseInt(req.query.limit as string) || schema.defaultLimit || 10;
+                  const offset = parseInt(req.query.offset as string) || 0;
+                  paginationSql = ' LIMIT ? OFFSET ?';
+                  allValues.push(limit, offset);
+              }
+
+              // Sorting options
+              let sortingSql = '';
+              if (schema.sorting) {
+                  const orderBy = (req.query.order_by as string) || schema.defaultSortField;
+                  if (orderBy) {
+                      const dir = ((req.query.dir as string) || schema.defaultSortDir || 'ASC').toUpperCase();
+                      const cleanOrderBy = orderBy.replace(/[^a-zA-Z0-9_]/g, '');
+                      if (['ASC', 'DESC'].includes(dir)) {
+                          sortingSql = ` ORDER BY ${cleanOrderBy} ${dir}`;
+                      }
+                  }
+              }
+
+              const sql = `SELECT ${columnsList} FROM ${table} WHERE ${combinedWhere}${sortingSql}${paginationSql}`;
+              const rows = db.prepare(sql).all(...allValues);
+              return res.json(rows);
+
+          } else if (method === 'POST') {
+              const body = req.body;
+              const fields = Object.keys(body).filter(k => k !== 'id');
+              const cleanFields = fields.map(f => f.replace(/[^a-zA-Z0-9_]/g, ''));
+              const placeholders = fields.map(() => '?').join(', ');
+              const values = fields.map(f => body[f]);
+
+              if (cleanFields.length === 0) {
+                  return res.status(400).json({ error: 'No fields provided for insertion' });
+              }
+
+              const rlsInsertFilter = applyRls(table, 'INSERT', req);
+              const id = uuidv4();
+
+              db.transaction(() => {
+                  db.prepare(`INSERT INTO ${table} (id, ${cleanFields.join(', ')}) VALUES (?, ${placeholders})`).run(id, ...values);
+                  const check = db.prepare(`SELECT 1 FROM ${table} WHERE id = ? AND (${rlsInsertFilter})`).get(id);
+                  if (!check) {
+                      throw new Error('RLS_VIOLATION');
+                  }
+              })();
+
+              const insertedRow = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(id);
+
+              audit.log('CUSTOM_ENDPOINT_POST', {
+                  actor: (req as any).userUuid || 'anonymous',
+                  actor_type: (req as any).userUuid ? 'human' : 'anonymous',
+                  resource: `${table}/${id}`,
+                  action: 'insert',
+                  outcome: 'success',
+                  ip_address: req.ip,
+                  user_agent: req.headers['user-agent'] || '',
+                  details: { endpoint: path, table }
+              });
+
+              return res.status(201).json(insertedRow);
+
+          } else if (method === 'PATCH' || method === 'PUT') {
+              const body = req.body;
+              const fields = Object.keys(body).filter(k => k !== 'id');
+              const cleanFields = fields.map(f => f.replace(/[^a-zA-Z0-9_]/g, ''));
+              const values = fields.map(f => body[f]);
+
+              if (cleanFields.length === 0) {
+                  return res.status(400).json({ error: 'No fields provided for update' });
+              }
+
+              const rlsSelectFilter = applyRls(table, 'SELECT', req);
+              const rlsUpdateFilter = applyRls(table, 'UPDATE', req);
+
+              const { whereClause: queryWhere, values: queryValues } = parseQueryFilters(req.query);
+              const combinedWhere = `(${rlsSelectFilter}) AND (${queryWhere})`;
+
+              const targets = db.prepare(`SELECT id FROM ${table} WHERE ${combinedWhere}`).all(...queryValues);
+              if (targets.length === 0) {
+                  return res.json({ updated: 0 });
+              }
+
+              db.transaction(() => {
+                  const setClause = cleanFields.map(f => `${f} = ?`).join(', ');
+                  for (const target of targets as any[]) {
+                      db.prepare(`UPDATE ${table} SET ${setClause} WHERE id = ?`).run(...values, target.id);
+                      const check = db.prepare(`SELECT 1 FROM ${table} WHERE id = ? AND (${rlsUpdateFilter})`).get(target.id);
+                      if (!check) {
+                          throw new Error('RLS_VIOLATION');
+                      }
+                  }
+              })();
+
+              audit.log('CUSTOM_ENDPOINT_PATCH', {
+                  actor: (req as any).userUuid || 'anonymous',
+                  actor_type: (req as any).userUuid ? 'human' : 'anonymous',
+                  resource: `${table}`,
+                  action: 'update',
+                  outcome: 'success',
+                  ip_address: req.ip,
+                  user_agent: req.headers['user-agent'] || '',
+                  details: { endpoint: path, table, affected_count: targets.length }
+              });
+
+              return res.json({ updated: targets.length });
+
+          } else if (method === 'DELETE') {
+              const rlsSelectFilter = applyRls(table, 'SELECT', req);
+              const rlsDeleteFilter = applyRls(table, 'DELETE', req);
+
+              const { whereClause: queryWhere, values: queryValues } = parseQueryFilters(req.query);
+              const combinedWhere = `(${rlsSelectFilter}) AND (${rlsDeleteFilter}) AND (${queryWhere})`;
+
+              const targets = db.prepare(`SELECT id FROM ${table} WHERE ${combinedWhere}`).all(...queryValues);
+              if (targets.length === 0) {
+                  return res.json({ deleted: 0 });
+              }
+
+              db.transaction(() => {
+                  for (const target of targets as any[]) {
+                      db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(target.id);
+                  }
+              })();
+
+              audit.log('CUSTOM_ENDPOINT_DELETE', {
+                  actor: (req as any).userUuid || 'anonymous',
+                  actor_type: (req as any).userUuid ? 'human' : 'anonymous',
+                  resource: `${table}`,
+                  action: 'delete',
+                  outcome: 'success',
+                  ip_address: req.ip,
+                  user_agent: req.headers['user-agent'] || '',
+                  details: { endpoint: path, table, affected_count: targets.length }
+              });
+
+              return res.json({ deleted: targets.length });
+          }
+
+      } catch (e: any) {
+          if (e.message === 'RLS_VIOLATION') {
+              return res.status(403).json({ error: 'Row-Level Security policy violation' });
+          }
+          res.status(500).json({ error: e.message });
+      }
+  });
 
   externalApi.get('/:table', validateTargetTable, (req, res) => {
       const table = (req as any).safeTable;
@@ -592,6 +804,64 @@ async function startServer() {
       }
   });
 
+  systemApi.get('/endpoints', (req, res) => {
+      try {
+          const endpoints = db.prepare('SELECT * FROM _carabase_custom_endpoints ORDER BY created_at DESC').all();
+          res.json(endpoints);
+      } catch (e: any) {
+          res.status(500).json({ error: e.message });
+      }
+  });
+
+  systemApi.post('/endpoints', (req, res) => {
+      const { name, path, method, table_name, schema } = req.body;
+      const id = uuidv4();
+      try {
+          db.prepare('INSERT INTO _carabase_custom_endpoints (id, name, path, method, table_name, schema) VALUES (?, ?, ?, ?, ?, ?)').run(
+              id, name, path, method, table_name, JSON.stringify(schema)
+          );
+
+          audit.log('ENDPOINT_CREATED', {
+              actor: (req as any).userSession.user_uuid,
+              actor_type: 'human',
+              resource: id,
+              action: 'create',
+              outcome: 'success',
+              ip_address: req.ip,
+              user_agent: req.headers['user-agent'] || '',
+              details: { name, path, method, table_name }
+          });
+
+          res.json({ id, name, path, method, table_name, schema });
+      } catch (e: any) {
+          res.status(500).json({ error: e.message });
+      }
+  });
+
+  systemApi.delete('/endpoints/:id', (req, res) => {
+      const { id } = req.params;
+      try {
+          const endpoint = db.prepare('SELECT * FROM _carabase_custom_endpoints WHERE id = ?').get(id) as any;
+          if (endpoint) {
+              db.prepare('DELETE FROM _carabase_custom_endpoints WHERE id = ?').run(id);
+
+              audit.log('ENDPOINT_DELETED', {
+                  actor: (req as any).userSession.user_uuid,
+                  actor_type: 'human',
+                  resource: id,
+                  action: 'delete',
+                  outcome: 'success',
+                  ip_address: req.ip,
+                  user_agent: req.headers['user-agent'] || '',
+                  details: { name: endpoint.name, path: endpoint.path, method: endpoint.method }
+              });
+          }
+          res.json({ success: true });
+      } catch (e: any) {
+          res.status(500).json({ error: e.message });
+      }
+  });
+
   app.use('/api/system', systemApi);
 
   if (process.env.NODE_ENV !== 'production') {
@@ -624,7 +894,6 @@ async function startServer() {
   });
 
   // Graceful Shutdown Hook
-  const audit = createAuditLogger(db);
   function handleShutdown(signal: string) {
     console.log(`\n[Server] Received ${signal}. Shutting down gracefully...`);
     

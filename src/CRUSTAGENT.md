@@ -35,6 +35,14 @@ Row-Level Security (RLS) is achieved via `applyRls` in `server.ts` combined with
 - **Anonymous Downloads**: Public files are shared securely via `/storage/v1/file/:id` which bypasses API auth middleware for easy browser embedding.
 - **System Upload Endpoint**: Secured dashboard uploads are routed to `/api/system/storage/upload` via `FormData` and are guarded by human/agent session tokens.
 
+## Custom Dynamic REST API Engine
+
+Custom dynamic API routes are built through the Visual API Builder (`src/pages/ApiBuilder.tsx`) and backed by the dynamic interceptor in the Express server.
+- **Dynamic Routing**: Defined custom endpoints are persisted in `_carabase_endpoints`. The backend dynamically registers and matches incoming requests to `/rest/v1/custom/:path` against the active endpoint registry.
+- **Visual Builder Schema**: Endpoint configurations map a unique path, action, HTTP method (GET, POST, PUT, DELETE), target table, and schema configurations (sorting, pagination, column selection).
+- **Restricted Responses**: Response columns are sanitized dynamically on execution. Non-permitted fields (such as `key_hash` or unselected columns) are omitted before output to strictly maintain security barriers.
+- **E2E Testing Suite**: Phase 9 test coverage enforces the system's dynamic interceptor, route registration, anonymous custom GET queries with public API keys, restricted column response sanitizations, and route deletion.
+
 ## Network Hardening & Testing Topology
 
 - **Loopback Rate-Limit Bypass**: E2E automated test runs fire requests extremely rapidly. In `src/server/middleware/rateLimiter.ts`, loopback IP blocks are explicitly checked and bypassed so test suites can run without trigger flakiness, while keeping production rate limits set to 10 requests per 60 seconds per IP.

@@ -99,6 +99,16 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
+  CREATE TABLE IF NOT EXISTS _carabase_custom_endpoints (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL UNIQUE,
+    path        TEXT NOT NULL,
+    method      TEXT NOT NULL,
+    table_name  TEXT NOT NULL,
+    schema      TEXT NOT NULL, -- JSON config containing pagination, filtering, columns, and validation
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
   -- ClawKeys standard users table
   CREATE TABLE IF NOT EXISTS users (
     uuid       TEXT PRIMARY KEY,

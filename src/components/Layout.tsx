@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link, useLocation } from "react-router-dom";
-import { Database, Key, Shield, HardDrive, LayoutDashboard, Settings, Sun, Moon } from "lucide-react";
+import { Database, Key, Shield, HardDrive, LayoutDashboard, Settings, Sun, Moon, Code } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
@@ -10,6 +10,7 @@ import TableEditor from "../pages/TableEditor";
 import ApiKeys from "../pages/ApiKeys";
 import Policies from "../pages/Policies";
 import Storage from "../pages/Storage";
+import ApiBuilder from "../pages/ApiBuilder";
 
 export function Sidebar({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -19,6 +20,7 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Table Editor", href: "/dashboard/editor", icon: Database },
+    { name: "API Builder", href: "/dashboard/api-builder", icon: Code },
     { name: "API Keys", href: "/dashboard/keys", icon: Key },
     { name: "Policies (RLS)", href: "/dashboard/policies", icon: Shield },
     { name: "Storage", href: "/dashboard/storage", icon: HardDrive },
@@ -108,6 +110,7 @@ export function AppLayout() {
       <Routes>
         <Route index element={<AppDashboard />} />
         <Route path="editor" element={<TableEditor />} />
+        <Route path="api-builder" element={<ApiBuilder />} />
         <Route path="keys" element={<ApiKeys />} />
         <Route path="policies" element={<Policies />} />
         <Route path="storage" element={<Storage />} />
