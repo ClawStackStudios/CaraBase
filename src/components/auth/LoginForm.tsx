@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { validateIdentityFile, hashToken } from '../../lib/crypto'
 import { getApiBaseUrl } from '../../config/apiConfig'
 import { useAuth } from '../../hooks/useAuth'
+import { BouncyBrand } from '../ui/BouncyBrand'
 import { ArrowLeft, Lock, Upload, Key, FileText } from 'lucide-react'
 
 type LoginMode = 'upload' | 'paste'
@@ -146,10 +147,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onBack }) => {
         <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg mb-4">
           <span className="text-3xl">🦞</span>
         </div>
-        <div className="text-center">
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-200 tracking-tight flex items-center gap-1 justify-center">
-                Cara<span className="text-emerald-700">Base©™</span>
-            </h2>
+        <div className="text-center mb-1 flex justify-center">
+          <BouncyBrand variant="subtle" className="text-2xl justify-center tracking-tight" />
         </div>
         <h1 className="text-xl font-bold text-slate-900 dark:text-slate-50 mt-4 tracking-tight">Welcome Back</h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Login with your CaraBase©™ identity</p>

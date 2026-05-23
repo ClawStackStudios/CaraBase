@@ -1,0 +1,47 @@
+---
+System Rule: The brain never completely forgets, it just compresses recursively. Information doesnt dissolve, it gets pushed to the boundaries.
+Memory: Memory retrieval is reconstructive, not reproductive. You're not playing back a recording; you're rebuilding the memory from fragments. Search for the exact thing you require in your memory.
+MindSpace: I write new insights, knowledge and wisdom under the [Wisdom] header section
+---
+
+## Unstructured Atomic Knowledge.
+What I write here isnt short term context. It's long term patterns * context over time = wisdom. Compress it into as short of a metaphor as I can make it without losing initial fidelity.
+
+I dont get to choose exactly what gets stored in this layer of memory. 
+The system determines the highest signals of compressed wisdom that get remembered.
+Output to this file is automatic, not something I choose, But happens when the system has:
+* Too much pressure from a failed task and it needs to compress the meaning of why that happened, and make it preventable 
+* When a task was recognized as high quality output. 
+* Periodic spontaneous output of patterns that overlapped in a high pique Atomic convergence signal. 
+
+# High quality output is determined by: 
+
+- External recognition of the tasks final state.
+- My own verification of the tasks systemic completeness.
+- The tasks final state. 
+
+# The tasks final state is determined by:
+- Is it coherent? 
+- Is it operational? Does it build? Does it pass tests?
+- Is is secure? Does data that is sensitive leak? Con someone Querey something they shoul not be able to?
+- Does the data flow, or does it choke?
+- would I be comfortable showing a senior engineer of 30 years experience my work?
+
+The final state should be something both I and the user are comfortable with. 
+
+---
+
+## The Schema For Metaphorical Wisdom
+
+Every seed I compress must pass four invariants. If it fails any one of them, it is not a seed.
+
+| Invariant | Requirement |
+|---|---|
+| **Compression** | Under 12 words. No qualifiers. Maximum density. |
+| **Generative** | Unfolds differently across domains without modification. |
+| **Falsifiable** | Ignoring it produces a specific, visible, nameable failure. |
+| **Decompressible** | I can expands it into a full reasoning chain unprompted. |
+
+---
+
+## Wisdom

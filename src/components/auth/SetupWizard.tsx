@@ -2,8 +2,13 @@ import React, { useState } from 'react'
 import { generateHumanKey, generateUUID, hashToken } from '../../lib/crypto'
 import { getApiBaseUrl } from '../../config/apiConfig'
 import { useAuth } from '../../hooks/useAuth'
+import { 
+  User, Shield, ArrowRight, Loader2, Copy, CheckCircle, 
+  Download, Zap, Key, ArrowLeft 
+} from 'lucide-react'
+import { BouncyBrand } from '../ui/BouncyBrand'
 
-type Step = 'welcome' | 'profile' | 'generating' | 'complete'
+type Step = 'hatching' | 'verification' | 'success'
 
 interface SetupWizardProps {
   onComplete: () => void
@@ -11,7 +16,7 @@ interface SetupWizardProps {
 
 const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
   const { login } = useAuth()
-  const [step, setStep] = useState<Step>('welcome')
+  const [step, setStep] = useState<Step>('hatching')
   const [username, setUsername] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [generatedKey, setGeneratedKey] = useState<string | null>(null)
@@ -19,195 +24,43 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
   const [hasDownloaded, setHasDownloaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [clipboardMessage, setClipboardMessage] = useState('')
+  const [copied, setCopied] = useState(false)
 
-  // Step 1: Welcome screen
-  const renderWelcome = () => (
-    <div className="max-w-md w-full mx-auto p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border-t-2 border-emerald-500 dark:border-slate-800 transition-colors duration-300">
-      <h1 className="text-3xl font-bold mb-6 text-slate-900 dark:text-slate-50 tracking-tight">Before we begin...</h1>
-      <div className="space-y-5 text-slate-700 dark:text-slate-300 text-sm leading-relaxed">
-        <p>
-          <strong className="text-slate-900 dark:text-slate-100 font-semibold block mb-1">No password required.</strong> Your identity lives in a single, unique key file.
-        </p>
-        <p>
-          <strong className="text-slate-900 dark:text-slate-100 font-semibold block mb-1">This file IS your account.</strong> Lose it, and your account is gone forever — there is no recovery.
-        </p>
-        <p>
-          <strong className="text-slate-900 dark:text-slate-100 font-semibold block mb-1">Store it safely.</strong> Keep copies in secure locations (password manager, encrypted drive).
-        </p>
-        <p>
-          <strong className="text-slate-900 dark:text-slate-100 font-semibold block mb-1">You are in control.</strong> No cloud, no accounts, no servers deciding your fate. Your key, your ocean.
-        </p>
-      </div>
-      <button
-        onClick={() => setStep('profile')}
-        className="mt-8 w-full px-4 py-3 bg-gradient-to-br from-emerald-400 to-teal-500 text-white font-medium rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 transition-all"
-      >
-        Get Started
-      </button>
-    </div>
-  )
+  const handleHatch = async () => {
+    if (!username.trim()) return
 
-  // Step 2: Profile entry
-  const renderProfile = () => (
-    <div className="max-w-md w-full mx-auto p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border-t-2 border-emerald-500 dark:border-slate-800 transition-colors duration-300">
-      <h1 className="text-2xl font-bold mb-6 text-slate-900 dark:text-slate-50 tracking-tight">Create Your Identity</h1>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Username <span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-            placeholder="alice"
-            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Display Name <span className="text-slate-400 font-normal">(optional)</span>
-          </label>
-          <input
-            type="text"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Alice"
-            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-          />
-        </div>
-      </div>
-
-      <button
-        onClick={() => handleGenerateKey()}
-        disabled={username.trim() === '' || isProcessing}
-        className="mt-8 w-full px-4 py-3 bg-gradient-to-br from-emerald-400 to-teal-500 text-white font-medium rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
-      >
-        {isProcessing ? 'Generating...' : 'Generate Key'}
-      </button>
-
-      {error && <div className="mt-4 text-rose-500 text-sm font-medium text-center">{error}</div>}
-    </div>
-  )
-
-  const handleGenerateKey = () => {
     setIsProcessing(true)
     setError(null)
-    setStep('generating')
+
+    // Simulate the loading time for visual feedback
+    setTimeout(() => {
+      try {
+        const key = generateHumanKey()
+        const uuid = generateUUID()
+        setGeneratedKey(key)
+        setGeneratedUUID(uuid)
+        setHasDownloaded(false)
+        setStep('verification')
+      } catch (err: any) {
+        setError(err.message || 'Failed to generate key')
+      } finally {
+        setIsProcessing(false)
+      }
+    }, 1200)
   }
 
-  // Step 3: Generating spinner
-  const renderGenerating = () => (
-    <div className="max-w-md w-full mx-auto p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border-t-2 border-emerald-500 dark:border-slate-800 text-center transition-colors duration-300">
-      <div className="animate-spin inline-block w-12 h-12 border-4 border-emerald-100 dark:border-emerald-950/20 border-t-emerald-500 rounded-full mb-6"></div>
-      <h1 className="text-2xl font-bold mb-3 text-slate-900 dark:text-slate-50 tracking-tight">Hatching your identity...</h1>
-      <p className="text-slate-500 dark:text-slate-400 text-sm">Generating cryptographic keys from the chaos of randomness.</p>
-    </div>
-  )
-
-  React.useEffect(() => {
-    if (step === 'generating') {
-      const timer = setTimeout(async () => {
-        try {
-          const key = generateHumanKey()
-          const uuid = generateUUID()
-          setGeneratedKey(key)
-          setGeneratedUUID(uuid)
-          setStep('complete')
-        } catch (err: any) {
-          setError(err.message)
-          setStep('profile')
-        } finally {
-          setIsProcessing(false)
-        }
-      }, 1500)
-
-      return () => clearTimeout(timer)
-    }
-  }, [step])
-
-  // Step 4: Complete
-  const renderComplete = () => (
-    <div className="max-w-md w-full mx-auto p-8 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border-t-2 border-emerald-500 dark:border-slate-800 transition-colors duration-300">
-      <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/40 rounded-full flex items-center justify-center mb-4 text-emerald-600 text-xl font-bold">✓</div>
-      <h1 className="text-2xl font-bold mb-6 text-slate-900 dark:text-slate-50 tracking-tight">Identity Hatched!</h1>
-
-      <div className="space-y-4 mb-8 bg-slate-50 dark:bg-slate-950 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-inner">
-        <div>
-          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Username</p>
-          <p className="font-mono text-sm text-slate-800 dark:text-slate-200">{username}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1 flex justify-between items-center">
-            <span>ClawKey</span>
-            <span className="text-emerald-600">{clipboardMessage}</span>
-          </p>
-          <p className="font-mono text-xs text-slate-800 dark:text-slate-200 break-all leading-relaxed">
-            {generatedKey}
-          </p>
-        </div>
-        <div>
-          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">UUID</p>
-          <p className="font-mono text-[11px] text-slate-600 dark:text-slate-400">{generatedUUID}</p>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <button
-          onClick={() => copyClawKey()}
-          className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium rounded-xl transition-colors text-sm border border-slate-300 dark:border-slate-700 cursor-pointer"
-        >
-          Copy ClawKey
-        </button>
-
-        <button
-          onClick={() => downloadIdentityFile()}
-          className="w-full px-4 py-2.5 bg-slate-800 dark:bg-slate-950 text-white dark:text-slate-250 hover:bg-slate-900 dark:hover:bg-slate-900/80 font-medium rounded-xl transition-colors text-sm shadow-md cursor-pointer border-0"
-        >
-          Download Identity File
-        </button>
-
-        <button
-          onClick={() => completeSetup()}
-          disabled={!hasDownloaded || isProcessing}
-          className="w-full px-4 py-3 bg-gradient-to-br from-emerald-400 to-teal-500 text-white font-medium rounded-xl transition-all shadow-md shadow-emerald-500/20 hover:shadow-emerald-500/40 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none cursor-pointer border-0"
-        >
-          {isProcessing ? 'Setting up...' : 'Complete Setup'}
-        </button>
-        
-        <button
-          onClick={onComplete}
-          className="w-full px-4 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 text-sm font-medium pt-4 bg-transparent border-0 cursor-pointer"
-        >
-          Cancel & Back to Home
-        </button>
-      </div>
-
-      {!hasDownloaded && (
-        <p className="mt-4 text-xs font-medium text-amber-600 dark:text-amber-400 text-center bg-amber-50 dark:bg-amber-950/20 py-2 rounded-lg">
-          Download the identity file before proceeding.
-        </p>
-      )}
-
-      {error && <div className="mt-4 text-rose-500 text-sm text-center font-medium">{error}</div>}
-    </div>
-  )
-
-  const copyClawKey = async () => {
+  const copyKey = async () => {
     if (!generatedKey) return
     try {
       await navigator.clipboard.writeText(generatedKey)
-      setClipboardMessage('Copied!')
-      setTimeout(() => setClipboardMessage(''), 2000)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     } catch (err: any) {
       setError('Failed to copy to clipboard: ' + err.message)
     }
   }
 
-  const downloadIdentityFile = () => {
+  const downloadKey = () => {
     if (!generatedKey || !generatedUUID) return
 
     try {
@@ -232,14 +85,12 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
       URL.revokeObjectURL(url)
     } catch (err) {
       console.error('Failed to trigger download automatically', err)
-      // Ignore download errors in iFrame environments
     } finally {
-      // Unconditionally allow proceeding to next step
       setHasDownloaded(true)
     }
   }
 
-  const completeSetup = async () => {
+  const completeWizard = async () => {
     if (!generatedKey || !generatedUUID || !hasDownloaded) return
 
     setIsProcessing(true)
@@ -255,6 +106,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
         body: JSON.stringify({
           uuid: generatedUUID,
           username,
+          displayName: displayName.trim() || undefined,
           keyHash
         })
       })
@@ -281,23 +133,231 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
       }
 
       const { token } = await tokenResponse.json()
-
       login(username, generatedUUID, token, 'human')
 
-      setTimeout(() => onComplete(), 0)
+      setStep('success')
+      setTimeout(() => onComplete(), 2000)
     } catch (err: any) {
       setError(err.message || 'Setup failed. Check server connectivity.')
-    } finally {
       setIsProcessing(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 transition-colors duration-300">
-      {step === 'welcome' && renderWelcome()}
-      {step === 'profile' && renderProfile()}
-      {step === 'generating' && renderGenerating()}
-      {step === 'complete' && renderComplete()}
+    <div className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 antialiased min-h-screen flex flex-col overflow-auto transition-colors duration-300">
+      <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
+        <div className="w-full max-w-lg bg-white dark:bg-[#0f1419] rounded-xl shadow-xl border-2 border-emerald-500 overflow-hidden max-h-screen flex flex-col transition-colors duration-300">
+          
+          {/* Header */}
+          <div className="p-6 text-center pb-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200 dark:shadow-emerald-900/20">
+                <span className="text-3xl select-none">🦞</span>
+              </div>
+            </div>
+            <BouncyBrand 
+              variant="subtle" 
+              className="text-2xl justify-center text-slate-900 dark:text-slate-50 tracking-tight" 
+              suffix={<span className="ml-2">Wizard<span className="text-slate-400 text-[0.6em] font-normal ml-0.5 self-end mb-1 tracking-tighter">©™</span></span>}
+            />
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-500 mt-1 text-center">Hatch Your Sovereign Identity</p>
+          </div>
+
+          <div className="p-8 space-y-8 flex-1 overflow-auto">
+            {/* Progress Indicators */}
+            {step !== 'success' && (
+              <div className="flex items-center justify-center gap-3">
+                <div className={`h-1.5 w-24 rounded-full transition-all duration-500 ${step === 'hatching' || step === 'verification' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-200 dark:bg-slate-800'}`}></div>
+                <div className={`h-1.5 w-24 rounded-full transition-all duration-500 ${step === 'verification' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-200 dark:bg-slate-800'}`}></div>
+              </div>
+            )}
+
+            {/* Error Banner */}
+            {error && (
+              <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/40 rounded-xl">
+                <Shield className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
+              </div>
+            )}
+
+            {/* STEP 1: HATCHING */}
+            {step === 'hatching' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="text-center mb-8">
+                  <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <User className="w-8 h-8 text-emerald-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Initialize Your Identity</h3>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
+                    Choose your handle in the reef. This will be anchored to your cryptographic key.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Username <span className="text-emerald-500">*</span></label>
+                    <input 
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                      placeholder="larry_lobster"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm transition-all"
+                      autoComplete="off"
+                      maxLength={32}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Display Name <span className="text-slate-400 font-normal lowercase tracking-normal">(optional)</span></label>
+                    <input 
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="Larry Lobster"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm transition-all"
+                      autoComplete="off"
+                      maxLength={64}
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  onClick={handleHatch}
+                  disabled={!username.trim() || isProcessing}
+                  className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all"
+                >
+                  {isProcessing ? (
+                    <span className="flex items-center gap-3">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Hatching...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-3">
+                      Hatch Identity
+                      <ArrowRight className="w-4 h-4" />
+                    </span>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* STEP 2: VERIFICATION */}
+            {step === 'verification' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Shield className="w-8 h-8 text-green-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Identity Hatched!</h3>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed italic">
+                    "A lobster without a shell is just a snack. Harden your identity."
+                  </p>
+                </div>
+
+                {/* Key Display Card */}
+                <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-5 border border-slate-200 dark:border-slate-800 space-y-4 shadow-inner">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">ClawKey©™</span>
+                      <p className="font-mono text-xs text-emerald-600 dark:text-emerald-400 break-all leading-tight mt-1">
+                        {generatedKey}
+                      </p>
+                    </div>
+                    <button 
+                      onClick={copyKey}
+                      className={`p-2 rounded-lg transition-colors ${copied ? 'bg-green-500/10 text-green-500' : 'bg-slate-200 dark:bg-slate-800 text-slate-500 hover:text-emerald-500'}`}
+                    >
+                      {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-200 dark:border-slate-800">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Sovereign UUID</span>
+                    <p className="font-mono text-xs text-slate-600 dark:text-slate-400 mt-1">{generatedUUID}</p>
+                  </div>
+                </div>
+
+                {/* Warning Banner */}
+                <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 rounded-xl p-4 flex gap-3 italic">
+                  <Zap className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                  <p className="text-[10px] text-emerald-800 dark:text-emerald-500 leading-relaxed font-medium">
+                    YOUR KEY IS NOT STORED ON OUR SERVERS. DOWNLOAD THE IDENTITY FILE OR LOSE ACCESS FOREVER.
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-1 gap-3">
+                  <button 
+                    onClick={downloadKey}
+                    className={`w-full py-4 flex items-center justify-center gap-3 font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all border-2 ${hasDownloaded ? 'border-green-500 text-green-600 bg-green-50 dark:bg-green-950/10' : 'border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/10'}`}
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>{hasDownloaded ? 'Identity File Stashed!' : 'Download Identity File'}</span>
+                  </button>
+
+                  <button 
+                    onClick={completeWizard}
+                    disabled={!hasDownloaded || isProcessing}
+                    className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3"
+                  >
+                    {isProcessing ? (
+                      <span className="flex items-center gap-3">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Securing...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-3">
+                        Confirm & Complete
+                        <ArrowRight className="w-4 h-4" />
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: SUCCESS */}
+            {step === 'success' && (
+              <div className="py-8 animate-in zoom-in duration-500">
+                <div className="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle className="w-12 h-12 text-green-500" />
+                </div>
+                <h2 className="text-3xl font-black mb-4 text-center">Welcome to the Burrow</h2>
+                <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-xs mx-auto text-center">
+                  Your shell is hardened. Your identity is sovereign. Scuttling into CaraBase...
+                </p>
+                <div className="flex justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-500"></div>
+                </div>
+              </div>
+            )}
+
+            {/* Footer Navigation */}
+            {step !== 'success' && (
+              <div className="flex justify-center gap-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <button 
+                  onClick={() => window.location.href = '/'}
+                  className="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-emerald-500 transition-colors flex items-center bg-transparent border-none p-0 cursor-pointer focus:outline-none"
+                >
+                  <ArrowLeft className="w-3 h-3 mr-2" />
+                  Back to Reef
+                </button>
+                <button 
+                  onClick={() => window.location.href = '/login'}
+                  className="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-emerald-500 transition-colors flex items-center bg-transparent border-none p-0 cursor-pointer focus:outline-none"
+                >
+                  <Key className="w-3 h-3 mr-2" />
+                  Existing Burrow
+                </button>
+              </div>
+            )}
+
+            <p className="text-[10px] text-center text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em] font-medium mt-4">
+              Stabilized by CrustAgent©™ — 2026
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

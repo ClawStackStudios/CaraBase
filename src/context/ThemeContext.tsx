@@ -59,15 +59,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         `circle(${endRadius}px at ${x}px ${y}px)`
       ];
       
-      const goingDark = theme === 'light';
       document.documentElement.animate(
         {
-          clipPath: goingDark ? clipPath : [...clipPath].reverse(),
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`
+          ],
         },
         {
-          duration: 400,
-          easing: 'ease-in-out',
-          pseudoElement: goingDark ? '::view-transition-new(root)' : '::view-transition-old(root)',
+          duration: 1200,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          pseudoElement: '::view-transition-new(root)',
         }
       );
     });
