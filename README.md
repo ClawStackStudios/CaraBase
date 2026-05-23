@@ -10,6 +10,7 @@ CaraBase is an open-source, full-stack, SQLite-backed Database-as-a-Service, mea
 - **Dynamic Schema Editor**: Create any table shapes and column sizes.
 - **REST APIs built-in**: Your data is accessible immediately over `/rest/v1/...`
 - **Role Level Security (RLS)**: Fine-grained SQLite WHERE clause logic injected directly into API reads/writes based on the type of key utilized to query.
+- **SuperAdmin Dashboard**: Built-in environment-gated admin portal (`/admin`) for comprehensive system monitoring, uptime tracking, and sovereign metadata auditing.
 
 ## Installation / Run Instructions
 

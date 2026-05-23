@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import React from 'react';
+
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from './components/Layout';
 import { AuthProvider } from './auth/AuthContext';
@@ -12,6 +14,12 @@ import LoginForm from './components/auth/LoginForm';
 import SetupWizard from './components/auth/SetupWizard';
 import { useAuth } from './hooks/useAuth';
 import { ThemeProvider } from './context/ThemeContext';
+import { AdminProvider, useAdmin } from './features/admin/AdminContext';
+import { AdminLogin } from './features/admin/AdminLogin';
+import { AdminDashboard } from './features/admin/AdminDashboard';
+import { AdminUserList } from './features/admin/AdminUserList';
+import { AdminAuditLog } from './features/admin/AdminAuditLog';
+import { Loader2 } from 'lucide-react';
 
 function PublicLanding() {
   const { isAuthenticated } = useAuth();
@@ -23,9 +31,11 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
+        <AdminProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </AdminProvider>
       </AuthProvider>
     </ThemeProvider>
   );
@@ -51,7 +61,34 @@ function AppRoutes() {
           <AppLayout />
         </ProtectedRoute>
       } />
+
+      {/* SuperAdmin Routes */}
+      <Route path="/admin" element={<AdminLogin />} />
+      <Route path="/admin/dashboard" element={
+        <AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>
+      } />
+      <Route path="/admin/users" element={
+        <AdminProtectedRoute><AdminUserList /></AdminProtectedRoute>
+      } />
+      <Route path="/admin/audit" element={
+        <AdminProtectedRoute><AdminAuditLog /></AdminProtectedRoute>
+      } />
     </Routes>
   );
+}
+
+function AdminProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAdmin, isChecking } = useAdmin();
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-[#0f1419] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) return <Navigate to="/admin" replace />;
+  return <>{children}</>;
 }
 

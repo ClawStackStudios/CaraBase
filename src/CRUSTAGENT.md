@@ -49,4 +49,10 @@ Custom dynamic API routes are built through the Visual API Builder (`src/pages/A
 - **Fallback Route Boundary**: Any route that does not match Express routing but has backend prefixes (`/api`, `/storage`, `/rest`) is intercepted and rejected with a JSON `404 Not Found` in both dev and production modes. This prevents frontend SPA servers (like Vite) from serving source code or mapping directory traversals when an attacker crafts custom URL paths.
 - **Security Audit Console**: Structured system events (such as logins, token creations, and key revocations) are saved into the `audit_logs` schema. The frontend dashboard fetches this feed from `GET /api/system/audit-logs` and displays them dynamically in `src/pages/Dashboard.tsx` with a real-time filter, outcome status indicators, and JSON inspection drawers.
 
+## SuperAdmin Dashboard Engine
+
+- **Stateless Volatile Sessions**: The SuperAdmin panel is gated by an `ADMIN_TOKEN` via `requireAdmin.ts`. Successful logins mint an in-memory session (with a 20-minute sliding TTL window) secured by an `httpOnly` cookie. No session IDs are persisted to disk; restarting the server globally terminates all admin sessions.
+- **Client-Side Token Hashing**: The `AdminContext.tsx` handles SuperAdmin logins by generating a SHA-256 hash of the input token before transmission. The backend hashes its environment `ADMIN_TOKEN` and validates against the client payload using `timingSafeCompare()`, eliminating raw key transmissions and mitigating timing attack vectors.
+- **Sovereign Metadata Visibility**: `AdminUserList` and `AdminDashboard` components are explicitly designed to monitor database health and operations (Users, Tables, RLS Policies, Database Size, Uptime tracking via boot/shutdown audit logs) without ever querying or exposing actual user table contents.
+
 **Maintained by CrustAgent©™**

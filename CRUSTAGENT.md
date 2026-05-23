@@ -35,6 +35,12 @@ CaraBase is a self-hosted SaaS database service. It is designed to be an open-so
 - **Cryptographic Audit Logs**:
   - **Visual Audit Trail**: Fully searchable and filterable log inspection terminal embedded in `Dashboard.tsx` with micro-interactive JSON drawer views.
 
+## SuperAdmin Dashboard
+
+- **In-Memory Volatile Sessions**: SuperAdmin access uses an `ADMIN_TOKEN` environment gate. Sessions are maintained via `requireAdmin` middleware in memory (Map) with a strict 20-minute TTL (extended on activity). Server restarts instantly destroy all admin sessions, mitigating persistent session token theft.
+- **SHA-256 Client Hashing**: The plaintext token is never transmitted. The client hashes the token using `crypto.subtle.digest('SHA-256')`, and the server performs a `timingSafeCompare()` against its own hash of the environment variable.
+- **Sovereign Metadata Visibility**: The dashboard (Users, Audit Logs, System Stats, Uptime History) provides deep operational oversight but strictly prohibits content visibility (tables, rows, files) to enforce data sovereignty.
+
 ## CrustCode©™ Compliance Checklist
 
 - [x] Clear micro-service layout for frontend pages (`src/pages/*`).

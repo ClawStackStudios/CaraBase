@@ -6,11 +6,13 @@ import { EventEmitter } from 'events';
 import multer from 'multer';
 import crypto from 'crypto';
 import fs from 'fs';
+import cookieParser from 'cookie-parser';
 
 // Use the new db and auth router
 import db, { rlsContext } from './src/server/db.js';
 import authRouter from './src/server/routes/auth.js';
 import agentKeysRouter from './src/server/routes/agentKeys.js';
+import adminRouter from './src/server/routes/admin.js';
 import { createAuditLogger } from './src/server/utils/auditLogger.js';
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -21,6 +23,7 @@ async function startServer() {
   const app = express();
   app.set('trust proxy', 1);
   app.use(express.json());
+  app.use(cookieParser());
 
   // Ensure directories exist
   const dataDir = path.join(process.cwd(), 'data');
@@ -45,6 +48,7 @@ async function startServer() {
   // --- Mount Auth & Agent Key Routers ---
   app.use('/api/auth', authRouter);
   app.use('/api/agent-keys', agentKeysRouter);
+  app.use('/api/admin', adminRouter);
 
   // --- System API: Internal dashboard management ---
   const authenticateSession = (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -897,12 +901,22 @@ async function startServer() {
     });
   }
 
+  // Generate a session ID for uptime tracking
+  const sessionId = uuidv4();
+
   const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n[Database] Checking migrations...`);
     console.log(`[Database] Migrations complete.`);
     console.log(`\n🔑 System auth and REST routes ready.`);
     console.log(`🦞 CaraBase API running on port ${PORT}`);
     console.log(`   Local API URL: http://localhost:${PORT}`);
+
+    // Log SYSTEM_START for uptime tracking
+    audit.log('SYSTEM_START', {
+      action: 'system_start',
+      outcome: 'success',
+      details: { session_id: sessionId, port: PORT }
+    });
   });
 
   // Graceful Shutdown Hook
@@ -913,7 +927,7 @@ async function startServer() {
       audit.log('SYSTEM_SHUTDOWN', {
         action: 'shutdown',
         outcome: 'success',
-        details: { signal }
+        details: { signal, session_id: sessionId }
       });
     } catch (err: any) {
       console.error('[Shutdown Log Error]', err.message);

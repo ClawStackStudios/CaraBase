@@ -174,6 +174,13 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs(timestamp);
   CREATE INDEX IF NOT EXISTS idx_audit_event_type ON audit_logs(event_type);
   CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit_logs(actor);
+
+  -- System settings key-value store (for admin retention config etc.)
+  CREATE TABLE IF NOT EXISTS system_settings (
+    key        TEXT PRIMARY KEY,
+    value      TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
 `);
 
 export default db;

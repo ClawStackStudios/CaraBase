@@ -30,6 +30,8 @@ statistics:
 | Multi-write DB transactions, server-side validation, confirmation dialogs | ✅ |
 | Docker & Docker Compose deployment with SQLite volume mounts | ✅ |
 | 50-assertion E2E integration test suite (Phases 1–9) | ✅ |
+| UI/UX Alignment (Landing, Auth Flow, Dashboard, Settings, & Sidebar) | ✅ |
+| SuperAdmin Dashboard (Metadata, Uptime, Audit Logging, Volatile Sessions) | ✅ |
 
 ---
 
