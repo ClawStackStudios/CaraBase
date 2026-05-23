@@ -164,7 +164,7 @@ async function startServer() {
     const { name, type } = req.body;
     if (!name || (type !== 'public' && type !== 'private')) return res.status(400).json({ error: 'Invalid parameters' });
     const id = uuidv4();
-    const prefix = type === 'public' ? 'pk_' : 'ls_';
+    const prefix = type === 'public' ? 'pk_' : 'ls-';
     const key = prefix + crypto.randomBytes(32).toString('hex');
     try {
       db.prepare('INSERT INTO _carabase_api_keys (id, name, key, type) VALUES (?, ?, ?, ?)').run(id, name, key, type);
@@ -190,7 +190,7 @@ async function startServer() {
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.substring(7).trim();
-      if (token.startsWith('pk_') || token.startsWith('ls_')) {
+      if (token.startsWith('pk_') || token.startsWith('ls-')) {
         apiKey = token;
       } else {
         sessionToken = token;
@@ -210,6 +210,9 @@ async function startServer() {
                 const userRow = db.prepare('SELECT username FROM users WHERE uuid = ?').get(tokenRow.owner_key) as any;
                 if (userRow) {
                   (req as any).username = userRow.username;
+                }
+                if (!apiKey) {
+                  (req as any).apiKey = { type: 'private' };
                 }
               } else if (tokenRow.owner_type === 'agent') {
                 const agentRow = db.prepare('SELECT user_uuid, name FROM agent_keys WHERE api_key_hash = ? AND is_active = 1').get(tokenRow.owner_key) as any;
@@ -543,6 +546,10 @@ async function startServer() {
       const keys = Object.keys(data).map(k => k.replace(/[^a-zA-Z0-9_]/g, ''));
       const values = Object.values(data);
       const marks = keys.map(() => '?').join(',');
+
+      if (keys.length === 0) {
+          return res.status(400).json({ error: 'No fields provided for insertion' });
+      }
       
       try {
           rlsContext.run({ userUuid: (req as any).userUuid || null, username: (req as any).username || null }, () => {

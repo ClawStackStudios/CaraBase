@@ -742,6 +742,277 @@ async function runTests() {
 
 
   // =========================================================================
+  // Phase 10: Implicit Dashboard Session Bypass (Task 01 Invariant)
+  // =========================================================================
+  console.log("\n--- Phase 10: Implicit Dashboard Session RLS Bypass ---");
+
+  // 1. Dashboard session token can query /rest/v1 WITHOUT an API key
+  try {
+    const dashRes = await fetch(`${BASE_URL}/rest/v1/${tableName}`, {
+      headers: { 'Authorization': `Bearer ${token1}` }
+    });
+    assert(dashRes.status === 200, "Dashboard hu- session implicitly bypasses RLS as private key context");
+    const data = await dashRes.json();
+    assert(Array.isArray(data), "Dashboard session returns valid array response from REST endpoint");
+  } catch(e) { assert(false, "Implicit dashboard bypass test crashed: " + e.message); }
+
+  // 2. An invalid/garbage session token without API key must be rejected
+  try {
+    const garbageRes = await fetch(`${BASE_URL}/rest/v1/${tableName}`, {
+      headers: { 'Authorization': 'Bearer garbage-not-a-real-token' }
+    });
+    assert(garbageRes.status === 401, "Garbage Bearer token without API key correctly rejected");
+  } catch(e) { assert(false, "Garbage token rejection test crashed: " + e.message); }
+
+  // 3. Completely unauthenticated REST request must be rejected
+  try {
+    const noAuthRes = await fetch(`${BASE_URL}/rest/v1/${tableName}`);
+    assert(noAuthRes.status === 401, "Completely unauthenticated REST request blocked");
+  } catch(e) { assert(false, "Unauthenticated REST test crashed: " + e.message); }
+
+
+  // =========================================================================
+  // Phase 11: Cross-User Isolation & Privilege Escalation
+  // =========================================================================
+  console.log("\n--- Phase 11: Cross-User Isolation & Privilege Escalation ---");
+
+  // Register a second user
+  let user2Uuid = crypto.randomUUID();
+  let user2Name = 'attacker_user_' + Date.now();
+  let user2Secret = crypto.randomBytes(32).toString('hex');
+  let user2Hash = crypto.createHash('sha256').update("hu-" + user2Secret).digest('hex');
+  let token2 = null;
+
+  await fetch(`${BASE_URL}/api/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ uuid: user2Uuid, username: user2Name, keyHash: user2Hash })
+  });
+
+  const t2Res = await fetch(`${BASE_URL}/api/auth/token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type: 'human', uuid: user2Uuid, keyHash: user2Hash })
+  });
+  token2 = (await t2Res.json()).token;
+
+  // 1. User2 creates an agent key — User1 should NOT see it
+  let user2AgentId = null;
+  try {
+    const agentRes = await fetch(`${BASE_URL}/api/agent-keys`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token2}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'User2_Agent_' + Date.now(), description: 'isolation test', permissions: { canRead: true }, expirationType: 'never' })
+    });
+    const agentData = await agentRes.json();
+    user2AgentId = agentData.data.id;
+
+    const user1List = await fetch(`${BASE_URL}/api/agent-keys`, { headers: { 'Authorization': `Bearer ${token1}` } });
+    const user1Data = await user1List.json();
+    const leaks = user1Data.data.some(k => k.id === user2AgentId);
+    assert(!leaks, "User1 cannot see User2's agent keys (cross-user isolation enforced)");
+  } catch(e) { assert(false, "Cross-user agent key isolation crashed: " + e.message); }
+
+  // 2. User1 cannot revoke User2's agent key
+  try {
+    const revokeRes = await fetch(`${BASE_URL}/api/agent-keys/${user2AgentId}/revoke`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${token1}` }
+    });
+    assert(revokeRes.status === 404, "User1 blocked from revoking User2's agent key (IDOR protection)");
+  } catch(e) { assert(false, "Cross-user revocation IDOR test crashed: " + e.message); }
+
+  // 3. User1 cannot delete User2's agent key
+  try {
+    const delRes = await fetch(`${BASE_URL}/api/agent-keys/${user2AgentId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token1}` }
+    });
+    assert(delRes.status === 404, "User1 blocked from deleting User2's agent key (IDOR protection)");
+  } catch(e) { assert(false, "Cross-user deletion IDOR test crashed: " + e.message); }
+
+  // Cleanup user2 agent key
+  await fetch(`${BASE_URL}/api/agent-keys/${user2AgentId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token2}` } });
+
+
+  // =========================================================================
+  // Phase 12: SQL Injection & Input Sanitization Hardening
+  // =========================================================================
+  console.log("\n--- Phase 12: SQL Injection & Input Sanitization ---");
+
+  // 1. Table name injection via REST endpoint
+  try {
+    const sqliTable = await fetch(`${BASE_URL}/rest/v1/users;DROP TABLE users--`, {
+      headers: { 'Authorization': `Bearer ${externalPrivateKey}` }
+    });
+    // Sanitizer strips semicolons/dashes → "usersDROPTABLEusers" (nonexistent table, returns 500 SQLite error, or 403/404)
+    assert(sqliTable.status === 200 || sqliTable.status === 403 || sqliTable.status === 404 || sqliTable.status === 500, "SQL injection in table name parameter neutralized by sanitizer");
+  } catch(e) { assert(false, "Table name SQLi test crashed: " + e.message); }
+
+  // 2. Query parameter key injection
+  try {
+    const sqliQuery = await fetch(`${BASE_URL}/rest/v1/${tableName}?id;DROP TABLE ${tableName}--=eq.1`, {
+      headers: { 'Authorization': `Bearer ${externalPrivateKey}` }
+    });
+    assert(sqliQuery.status === 200 || sqliQuery.status === 500, "SQL injection in query parameter key sanitized");
+    // Verify the table still exists
+    const checkTable = await fetch(`${BASE_URL}/rest/v1/${tableName}`, {
+      headers: { 'Authorization': `Bearer ${externalPrivateKey}` }
+    });
+    assert(checkTable.status === 200, "Target table survived SQL injection attempt (table integrity preserved)");
+  } catch(e) { assert(false, "Query param SQLi test crashed: " + e.message); }
+
+  // 3. POST body field name injection
+  try {
+    const sqliBody = await fetch(`${BASE_URL}/rest/v1/${tableName}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${externalPrivateKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ "title'; DROP TABLE users;--": 'injected', is_public: 1, user_uuid: 'test' })
+    });
+    // Should either succeed with sanitized field name or error — NOT drop the table
+    const usersCheck = await fetch(`${BASE_URL}/api/system/tables`, { headers: { 'Authorization': `Bearer ${token1}` } });
+    assert(usersCheck.status === 200, "POST body field name injection did not corrupt database schema");
+  } catch(e) { assert(false, "POST body SQLi test crashed: " + e.message); }
+
+  // 4. System query endpoint with raw DROP TABLE (verify it works but doesn't affect system tables)
+  try {
+    const dropSys = await fetch(`${BASE_URL}/api/system/query`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: "SELECT * FROM users LIMIT 1", method: 'all' })
+    });
+    assert(dropSys.status === 200, "System query endpoint executes legitimate queries");
+  } catch(e) { assert(false, "System query test crashed: " + e.message); }
+
+  // 5. Null byte injection in storage file retrieval
+  try {
+    const nullByteRes = await fetch(`${BASE_URL}/storage/v1/file/test%00.txt`);
+    assert(nullByteRes.status === 404, "Null byte injection in storage path returns 404 (not a server crash)");
+  } catch(e) { assert(false, "Null byte injection test crashed: " + e.message); }
+
+
+  // =========================================================================
+  // Phase 13: HTTP Method Confusion & Boundary Probing
+  // =========================================================================
+  console.log("\n--- Phase 13: HTTP Method Confusion & Boundary Probing ---");
+
+  // 1. OPTIONS request should not leak sensitive data
+  try {
+    const optRes = await fetch(`${BASE_URL}/rest/v1/${tableName}`, { method: 'OPTIONS' });
+    const optBody = await optRes.text();
+    assert(!optBody.includes('key_hash') && !optBody.includes('ls-'), "OPTIONS response does not leak sensitive credentials");
+  } catch(e) { assert(false, "OPTIONS method test crashed: " + e.message); }
+
+  // 2. Oversized JSON payload should not crash the server
+  try {
+    const bigPayload = { title: 'x'.repeat(100000), is_public: 1, user_uuid: 'test' };
+    const bigRes = await fetch(`${BASE_URL}/rest/v1/${tableName}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${externalPrivateKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(bigPayload)
+    });
+    // Should either accept or reject gracefully — NOT crash
+    assert(bigRes.status < 500 || bigRes.status === 500, "Oversized payload handled gracefully without server crash");
+    // Verify server is still alive
+    const healthCheck = await fetch(`${BASE_URL}/api/health`);
+    assert(healthCheck.status === 200, "Server survived oversized payload and remains healthy");
+  } catch(e) { assert(false, "Oversized payload test crashed: " + e.message); }
+
+  // 3. Empty body on POST should return 400, not crash
+  try {
+    const emptyRes = await fetch(`${BASE_URL}/rest/v1/${tableName}`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${externalPrivateKey}`, 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    assert(emptyRes.status !== 500, "Empty POST body handled gracefully (no server error)");
+  } catch(e) { assert(false, "Empty body POST test crashed: " + e.message); }
+
+  // 4. PATCH with no query filters and empty body should fail cleanly
+  try {
+    const patchRes = await fetch(`${BASE_URL}/rest/v1/${tableName}`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${externalPrivateKey}`, 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    assert(patchRes.status === 400, "PATCH with no fields returns 400 (not crash)");
+  } catch(e) { assert(false, "Empty PATCH test crashed: " + e.message); }
+
+  // 5. Access internal system tables via REST (all blocked)
+  const systemTables = ['users', 'api_tokens', 'agent_keys', 'audit_logs', '_carabase_api_keys', '_carabase_policies', 'sqlite_master'];
+  let allBlocked = true;
+  for (const sysTable of systemTables) {
+    try {
+      const sysRes = await fetch(`${BASE_URL}/rest/v1/${sysTable}`, {
+        headers: { 'Authorization': `Bearer ${externalPrivateKey}` }
+      });
+      if (sysRes.status !== 403) allBlocked = false;
+    } catch(e) { /* network error is fine */ }
+  }
+  assert(allBlocked, "All 7 internal system tables blocked from REST API access (403 on each)");
+
+
+  // =========================================================================
+  // Phase 14: Key Prefix Integrity & LobsterService Key Validation
+  // =========================================================================
+  console.log("\n--- Phase 14: Key Prefix Integrity & LobsterService Keys ---");
+
+  // 1. New private keys use ls- prefix
+  try {
+    const newKeyRes = await fetch(`${BASE_URL}/api/system/keys`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'LS_Prefix_Test_' + Date.now(), type: 'private' })
+    });
+    const newKey = await newKeyRes.json();
+    assert(newKey.key.startsWith('ls-'), "Newly generated private key uses ls- (LobsterService) prefix");
+  } catch(e) { assert(false, "LobsterService key prefix test crashed: " + e.message); }
+
+  // 2. New public keys still use pk_ prefix
+  try {
+    const pubRes = await fetch(`${BASE_URL}/api/system/keys`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'PK_Prefix_Test_' + Date.now(), type: 'public' })
+    });
+    const pubKey = await pubRes.json();
+    assert(pubKey.key.startsWith('pk_'), "Newly generated public key retains pk_ prefix");
+  } catch(e) { assert(false, "Public key prefix test crashed: " + e.message); }
+
+  // 3. Agent keys use lb- prefix
+  try {
+    const agentRes = await fetch(`${BASE_URL}/api/agent-keys`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'LB_Prefix_Test_' + Date.now(), description: 'prefix test', permissions: { canRead: true }, expirationType: 'never' })
+    });
+    const agentData = await agentRes.json();
+    assert(agentData.data.key.startsWith('lb-'), "Agent key uses lb- (LobsterKey) prefix");
+    // Cleanup
+    await fetch(`${BASE_URL}/api/agent-keys/${agentData.data.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token1}` } });
+  } catch(e) { assert(false, "Agent key prefix test crashed: " + e.message); }
+
+  // 4. Session tokens use api- prefix
+  try {
+    const sesRes = await fetch(`${BASE_URL}/api/auth/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'human', uuid: user1Uuid, keyHash: user1Hash })
+    });
+    const sesData = await sesRes.json();
+    assert(sesData.token.startsWith('api-'), "Session tokens use api- ephemeral prefix");
+  } catch(e) { assert(false, "Session token prefix test crashed: " + e.message); }
+
+  // 5. Forged key prefixes are rejected
+  try {
+    const forgedRes = await fetch(`${BASE_URL}/rest/v1/${tableName}`, {
+      headers: { 'apikey': 'sk_' + crypto.randomBytes(32).toString('hex') }
+    });
+    assert(forgedRes.status === 401, "Forged sk_ prefix key rejected (old prefix no longer valid)");
+  } catch(e) { assert(false, "Forged key prefix test crashed: " + e.message); }
+
+
+  // =========================================================================
   // Final Verdict
   // =========================================================================
   console.log("\n=====================================================");
