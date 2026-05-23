@@ -18,6 +18,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useToast } from '@/context/ToastContext';
 
 interface UserMetadata {
   uuid: string;
@@ -36,6 +37,7 @@ export function AdminUserList() {
   const [deleteTarget, setDeleteTarget] = useState<UserMetadata | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const toast = useToast();
 
   const fetchUsers = async (offset = 0) => {
     try {
@@ -77,11 +79,13 @@ export function AdminUserList() {
         setUsers(users.filter(u => u.uuid !== deleteTarget.uuid));
         setDeleteTarget(null);
         setDeleteConfirm('');
+        toast.success('Inhabitant deleted successfully');
       } else {
-        alert(data.error || 'Failed to delete user');
+        toast.error(data.error || 'Failed to delete user');
       }
     } catch (err) {
       console.error('Delete failed', err);
+      toast.error('Delete failed');
     } finally {
       setIsDeleting(false);
     }

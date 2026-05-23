@@ -1,9 +1,11 @@
 import React from "react";
 import { User, Download } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
+import { useToast } from "@/context/ToastContext";
 
 export function ProfileSettings() {
   const { username, userUuid } = useAuth();
+  const toast = useToast();
   const displayName = "";
   const email = "";
   const avatar = "";
@@ -104,8 +106,9 @@ export function ProfileSettings() {
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
+                    toast.success("Identity key downloaded successfully");
                   } else {
-                    alert("No identity found. Are you logged in?");
+                    toast.error("No identity found. Are you logged in?");
                   }
                 }}
               >
