@@ -14,6 +14,8 @@ import authRouter from './src/server/routes/auth.js';
 import agentKeysRouter from './src/server/routes/agentKeys.js';
 import adminRouter from './src/server/routes/admin.js';
 import { createAuditLogger } from './src/server/utils/auditLogger.js';
+import { requireAuth } from './src/server/middleware/auth.js';
+import { requireRole } from './src/server/middleware/requireRole.js';
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const realtimeEmitter = new EventEmitter();
@@ -51,31 +53,8 @@ async function startServer() {
   app.use('/api/admin', adminRouter);
 
   // --- System API: Internal dashboard management ---
-  const authenticateSession = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Missing Authentication' });
-    }
-    const token = authHeader.substring(7).trim();
-    try {
-      // Depending on if the new api_tokens table uses api- prefix as key, token_hash may be needed.
-      // Wait, in auth.ts, token is stored in api_tokens.key, but token_hash is in api_tokens.token_hash
-      // We look up by token hash via crypto
-      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-      const sessionRow = db.prepare('SELECT * FROM api_tokens WHERE token_hash = ? AND revoked_at IS NULL').get(tokenHash);
-      
-      if (!sessionRow) {
-         return res.status(401).json({ error: 'Invalid Session Token' });
-      }
-      (req as any).userSession = sessionRow;
-      next();
-    } catch (e: any) {
-      res.status(500).json({ error: 'Authentication Error: ' + e.message });
-    }
-  };
-
   const systemApi = express.Router();
-  systemApi.use(authenticateSession);
+  systemApi.use(requireAuth);
 
   systemApi.get('/tables', (req, res) => {
     try {
@@ -89,7 +68,7 @@ async function startServer() {
     }
   });
 
-  systemApi.post('/tables', (req, res) => {
+  systemApi.post('/tables', requireRole('admin'), (req, res) => {
     const { tableName, columns } = req.body;
     if (!tableName || !Array.isArray(columns)) {
       return res.status(400).json({ error: 'Invalid payload' });
@@ -136,7 +115,7 @@ async function startServer() {
     }
   });
 
-  systemApi.post('/query', (req, res) => {
+  systemApi.post('/query', requireRole('admin'), (req, res) => {
     const { query, method = 'all', params = [] } = req.body;
     try {
       if (method === 'run') {
@@ -165,7 +144,7 @@ async function startServer() {
   });
 
   // legacy API mapping mostly replacing DB calls
-  systemApi.get('/keys', (req, res) => {
+  systemApi.get('/keys', requireRole('admin'), (req, res) => {
     try {
       const keys = db.prepare(`SELECT id, name, type, created_at, substr(key, 1, 8) || '...' as partial_key FROM _carabase_api_keys`).all();
       res.json(keys);
@@ -174,7 +153,7 @@ async function startServer() {
     }
   });
 
-  systemApi.post('/keys', (req, res) => {
+  systemApi.post('/keys', requireRole('admin'), (req, res) => {
     const { name, type } = req.body;
     if (!name || (type !== 'public' && type !== 'private')) return res.status(400).json({ error: 'Invalid parameters' });
     const id = uuidv4();
@@ -188,7 +167,7 @@ async function startServer() {
     }
   });
 
-  systemApi.delete('/keys/:id', (req, res) => {
+  systemApi.delete('/keys/:id', requireRole('admin'), (req, res) => {
     try {
       db.prepare('DELETE FROM _carabase_api_keys WHERE id = ?').run(req.params.id);
       res.json({ success: true });
@@ -780,7 +759,7 @@ async function startServer() {
 
   app.use('/storage/v1', storageApi);
 
-  systemApi.get('/storage', (req, res) => {
+  systemApi.get('/storage', requireRole('admin'), (req, res) => {
       try {
           const files = db.prepare('SELECT * FROM _carabase_storage ORDER BY created_at DESC').all();
           res.json(files);
@@ -789,7 +768,7 @@ async function startServer() {
       }
   });
 
-  systemApi.post('/storage/upload', upload.single('file'), (req, res) => {
+  systemApi.post('/storage/upload', requireRole('admin'), upload.single('file'), (req, res) => {
       if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
       const id = uuidv4();
       try {
@@ -800,7 +779,7 @@ async function startServer() {
       }
   });
 
-  systemApi.delete('/storage/:id', (req, res) => {
+  systemApi.delete('/storage/:id', requireRole('admin'), (req, res) => {
       try {
           const row = db.prepare('SELECT * FROM _carabase_storage WHERE id = ?').get(req.params.id) as any;
           if (row) {
@@ -814,7 +793,7 @@ async function startServer() {
       }
   });
 
-  systemApi.get('/audit-logs', (req, res) => {
+  systemApi.get('/audit-logs', requireRole('superadmin'), (req, res) => {
       try {
           const logs = db.prepare('SELECT * FROM audit_logs ORDER BY timestamp DESC LIMIT 500').all();
           res.json(logs);
@@ -823,7 +802,7 @@ async function startServer() {
       }
   });
 
-  systemApi.get('/policies', (req, res) => {
+  systemApi.get('/policies', requireRole('admin'), (req, res) => {
       try {
           const policies = db.prepare('SELECT * FROM _carabase_policies').all();
           res.json(policies);
@@ -832,7 +811,7 @@ async function startServer() {
       }
   });
 
-  systemApi.post('/policies', (req, res) => {
+  systemApi.post('/policies', requireRole('admin'), (req, res) => {
       const { table_name, action, definition } = req.body;
       const id = uuidv4();
       try {
@@ -843,7 +822,7 @@ async function startServer() {
       }
   });
 
-  systemApi.delete('/policies/:id', (req, res) => {
+  systemApi.delete('/policies/:id', requireRole('admin'), (req, res) => {
       try {
           db.prepare('DELETE FROM _carabase_policies WHERE id = ?').run(req.params.id);
           res.json({ success: true });
@@ -852,7 +831,7 @@ async function startServer() {
       }
   });
 
-  systemApi.get('/endpoints', (req, res) => {
+  systemApi.get('/endpoints', requireRole('admin'), (req, res) => {
       try {
           const endpoints = db.prepare('SELECT * FROM _carabase_custom_endpoints ORDER BY created_at DESC').all();
           res.json(endpoints);
@@ -861,7 +840,7 @@ async function startServer() {
       }
   });
 
-  systemApi.post('/endpoints', (req, res) => {
+  systemApi.post('/endpoints', requireRole('admin'), (req, res) => {
       const { name, path, method, table_name, schema } = req.body;
       const id = uuidv4();
       try {
@@ -886,7 +865,7 @@ async function startServer() {
       }
   });
 
-  systemApi.delete('/endpoints/:id', (req, res) => {
+  systemApi.delete('/endpoints/:id', requireRole('admin'), (req, res) => {
       const { id } = req.params;
       try {
           const endpoint = db.prepare('SELECT * FROM _carabase_custom_endpoints WHERE id = ?').get(id) as any;

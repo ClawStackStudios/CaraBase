@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Copy, Plus, Trash2, KeyRound, ShieldAlert } from "lucide-react";
+import { Copy, Plus, Trash2, KeyRound, ShieldAlert, Loader2 } from "lucide-react";
 import { apiFetch } from "@/config/apiConfig";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useToast } from "@/context/ToastContext";
 
 export default function ApiKeys() {
   const [keys, setKeys] = useState<any[]>([]);
@@ -12,6 +13,8 @@ export default function ApiKeys() {
   const [newKeyType, setNewKeyType] = useState("public");
   const [newlyGenerated, setNewlyGenerated] = useState<{name:string, key:string, type:string} | null>(null);
   const [keyToRevoke, setKeyToRevoke] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     fetchKeys();
@@ -28,6 +31,7 @@ export default function ApiKeys() {
 
   async function generateKey() {
     if (!newKeyName.trim()) return;
+    setIsGenerating(true);
     try {
       const res = await apiFetch('/api/system/keys', {
         method: 'POST',
@@ -37,10 +41,13 @@ export default function ApiKeys() {
       const keyData = await res.json();
       setNewlyGenerated(keyData);
       setNewKeyName("");
+      toast.success('Key generated successfully');
       fetchKeys();
     } catch (err) {
       console.error(err);
-      alert('Failed to generate key: ' + (err as Error).message);
+      toast.error('Failed to generate key: ' + (err as Error).message);
+    } finally {
+      setIsGenerating(false);
     }
   }
 
@@ -52,9 +59,10 @@ export default function ApiKeys() {
     if (!keyToRevoke) return;
     try {
       await apiFetch(`/api/system/keys/${keyToRevoke}`, { method: 'DELETE' });
+      toast.success('Key revoked successfully');
     } catch (err) {
       console.error(err);
-      alert('Failed to revoke key: ' + (err as Error).message);
+      toast.error('Failed to revoke key: ' + (err as Error).message);
     } finally {
       setKeyToRevoke(null);
       fetchKeys();
@@ -63,7 +71,7 @@ export default function ApiKeys() {
 
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text);
-    // In a real app, add a beautiful toast here.
+    toast.success("API key copied to clipboard!");
   }
 
   return (
@@ -123,7 +131,10 @@ export default function ApiKeys() {
                   <option value="private">Private (service_role)</option>
                </select>
             </div>
-            <Button onClick={generateKey}><Plus className="w-4 h-4 mr-2"/> Generate</Button>
+            <Button onClick={generateKey} disabled={isGenerating}>
+              {isGenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2"/>} 
+              Generate
+            </Button>
           </div>
         </CardContent>
       </Card>

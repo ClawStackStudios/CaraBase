@@ -3,10 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Copy, Trash, UploadCloud, File, FileCode2, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/config/apiConfig";
+import { useToast } from "@/context/ToastContext";
 
 export default function Storage() {
   const [files, setFiles] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     fetchFiles();
@@ -42,10 +44,11 @@ export default function Storage() {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.error || 'Upload failed');
       }
+      toast.success('File uploaded successfully');
       fetchFiles();
     } catch (err: any) {
       console.error(err);
-      alert("Upload failed: " + err.message);
+      toast.error("Upload failed: " + err.message);
     } finally {
       setIsUploading(false);
       e.target.value = '';
@@ -56,9 +59,11 @@ export default function Storage() {
     if (!confirm(`Are you sure you want to delete ${filename}?`)) return;
     try {
       await apiFetch(`/api/system/storage/${id}`, { method: 'DELETE' });
+      toast.success('File deleted successfully');
       fetchFiles();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      toast.error("Delete failed: " + e.message);
     }
   };
 
@@ -136,7 +141,7 @@ export default function Storage() {
                                  <button
                                      onClick={() => {
                                          navigator.clipboard.writeText(`${window.location.origin}/storage/v1/file/${file.id}`);
-                                         alert("URL copied!");
+                                         toast.success("URL copied to clipboard!");
                                      }}
                                      className="p-1 text-slate-400 hover:text-blue-600 dark:text-slate-500 dark:hover:text-blue-400 transition-colors bg-transparent border-0 cursor-pointer"
                                      title="Copy public URL"

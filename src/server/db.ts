@@ -72,6 +72,13 @@ db.function('auth_username', () => {
 });
 
 // Initialize schema
+try {
+  // Graceful migration to add role to existing users table
+  db.prepare("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'viewer'").run();
+} catch (e) {
+  // Ignore error if column already exists or table doesn't exist yet
+}
+
 db.exec(`
   -- Legacy carabase tables
   CREATE TABLE IF NOT EXISTS _carabase_api_keys (
@@ -114,6 +121,7 @@ db.exec(`
     uuid       TEXT PRIMARY KEY,
     username   TEXT NOT NULL UNIQUE,
     key_hash   TEXT NOT NULL UNIQUE,    -- SHA-256 hash of ClawKey
+    role       TEXT NOT NULL DEFAULT 'viewer',
     created_at TEXT NOT NULL
   );
 

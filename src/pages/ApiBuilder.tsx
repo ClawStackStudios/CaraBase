@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Code, Plus, Trash2, Database, Play, CheckCircle, XCircle, Info, ChevronRight, HelpCircle, Layers, CheckSquare } from "lucide-react";
+import { Code, Plus, Trash2, Database, Play, CheckCircle, XCircle, Info, ChevronRight, HelpCircle, Layers, CheckSquare, Loader2 } from "lucide-react";
 import { apiFetch } from "@/config/apiConfig";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useToast } from "@/context/ToastContext";
 
 interface Endpoint {
   id: string;
@@ -53,6 +54,9 @@ export default function ApiBuilder() {
 
   // Dialog state
   const [endpointToRemove, setEndpointToRemove] = useState<string | null>(null);
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     fetchEndpoints();
@@ -175,6 +179,7 @@ export default function ApiBuilder() {
       validation: method !== 'GET' ? validationRules : []
     };
 
+    setIsSubmitting(true);
     try {
       const res = await apiFetch('/api/system/endpoints', {
         method: 'POST',
@@ -198,12 +203,16 @@ export default function ApiBuilder() {
         setSelectedColumns([]);
         setStaticFilters([]);
         setValidationRules([]);
+        toast.success(`Endpoint ${name} created successfully`);
       } else {
         const err = await res.json();
-        alert(`Error: ${err.error}`);
+        toast.error(`Error: ${err.error}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      toast.error(`Error: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -219,9 +228,14 @@ export default function ApiBuilder() {
         if (selectedEndpoint?.id === endpointToRemove) {
           setSelectedEndpoint(nextList.length > 0 ? nextList[0] : null);
         }
+        toast.success('Endpoint deleted successfully');
+      } else {
+        const err = await res.json();
+        toast.error(`Error deleting endpoint: ${err.error}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      toast.error(`Failed to delete endpoint: ${err.message}`);
     } finally {
       setEndpointToRemove(null);
     }
@@ -525,8 +539,8 @@ export default function ApiBuilder() {
                   </div>
                 )}
 
-                <Button type="submit" className="w-full text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white gap-1">
-                  Create Dynamic REST API
+                <Button type="submit" disabled={isSubmitting} className="w-full text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white gap-1">
+                  {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null} Create Dynamic REST API
                 </Button>
               </form>
             </CardContent>

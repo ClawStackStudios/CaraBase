@@ -16,10 +16,12 @@ import {
   Sparkles,
   AlertCircle,
   FileText,
-  Hammer
+  Hammer,
+  Loader2
 } from "lucide-react";
 import { apiFetch } from "@/config/apiConfig";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useToast } from "@/context/ToastContext";
 
 export default function TableEditor() {
   const [tables, setTables] = useState<any[]>([]);
@@ -27,6 +29,11 @@ export default function TableEditor() {
   const [rows, setRows] = useState<any[]>([]);
   const [columns, setColumns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const toast = useToast();
+  const [isSubmittingTable, setIsSubmittingTable] = useState(false);
+  const [isSubmittingColumn, setIsSubmittingColumn] = useState(false);
+  const [isDroppingColumn, setIsDroppingColumn] = useState(false);
+  const [isDeletingRow, setIsDeletingRow] = useState(false);
 
   // Layout Tab toggling ("data" | "schema")
   const [activeTab, setActiveTab] = useState<"data" | "schema">("data");
@@ -134,7 +141,7 @@ export default function TableEditor() {
       setRows(await rowsRes.json());
     } catch (err) {
       console.error(err);
-      alert('Error fetching table data: ' + (err as Error).message);
+      toast.error('Error fetching table data: ' + (err as Error).message);
     } finally {
       setLoadingRows(false);
     }
@@ -176,6 +183,7 @@ export default function TableEditor() {
 
   async function handleCreateTable() {
     if (!newTableName) return;
+    setIsSubmittingTable(true);
     try {
       const formattedCols = newColumns.map(col => ({
         name: col.name,
@@ -197,11 +205,14 @@ export default function TableEditor() {
       setNewTableName("");
       setNewColumns([{ name: 'id', type: 'INTEGER', primaryKey: true, nullable: false, unique: false, defaultValue: '' }]);
       setIsCreating(false);
+      toast.success(`Table ${newTableName} created successfully`);
       await fetchTables();
       setSelectedTable(newTableName);
     } catch (err) {
       console.error(err);
-      alert('Failed to create table: ' + (err as Error).message);
+      toast.error('Failed to create table: ' + (err as Error).message);
+    } finally {
+      setIsSubmittingTable(false);
     }
   }
 
@@ -236,6 +247,7 @@ export default function TableEditor() {
       return;
     }
 
+    setIsSubmittingColumn(true);
     try {
       const res = await apiFetch('/api/system/query', {
         method: 'POST',
@@ -247,10 +259,13 @@ export default function TableEditor() {
       }
 
       setColToAdd({ name: "", type: "TEXT", notNull: false, defaultValue: "" });
+      toast.success(`Column ${safeColName} added successfully`);
       fetchTableData(selectedTable, page);
     } catch (err) {
       console.error(err);
       setColAddError((err as Error).message);
+    } finally {
+      setIsSubmittingColumn(false);
     }
   }
 
@@ -259,7 +274,7 @@ export default function TableEditor() {
     // Prevent dropping primary key columns
     const colObj = columns.find(c => c.name === colName);
     if (colObj && colObj.pk === 1) {
-      alert("Dropping PRIMARY KEY columns is not permitted to preserve database integrity.");
+      toast.error("Dropping PRIMARY KEY columns is not permitted to preserve database integrity.");
       return;
     }
     setColToDelete(colName);
@@ -269,6 +284,7 @@ export default function TableEditor() {
   async function confirmDropColumn() {
     if (!colToDelete || !selectedTable) return;
     setIsDropColConfirmOpen(false);
+    setIsDroppingColumn(true);
 
     const query = `ALTER TABLE ${selectedTable} DROP COLUMN ${colToDelete}`;
 
@@ -282,10 +298,13 @@ export default function TableEditor() {
         throw new Error(await res.text());
       }
       setColToDelete(null);
+      toast.success(`Column dropped successfully`);
       fetchTableData(selectedTable, page);
     } catch (err) {
       console.error(err);
-      alert('Drop column failed: ' + (err as Error).message);
+      toast.error('Drop column failed: ' + (err as Error).message);
+    } finally {
+      setIsDroppingColumn(false);
     }
   }
 
@@ -306,6 +325,7 @@ export default function TableEditor() {
     const previousRows = [...rows];
     setRows(rows.filter(r => r[pkName] !== pkVal));
     setIsConfirmOpen(false);
+    setIsDeletingRow(true);
 
     try {
       const res = await apiFetch(`/rest/v1/${selectedTable}?${pkName}=eq.${pkVal}`, {
@@ -315,11 +335,14 @@ export default function TableEditor() {
         throw new Error(await res.text());
       }
       setRowToDelete(null);
+      toast.success('Row deleted successfully');
     } catch (err) {
       console.error(err);
-      alert('Delete failed: ' + (err as Error).message);
+      toast.error('Delete failed: ' + (err as Error).message);
       // Revert optimistic delete
       setRows(previousRows);
+    } finally {
+      setIsDeletingRow(false);
     }
   }
 
@@ -623,7 +646,10 @@ export default function TableEditor() {
                 </Button>
               </div>
               <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-850">
-                <Button onClick={handleCreateTable} className="bg-emerald-650 hover:bg-emerald-700 text-white">Create Table</Button>
+                <Button onClick={handleCreateTable} disabled={isSubmittingTable} className="bg-emerald-650 hover:bg-emerald-700 text-white">
+                  {isSubmittingTable ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                  Create Table
+                </Button>
                 <Button variant="ghost" onClick={() => setIsCreating(false)} className="hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400">Cancel</Button>
               </div>
             </div>
@@ -968,8 +994,8 @@ export default function TableEditor() {
                               <label htmlFor="coladd-notnull" className="text-xs font-semibold text-slate-700 dark:text-slate-350 select-none">NOT NULL</label>
                             </div>
                             
-                            <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 py-1.5 px-4 h-9 shadow-xs text-xs font-semibold">
-                              Add Column
+                            <Button type="submit" disabled={isSubmittingColumn} className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 py-1.5 px-4 h-9 shadow-xs text-xs font-semibold">
+                              {isSubmittingColumn ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : null} Add Column
                             </Button>
                           </div>
                         </div>

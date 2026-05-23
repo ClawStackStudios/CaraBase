@@ -1,7 +1,7 @@
 ---
 roadmap_version: 2.0.0
 last_updated: 2026-05-23
-current_position: "Phase 2: Access Control, Operations & Public Access — Task 07: Role-Based Access Control (RBAC)"
+current_position: "Phase 2: Access Control, Operations & Public Access — Task 08: Global Toast & UI Feedback System"
 statistics:
   description: "CaraBase is a LAN-first, self-hosted SQLite database platform — a robust, personal alternative to Supabase. Its goal is to provide the core features everyone actually uses (Auth, RLS, Storage, Real-time, and REST APIs) in a single Docker container, backed by a clean dashboard UI."
   features_completed: "█████████░ 68% (Core Engine, Auth, RLS, SSE, Storage, REST API Builder, Table Editor, Docker)"
@@ -117,7 +117,7 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 07: Role-Based Access Control (RBAC)**
+- [x] **Task 07: Role-Based Access Control (RBAC)**
 
   **Description:** Introduce a `role` field to the `users` system table (values: `superadmin`, `admin`, `viewer`). `superadmin` has unrestricted access to all system APIs. `admin` can manage tables, keys, policies, and storage but cannot manage users. `viewer` can only access the Table Editor data view in read-only mode. Enforce these roles in the backend middleware chain by checking `(req as any).userSession.role` after authentication and before routing to any `systemApi` handler. Define a `requireRole(minRole)` middleware factory in `src/server/middleware/`. Update the setup wizard to assign the first registered user the `superadmin` role automatically.
 

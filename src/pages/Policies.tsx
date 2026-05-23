@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Shield, Plus, Trash2, Database, Info } from "lucide-react";
+import { Shield, Plus, Trash2, Database, Info, Loader2 } from "lucide-react";
 import { apiFetch } from "@/config/apiConfig";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useToast } from "@/context/ToastContext";
 
 export default function Policies() {
   const [policies, setPolicies] = useState<any[]>([]);
@@ -14,6 +15,8 @@ export default function Policies() {
   const [newAction, setNewAction] = useState("SELECT");
   const [newDefinition, setNewDefinition] = useState("1=1");
   const [policyToRemove, setPolicyToRemove] = useState<string | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     fetchPolicies();
@@ -42,6 +45,7 @@ export default function Policies() {
 
   async function addPolicy() {
     if (!newTargetTable || !newDefinition) return;
+    setIsAdding(true);
     try {
       await apiFetch('/api/system/policies', {
         method: 'POST',
@@ -53,10 +57,13 @@ export default function Policies() {
         })
       });
       setNewDefinition("1=1");
+      toast.success('Policy added successfully');
       fetchPolicies();
     } catch (err) {
       console.error(err);
-      alert('Failed to add policy: ' + (err as Error).message);
+      toast.error('Failed to add policy: ' + (err as Error).message);
+    } finally {
+      setIsAdding(false);
     }
   }
 
@@ -68,9 +75,10 @@ export default function Policies() {
     if (!policyToRemove) return;
     try {
       await apiFetch(`/api/system/policies/${policyToRemove}`, { method: 'DELETE' });
+      toast.success('Policy removed successfully');
     } catch (err) {
       console.error(err);
-      alert('Failed to remove policy: ' + (err as Error).message);
+      toast.error('Failed to remove policy: ' + (err as Error).message);
     } finally {
       setPolicyToRemove(null);
       fetchPolicies();
@@ -135,7 +143,9 @@ export default function Policies() {
                    className="font-mono"
                  />
              </div>
-             <Button onClick={addPolicy} disabled={tables.length === 0}><Plus className="w-4 h-4 mr-2"/> Add Policy</Button>
+             <Button onClick={addPolicy} disabled={tables.length === 0 || isAdding}>
+               {isAdding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2"/>} Add Policy
+             </Button>
           </div>
         </CardContent>
       </Card>

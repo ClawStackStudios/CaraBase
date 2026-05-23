@@ -10,6 +10,7 @@ export interface AuthRequest extends Request {
   apiKey: string;
   keyType: 'human' | 'agent' | 'api';
   userUuid: string;
+  role: 'superadmin' | 'admin' | 'viewer';
   agentPermissions: Record<string, boolean | string>;
 }
 
@@ -142,10 +143,15 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     return;
   }
 
+  // Fetch user role
+  const userRow = db.prepare('SELECT role FROM users WHERE uuid = ?').get(finalUserUuid) as { role: 'superadmin' | 'admin' | 'viewer' };
+  const userRole = userRow?.role || 'viewer'; // Default to viewer if not found (e.g., legacy db without role)
+
   const authReq = req as AuthRequest;
   authReq.apiKey = key;
   authReq.keyType = actualKeyType;
   authReq.userUuid = finalUserUuid;
+  authReq.role = userRole;
   authReq.agentPermissions = finalPermissions || {};
 
   next();

@@ -15,6 +15,7 @@ import SetupWizard from './components/auth/SetupWizard';
 import { useAuth } from './hooks/useAuth';
 import { ThemeProvider } from './context/ThemeContext';
 import { AdminProvider, useAdmin } from './features/admin/AdminContext';
+import { ToastProvider } from './context/ToastContext';
 import { AdminLogin } from './features/admin/AdminLogin';
 import { AdminDashboard } from './features/admin/AdminDashboard';
 import { AdminUserList } from './features/admin/AdminUserList';
@@ -30,13 +31,15 @@ function PublicLanding() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <AdminProvider>
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </AdminProvider>
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <AdminProvider>
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </AdminProvider>
+        </AuthProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }
