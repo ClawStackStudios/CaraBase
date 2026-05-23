@@ -1013,8 +1013,115 @@ async function runTests() {
 
 
   // =========================================================================
+  // Phase 10: Table Editor Integration (Task 06)
+  // =========================================================================
+  console.log("\n--- Phase 10: Table Editor Integration ---");
+  const testEditorTable = 'test_editor_' + Date.now();
+
+  // Assertion 1: Creating a new test table with typed columns and constraints via the system API
+  try {
+    const res = await fetch(`${BASE_URL}/api/system/tables`, {
+      method: 'POST',
+      headers: { 
+        'Authorization': `Bearer ${token1}`, 
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify({
+        tableName: testEditorTable,
+        columns: [
+          { name: 'id', type: 'INTEGER', primaryKey: true },
+          { name: 'name', type: 'TEXT', nullable: false, unique: true },
+          { name: 'price', type: 'REAL', defaultValue: '0.0' }
+        ]
+      })
+    });
+    assert(res.status === 200, "Successfully created a new test table with typed columns & constraints");
+  } catch(e) { assert(false, "Failed to create test table: " + e.message); }
+
+  // Assertion 2: Inserting a row via the REST API private key
+  try {
+    const res = await fetch(`${BASE_URL}/rest/v1/${testEditorTable}`, {
+      method: 'POST',
+      headers: { 
+        'apikey': externalPrivateKey, 
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify({
+        name: 'ClawWidget',
+        price: 99.99
+      })
+    });
+    assert(res.status === 200, "Successfully inserted a new row using the private API key");
+  } catch(e) { assert(false, "Failed to insert row: " + e.message); }
+
+  // Assertion 3: Fetching and verifying the row appears in the REST response
+  try {
+    const res = await fetch(`${BASE_URL}/rest/v1/${testEditorTable}`, {
+      headers: { 'apikey': externalPrivateKey }
+    });
+    const rows = await res.json();
+    assert(rows.length === 1 && rows[0].name === 'ClawWidget' && rows[0].price === 99.99, "Row successfully fetched and data contents verified");
+  } catch(e) { assert(false, "Failed to fetch row: " + e.message); }
+
+  // Assertion 4: Patching (updating) the row and confirming the change
+  try {
+    const res = await fetch(`${BASE_URL}/rest/v1/${testEditorTable}?name=eq.ClawWidget`, {
+      method: 'PATCH',
+      headers: { 
+        'apikey': externalPrivateKey, 
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify({
+        price: 79.99
+      })
+    });
+    assert(res.status === 204 || res.status === 200, "Successfully patched/updated row data via API");
+
+    const checkRes = await fetch(`${BASE_URL}/rest/v1/${testEditorTable}`, {
+      headers: { 'apikey': externalPrivateKey }
+    });
+    const rows = await checkRes.json();
+    assert(rows.length === 1 && rows[0].price === 79.99, "Patch verified: Updated value persisted correctly");
+  } catch(e) { assert(false, "Failed to patch row: " + e.message); }
+
+  // Assertion 5: Deleting the row and confirming 0 rows are returned
+  try {
+    const res = await fetch(`${BASE_URL}/rest/v1/${testEditorTable}?name=eq.ClawWidget`, {
+      method: 'DELETE',
+      headers: { 'apikey': externalPrivateKey }
+    });
+    assert(res.status === 204 || res.status === 200, "Successfully executed row deletion via API");
+
+    const checkRes = await fetch(`${BASE_URL}/rest/v1/${testEditorTable}`, {
+      headers: { 'apikey': externalPrivateKey }
+    });
+    const rows = await checkRes.json();
+    assert(rows.length === 0, "Deletion verified: 0 rows returned on subsequent retrieval");
+  } catch(e) { assert(false, "Failed to delete row: " + e.message); }
+
+  // Assertion 6: Confirming the table schema is readable via the PRAGMA table_info system route
+  try {
+    const res = await fetch(`${BASE_URL}/api/system/tables/${testEditorTable}/schema`, {
+      headers: { 'Authorization': `Bearer ${token1}` }
+    });
+    const cols = await res.json();
+    const hasNameCol = cols.some(c => c.name === 'name' && c.type === 'TEXT' && c.notnull === 1);
+    const hasPriceCol = cols.some(c => c.name === 'price' && c.type === 'REAL' && c.dflt_value === "'0.0'");
+    assert(res.status === 200 && hasNameCol && hasPriceCol, "Introspective schema successfully retrieved via system API & constraints verified");
+
+    // Clean up
+    await fetch(`${BASE_URL}/api/system/query`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `DROP TABLE IF EXISTS ${testEditorTable}`, method: 'run' })
+    });
+  } catch(e) { assert(false, "Failed to read schema or cleanup table: " + e.message); }
+
+
+  // =========================================================================
   // Final Verdict
   // =========================================================================
+
   console.log("\n=====================================================");
   console.log(`   TESTRUN COMPLETE. Passed: ${passed}, Failed: ${failed}`);
   console.log("=====================================================\n");

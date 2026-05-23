@@ -126,6 +126,16 @@ async function startServer() {
     }
   });
 
+  systemApi.get('/tables/:name/schema', (req, res) => {
+    const safeTable = req.params.name.replace(/[^a-zA-Z0-9_]/g, '');
+    try {
+      const columns = db.prepare(`PRAGMA table_info(${safeTable})`).all();
+      res.json(columns);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   systemApi.post('/query', (req, res) => {
     const { query, method = 'all', params = [] } = req.body;
     try {
@@ -280,7 +290,7 @@ async function startServer() {
     const filters: string[] = [];
     const values: any[] = [];
     for (const key of Object.keys(query)) {
-      if (key === 'apikey' || key === 'limit' || key === 'offset') continue;
+      if (key === 'apikey' || key === 'limit' || key === 'offset' || key === 'order_by' || key === 'dir') continue;
       const val = query[key];
       if (typeof val === 'string') {
         const cleanKey = key.replace(/[^a-zA-Z0-9_]/g, '');
@@ -533,7 +543,29 @@ async function startServer() {
       } else {
           try {
               rlsContext.run({ userUuid: (req as any).userUuid || null, username: (req as any).username || null }, () => {
-                  const rows = db.prepare(`SELECT * FROM ${table} WHERE ${rlsFilter}`).all();
+                  const { whereClause: queryWhere, values: queryValues } = parseQueryFilters(req.query);
+                  const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : null;
+                  const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : null;
+                  const order_by = req.query.order_by ? String(req.query.order_by).replace(/[^a-zA-Z0-9_]/g, '') : null;
+                  const dir = req.query.dir && String(req.query.dir).toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+
+                  let sql = `SELECT * FROM ${table} WHERE (${rlsFilter}) AND (${queryWhere})`;
+                  const params = [...queryValues];
+
+                  if (order_by) {
+                      sql += ` ORDER BY ${order_by} ${dir}`;
+                  }
+
+                  if (limit !== null && !isNaN(limit)) {
+                      sql += ` LIMIT ?`;
+                      params.push(limit);
+                      if (offset !== null && !isNaN(offset)) {
+                          sql += ` OFFSET ?`;
+                          params.push(offset);
+                      }
+                  }
+
+                  const rows = db.prepare(sql).all(...params);
                   res.json(rows);
               });
           } catch (e: any) {

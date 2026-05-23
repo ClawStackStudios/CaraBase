@@ -1,10 +1,10 @@
 ---
 roadmap_version: 2.0.0
-last_updated: 2026-05-22
-current_position: "Phase 1: The Table Editor — Task 01: Dynamic Data Viewer Grid"
+last_updated: 2026-05-23
+current_position: "Phase 2: Access Control, Operations & Public Access — Task 07: Role-Based Access Control (RBAC)"
 statistics:
   description: "CaraBase is a LAN-first, self-hosted SQLite database platform — a robust, personal alternative to Supabase. Its goal is to provide the core features everyone actually uses (Auth, RLS, Storage, Real-time, and REST APIs) in a single Docker container, backed by a clean dashboard UI."
-  features_completed: "████████░░ 57% (Core Engine, Auth, RLS, SSE, Storage, REST API Builder, Docker)"
+  features_completed: "█████████░ 68% (Core Engine, Auth, RLS, SSE, Storage, REST API Builder, Table Editor, Docker)"
   features_in_progress: "░░░░░░░░░░ 0%"
 ---
 
@@ -32,6 +32,12 @@ statistics:
 | 50-assertion E2E integration test suite (Phases 1–9) | ✅ |
 | UI/UX Alignment (Landing, Auth Flow, Dashboard, Settings, & Sidebar) | ✅ |
 | SuperAdmin Dashboard (Metadata, Uptime, Audit Logging, Volatile Sessions) | ✅ |
+| Table Editor Viewer Grid & Introspection Drawer | ✅ |
+| Table Editor Client Sorting, Search, & Debounced Sidebars | ✅ |
+| Table Editor Live Row Inserting, Editing, & Validated JSON Drawer | ✅ |
+| Table Editor Optimistic Row Deletion & Dialog Hooks | ✅ |
+| Table Editor Visual Schema ALTER/DROP Column Controllers | ✅ |
+| Table Editor E2E Test Coverage expansion in suite.cjs | ✅ |
 
 ---
 
@@ -43,7 +49,7 @@ This roadmap uses a deterministic 3-Phase structure. Each Phase contains exactly
 
 ```
 ------------------ Current Position ------------------
-Phase 1 → Table Editor & Core Data Management
+Phase 2 → Access Control, Operations & Public Access
 ------------------------------------------------------
 ```
 
@@ -64,7 +70,7 @@ Phase 1 → Table Editor & Core Data Management
 
 ---
 
-- [ ] **Task 02: Client-Side Column Sorting & Search**
+- [x] **Task 02: Client-Side Column Sorting & Search**
 
   **Description:** Enhance the data viewer grid with interactive column headers. Clicking a column header should toggle between ASC and DESC sort order, re-fetching data from `/rest/v1/:table?order_by=<col>&dir=ASC|DESC`. Display a directional arrow indicator on the active sort column. Add a global text search input above the grid that filters the currently loaded page of rows client-side across all visible string columns. Add a table name search input to the left sidebar to filter the list of tables by name. The sidebar input should be debounced at 250ms.
 
@@ -72,7 +78,7 @@ Phase 1 → Table Editor & Core Data Management
 
 ---
 
-- [ ] **Task 03: Interactive Row Insertion & Editing**
+- [x] **Task 03: Interactive Row Insertion & Editing**
 
   **Description:** Implement a slide-in drawer or modal panel that allows users to insert new rows and edit existing rows. For insertion, the drawer should dynamically generate form fields based on the current table's column schema — introspected from `PRAGMA table_info(<table>)` via a new system API call `GET /api/system/tables/:table/schema`. Each field should use the appropriate input type (text, number, checkbox for boolean, datetime-local for timestamps). On submit, the form POSTs to `/rest/v1/:table` using the private key, and the grid refreshes. For editing, clicking a row opens the same drawer pre-populated with the row's current values, and submits a PATCH to `/rest/v1/:table?<primary_key>=eq.<value>`.
 
@@ -80,7 +86,7 @@ Phase 1 → Table Editor & Core Data Management
 
 ---
 
-- [ ] **Task 04: Row Deletion with Confirmation**
+- [x] **Task 04: Row Deletion with Confirmation**
 
   **Description:** Add a delete action to each row in the data viewer grid. A trash icon at the end of each row should open a confirmation dialog (reusing the existing `ConfirmDialog` component) before issuing a `DELETE /rest/v1/:table?<primary_key>=eq.<value>` request via the private key. On confirmation, remove the row from the local grid state immediately (optimistic UI) and confirm with the backend. If the backend returns an error, restore the row and display an error toast.
 
@@ -88,7 +94,7 @@ Phase 1 → Table Editor & Core Data Management
 
 ---
 
-- [ ] **Task 05: Visual Schema Management**
+- [x] **Task 05: Visual Schema Management**
 
   **Description:** Build a Schema Editor panel within the Table Editor page, toggled from the header (e.g., a "Schema" tab alongside the "Data" tab). The Schema view should introspect the table structure using `PRAGMA table_info` and display each column with its name, type, constraints (PK, NOT NULL, DEFAULT), and a delete action. Allow users to add new columns via an inline form (name, type, constraints). Adding a column should issue an `ALTER TABLE <name> ADD COLUMN <col> <type>` query via `POST /api/system/query`. Column deletion should issue a `DROP COLUMN` query (where SQLite supports it) with a confirmation dialog. The "Create New Table" flow should also support constraint definitions (UNIQUE, NOT NULL, DEFAULT) from the creation form.
 
@@ -96,7 +102,7 @@ Phase 1 → Table Editor & Core Data Management
 
 ---
 
-- [ ] **Task 06: Table Editor E2E Test Coverage**
+- [x] **Task 06: Table Editor E2E Test Coverage**
 
   **Description:** Extend `tests/suite.cjs` with a dedicated **Phase 10: Table Editor Integration** block. Using the existing private key credentials from Phase 2 setup, write assertions that cover: (1) creating a new test table with typed columns via the system API, (2) inserting a row via the REST API private key, (3) fetching and verifying the row appears in the REST response, (4) patching (updating) the row and confirming the change, (5) deleting the row and confirming 0 rows are returned, (6) confirming the table schema is readable via the `PRAGMA table_info` system route. All 6 assertions must pass cleanly against a running `npm run dev:server` instance.
 
