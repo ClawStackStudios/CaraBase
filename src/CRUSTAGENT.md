@@ -27,7 +27,7 @@ Row-Level Security (RLS) is achieved via `applyRls` in `server.ts` combined with
 
 ## Key Security
 
-- **Private Keys** (`sk_...`): Bypass all RLS constraints.
+- **Private Keys** (`ls_...`): Bypass all RLS constraints.
 - **Public Keys** (`pk_...`): Gated strictly by SQLite policies and UDF context.
 
 ## Public Storage & Uploads

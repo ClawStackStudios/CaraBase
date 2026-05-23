@@ -12,6 +12,11 @@ export default function TableEditor() {
   const [columns, setColumns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Data Grid State
+  const [page, setPage] = useState(1);
+  const pageSize = 25;
+  const [loadingRows, setLoadingRows] = useState(false);
+
   // New Table Form
   const [isCreating, setIsCreating] = useState(false);
   const [newTableName, setNewTableName] = useState("");
@@ -23,7 +28,8 @@ export default function TableEditor() {
 
   useEffect(() => {
     if (selectedTable) {
-      fetchTableData(selectedTable);
+      setPage(1);
+      fetchTableData(selectedTable, 1);
     }
   }, [selectedTable]);
 
@@ -41,14 +47,32 @@ export default function TableEditor() {
     }
   }
 
-  async function fetchTableData(tableName: string) {
+  async function fetchTableData(tableName: string, pageNum: number) {
+    setLoadingRows(true);
     try {
       const colsRes = await apiFetch(`/api/system/tables/${tableName}/columns`);
       setColumns(await colsRes.json());
-      const rowsRes = await apiFetch(`/api/system/tables/${tableName}/rows`);
+      const offset = (pageNum - 1) * pageSize;
+      const rowsRes = await apiFetch(`/rest/v1/${tableName}?limit=${pageSize}&offset=${offset}`);
       setRows(await rowsRes.json());
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoadingRows(false);
+    }
+  }
+
+  function handleNextPage() {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchTableData(selectedTable!, nextPage);
+  }
+
+  function handlePrevPage() {
+    if (page > 1) {
+      const prevPage = page - 1;
+      setPage(prevPage);
+      fetchTableData(selectedTable!, prevPage);
     }
   }
 
@@ -200,10 +224,19 @@ export default function TableEditor() {
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.length === 0 ? (
+                    {loadingRows ? (
+                      [...Array(5)].map((_, i) => (
+                        <tr key={i} className="border-b border-slate-100 dark:border-slate-800/60">
+                          {columns.map(col => (
+                             <td key={col.name} className="px-4 py-3"><div className="h-4 bg-slate-200 dark:bg-slate-800 rounded animate-pulse w-3/4"></div></td>
+                          ))}
+                        </tr>
+                      ))
+                    ) : rows.length === 0 ? (
                       <tr>
-                        <td colSpan={Math.max(columns.length, 1)} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
-                          No rows found in this table.
+                        <td colSpan={Math.max(columns.length, 1)} className="px-4 py-16 text-center text-slate-500 dark:text-slate-400">
+                          <DatabaseZap className="h-8 w-8 mx-auto mb-3 opacity-20" />
+                          <p>No rows found in this table.</p>
                         </td>
                       </tr>
                     ) : (
@@ -219,6 +252,13 @@ export default function TableEditor() {
                     )}
                   </tbody>
                 </table>
+              </div>
+              <div className="px-4 py-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900 text-sm">
+                 <span className="text-slate-500 dark:text-slate-400">Page {page}</span>
+                 <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={handlePrevPage} disabled={page === 1 || loadingRows}>Previous</Button>
+                    <Button variant="outline" size="sm" onClick={handleNextPage} disabled={rows.length < pageSize || loadingRows}>Next</Button>
+                 </div>
               </div>
             </>
           ) : (

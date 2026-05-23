@@ -164,7 +164,7 @@ async function startServer() {
     const { name, type } = req.body;
     if (!name || (type !== 'public' && type !== 'private')) return res.status(400).json({ error: 'Invalid parameters' });
     const id = uuidv4();
-    const prefix = type === 'public' ? 'pk_' : 'sk_';
+    const prefix = type === 'public' ? 'pk_' : 'ls_';
     const key = prefix + crypto.randomBytes(32).toString('hex');
     try {
       db.prepare('INSERT INTO _carabase_api_keys (id, name, key, type) VALUES (?, ?, ?, ?)').run(id, name, key, type);
@@ -190,24 +190,14 @@ async function startServer() {
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.substring(7).trim();
-      if (token.startsWith('pk_') || token.startsWith('sk_')) {
+      if (token.startsWith('pk_') || token.startsWith('ls_')) {
         apiKey = token;
       } else {
         sessionToken = token;
       }
     }
 
-    if (!apiKey) {
-      return res.status(401).json({ error: 'Missing API Key (apikey header or Bearer token required)' });
-    }
-
     try {
-      const apiKeyRow = db.prepare('SELECT * FROM _carabase_api_keys WHERE key = ?').get(apiKey) as any;
-      if (!apiKeyRow) {
-         return res.status(401).json({ error: 'Invalid API Key' });
-      }
-      (req as any).apiKey = apiKeyRow;
-
       if (sessionToken) {
         if (sessionToken.startsWith('api-')) {
           const hashedToken = crypto.createHash('sha256').update(sessionToken).digest('hex');
@@ -236,8 +226,23 @@ async function startServer() {
           if (userRow) {
             (req as any).userUuid = userRow.uuid;
             (req as any).username = userRow.username;
+            if (!apiKey) {
+               (req as any).apiKey = { type: 'private' };
+            }
           }
         }
+      }
+
+      if (apiKey) {
+        const apiKeyRow = db.prepare('SELECT * FROM _carabase_api_keys WHERE key = ?').get(apiKey) as any;
+        if (!apiKeyRow) {
+           return res.status(401).json({ error: 'Invalid API Key' });
+        }
+        (req as any).apiKey = apiKeyRow;
+      }
+
+      if (!(req as any).apiKey) {
+          return res.status(401).json({ error: 'Missing API Key or Valid Dashboard Session' });
       }
 
       next();

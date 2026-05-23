@@ -10,6 +10,7 @@
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
+    "test": "node tests/suite.cjs",
     "scuttle": "npm run scuttle:dev-start",
     "scuttle:prod": "npm run scuttle:prod-start",
     "scuttle:dev-start": "npm run dev:server & npm run dev",

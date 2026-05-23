@@ -54,7 +54,7 @@ Phase 1 → Table Editor & Core Data Management
 
 ---
 
-- [ ] **Task 01: Dynamic Data Viewer Grid**
+- [x] **Task 01: Dynamic Data Viewer Grid**
 
   **Description:** In `src/pages/TableEditor.tsx`, implement a live data viewer that fetches rows from the `/rest/v1/:table` endpoint using the current user's system session token. Render data in a high-fidelity, scrollable table grid with sticky column headers. The grid should display column names as headers and all rows as cells. The private key (which bypasses RLS) must be used for system-level dashboard queries. Paginate results with a configurable page size (default: 25 rows) and add Prev/Next controls. Display a loading skeleton while fetching and an empty state illustration if the table has no data.
 
