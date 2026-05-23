@@ -1,67 +1,211 @@
-# CaraBase Roadmap
+---
+roadmap_version: 2.0.0
+last_updated: 2026-05-22
+current_position: "Phase 1: The Table Editor — Task 01: Dynamic Data Viewer Grid"
+statistics:
+  description: "CaraBase is a LAN-first, self-hosted SQLite database platform — a robust, personal alternative to Supabase. Its goal is to provide the core features everyone actually uses (Auth, RLS, Storage, Real-time, and REST APIs) in a single Docker container, backed by a clean dashboard UI."
+  features_completed: "████████░░ 57% (Core Engine, Auth, RLS, SSE, Storage, REST API Builder, Docker)"
+  features_in_progress: "░░░░░░░░░░ 0%"
+---
+
+# CaraBase Master Roadmap
 
 > Maintained by CrustAgent©™ for ClawStack Studios©™
 
-## Current Phase: Vanguard MVP
-- [x] Basic SQLite abstraction
-- [x] Simple raw dynamic schema migrations via Web Dashboard
-- [x] Public & Private API token layer implementation
-- [x] System/External route isolation
-- [x] Row Level Security (RLS) simulation for direct dynamic SQLite querying
-- [x] For CaraBase, integrate Row Level Security (RLS) capabilities. Allow users to define policies that grant or deny access to specific rows in a table based on conditions like the authenticated user's ID, user roles, or custom claims. Ensure RLS applies to all database operations (CRUD).
-- [x] Storage: Includes integrated file storage for handling user uploads.
-- [x] Real-time: Provides real-time updates via Server-Sent Events (SSE)
-- [x] Implement Server-Sent Events (SSE) for the '/rest/v1/:table' endpoint to push realtime database changes to connected clients.
-- [x] The application has a theme toggle functionality that uses a circular reveal animation. Add support for a dark mode. Apply dark mode styles globally and ensure the theme toggle button correctly switches between light and dark themes.
-- [x] The application needs a dark mode. Globally apply dark mode styles and ensure the existing theme toggle button correctly switches between light and dark themes. This should leverage the CSS variables or a similar mechanism for theming.
-- [x] Add realtime database functionality to CaraBase. Users should be able to subscribe to database changes and receive updates in real-time, similar to how services like Firebase or Supabase offer this feature. Ensure efficient handling of concurrent connections and data broadcasts.
-- [x] Develop a feature within the CaraBase web UI that allows users to automatically generate RESTful APIs for their SQLite databases. The builder should let users define endpoints, specify HTTP methods (GET, POST, PUT, DELETE), and configure request/response schemas based on their database tables. Include options for pagination, filtering, and sorting.
+---
 
+## Completed Milestones Archive
+*(Locked. Hardened. Secured. These ship.)*
 
-## Phase 2: Structural Integrity
-- [x] User Authentication Module (Session management and `users` table auto-provisioning). 
-- [x] For CaraBase, implement the ClawKeys System, Ensuring secure password hashing and session management. Make sure the login flow is correctly wired up in the back end so user accounts are able to be created, clawkeys can be generated. and the user is able to make it all the way to the dashboard.  
-- [ ] Develop a user-friendly interface for CaraBase where users can visually design and manage their database schemas. This should include creating tables, defining columns with various data types (text, integer, boolean, timestamp, etc.), setting constraints (like primary keys, foreign keys, and not null), and indexing options.
-- [ ] Provide clearer visual feedback to the user when data operations (add, delete, update) are in progress or have failed. This could include loading spinners, success/error messages, or disabling buttons during operations to prevent duplicate requests.
-- [x] Implement confirmation dialogs for destructive actions within the CaraBase application. Specifically, add dialogs before revoking API keys or deleting RLS policies to prevent accidental data loss.
-- [ ] Implement user role management to assign different permissions (e.g., admin, editor, viewer) to users, allowing for granular access control within the application.
-- [x] Add audit logging to track all significant user actions (e.g., data modifications, API key revocations, policy changes) and store these logs for security and compliance purposes.
-- [ ] Storage abstraction interface layer for local FS uploads.
-- [x] For operations involving multiple database writes (e.g., creating a table and its initial policies), implement database transactions to ensure atomicity. If any part of the operation fails, roll back all changes to maintain data consistency.
-- [x] Implement server-side validation for all incoming data in API endpoints related to data manipulation (e.g., creating/updating tables, managing policies, API keys). Ensure data conforms to expected types, formats, and constraints before processing to prevent corruption.
-- [x] Enhance error handling for API requests (POST /api/system/keys, DELETE /api/system/keys/:id) and database operations. Ensure all errors are caught, logged appropriately, and returned to the client with meaningful messages. Consider a centralized error handling middleware.
-- [x] In the API Keys page, implement the functionality to generate a new API key. When a user provides a name and type (public/private) for a new API key, generate a unique key, store it in the database, and display it to the user. Ensure the generated key is only shown once upon creation.
-- [x] Add confirmation dialogs for destructive actions like deleting tables or revoking API keys.
-- [ ] Implement a daily automated backup mechanism for the SQLite database. The backups should be stored in a separate directory, ideally configurable via environment variables, and the system should retain a reasonable number of recent backups to allow for restoration.
-- [x] The CaraBase application has a page for managing Row Level Security (RLS) policies. Add functionality to delete existing policies. Include a confirmation dialog to prevent accidental deletion.
-- [x] Create a new page or section in the dashboard to display audit logs. This should show details of user actions, including timestamp, event type, actor, action, and outcome. Allow filtering and searching of logs.
+| Milestone | Status |
+|---|---|
+| Core SQLite abstraction & dynamic schema migrations | ✅ |
+| Dark Mode dashboard UI with circular reveal toggle | ✅ |
+| ClawKeys Authentication, Session management, Audit Logging | ✅ |
+| System vs. External route isolation & strict middleware chain | ✅ |
+| Transactional Row-Level Security (RLS) engine — full CRUD | ✅ |
+| Visual Custom REST API Generator (GET/POST/PUT/DELETE) | ✅ |
+| Server-Sent Events (SSE) — live database mutation broadcasts | ✅ |
+| File Storage with anonymous public URL sharing | ✅ |
+| Multi-write DB transactions, server-side validation, confirmation dialogs | ✅ |
+| Docker & Docker Compose deployment with SQLite volume mounts | ✅ |
+| 50-assertion E2E integration test suite (Phases 1–9) | ✅ |
 
-## Phase 3: Table Editor
-- [ ] Add a feature to fetch data from the '/rest/v1/:table' endpoint for a selected table and display it in a table format.
-- [ ] Improve the Table Editor UI by adding client-side sorting and filtering for table columns and implementing a search input for filtering tables by name.
-- [ ] The Table Editor currently allows creating and viewing tables. Enhance the table editor by implementing client-side sorting and filtering for the displayed table data. Also, add a search input to filter the list of tables in the sidebar.
-- [ ] Enhance the Table Editor's table view to include client-side sorting and filtering options for columns to improve data exploration.
-- [ ] In the Table Editor, add a search input to the table list sidebar to filter tables by name.
-- [ ] Allow users to edit existing table schemas in the Table Editor. This includes renaming tables, adding new columns, and modifying existing column definitions (e.g., changing type, adding constraints).
-In the Table Editor, allow users to edit existing table schemas. Implement functionality to rename tables, add new columns, and modify column definitions (type, constraints) after table creation.
-In the Table Editor component, enhance the table view to allow client-side sorting of columns. Add clickable headers that toggle ascending/descending sort order for each column.
-- [ ] Implement a confirmation dialog before deleting a table in the Table Editor to prevent accidental data loss.
-- [ ] In the Table Editor, enhance the table view with client-side sorting and filtering options for columns to improve data exploration.
-- [ ] In the Table Editor, implement a modal or inline form to allow users to insert new rows into the selected table. This form should dynamically generate input fields based on the table's columns.
-- [ ] Enhance the Table Editor page to allow users to edit existing table schemas, including renaming tables, adding/modifying columns, and setting constraints.
-- [ ] In the Table Editor, add functionality to allow users to edit existing table schemas, including renaming tables, adding new columns, and modifying existing column definitions.
-- [ ] In the Table Editor, enhance the 'Create New Table' form to allow users to specify constraints for columns, such as NOT NULL, UNIQUE, and DEFAULT values.
-- [ ] In the Table Editor page, allow users to edit column definitions (e.g., rename, change type, add constraints) after table creation.
-- [ ] In the Table Editor page, enhance the table view with sorting and filtering options for columns.
-- [ ] In the Table Editor page, implement a modal or inline form to insert new rows into the selected table.
-- [ ] In the Table Editor page, add a search input to filter the list of tables by name.
-- [ ] In the Table Editor's table view, add client-side filtering options for columns to improve data exploration.
+---
 
-## Phase 4: Developer Experience
-- [x] Implement robust Docker and Docker Compose support for simplified deployment, ensuring native build compatibility and volume mounts for SQLite data persistence.
-- [ ] Integrate realtime database functionality using WebSockets or HTTP Long-Polling. This will allow the frontend to receive live updates when data changes in the database, enhancing the user experience for collaborative features or live dashboards.
-- [ ] CaraBase Client JS library (Axios wrapper mapping to `/rest/v1`).
-- [ ] Realtime Database functionality via HTTP Long-Polling or standard WebSockets integration.
-- [ ] Advanced graphical column editor (Foreign Keys, Triggers, Views). 
+## System Design Rule
 
-### Next Prompts, Never execute. 
+This roadmap uses a deterministic 3-Phase structure. Each Phase contains exactly 6 tasks, representing the complete forward roadmap from current position to a shippable, self-hosted Supabase replacement.
+
+---
+
+```
+------------------ Current Position ------------------
+Phase 1 → Table Editor & Core Data Management
+------------------------------------------------------
+```
+
+---
+
+## Phase 1: The Table Editor — Core Data Management
+
+> **Phase Feature Set Overview:**
+> This phase delivers the most important missing piece of the Supabase experience: the ability to see, explore, and directly manipulate your data inside the dashboard. Success here means a user can point CaraBase at any SQLite database, immediately see its contents in a live grid, edit schemas visually without writing SQL, and manipulate rows directly from the UI. This is the bridge between "API platform" and "full database product."
+
+---
+
+- [ ] **Task 01: Dynamic Data Viewer Grid**
+
+  **Description:** In `src/pages/TableEditor.tsx`, implement a live data viewer that fetches rows from the `/rest/v1/:table` endpoint using the current user's system session token. Render data in a high-fidelity, scrollable table grid with sticky column headers. The grid should display column names as headers and all rows as cells. The private key (which bypasses RLS) must be used for system-level dashboard queries. Paginate results with a configurable page size (default: 25 rows) and add Prev/Next controls. Display a loading skeleton while fetching and an empty state illustration if the table has no data.
+
+  > **Success Criteria:** Selecting any table in the sidebar renders its rows in the grid within 300ms. Page controls correctly offset the query. Empty tables display a clean empty-state message. The private key is used for the query — not the public key.
+
+---
+
+- [ ] **Task 02: Client-Side Column Sorting & Search**
+
+  **Description:** Enhance the data viewer grid with interactive column headers. Clicking a column header should toggle between ASC and DESC sort order, re-fetching data from `/rest/v1/:table?order_by=<col>&dir=ASC|DESC`. Display a directional arrow indicator on the active sort column. Add a global text search input above the grid that filters the currently loaded page of rows client-side across all visible string columns. Add a table name search input to the left sidebar to filter the list of tables by name. The sidebar input should be debounced at 250ms.
+
+  > **Success Criteria:** Clicking a column header updates the sort indicator and re-fetches sorted data from the backend. The global search input immediately narrows visible rows. The sidebar search narrows the table list correctly. No full page re-renders — state is managed locally within the component.
+
+---
+
+- [ ] **Task 03: Interactive Row Insertion & Editing**
+
+  **Description:** Implement a slide-in drawer or modal panel that allows users to insert new rows and edit existing rows. For insertion, the drawer should dynamically generate form fields based on the current table's column schema — introspected from `PRAGMA table_info(<table>)` via a new system API call `GET /api/system/tables/:table/schema`. Each field should use the appropriate input type (text, number, checkbox for boolean, datetime-local for timestamps). On submit, the form POSTs to `/rest/v1/:table` using the private key, and the grid refreshes. For editing, clicking a row opens the same drawer pre-populated with the row's current values, and submits a PATCH to `/rest/v1/:table?<primary_key>=eq.<value>`.
+
+  > **Success Criteria:** A "Insert Row" button opens the drawer with correct dynamically-generated fields. Submitting a valid form inserts a row and updates the grid without a full page reload. Clicking a row opens the drawer pre-populated with its data. Submitting updates the row correctly via PATCH. Validation errors from the server are displayed inline.
+
+---
+
+- [ ] **Task 04: Row Deletion with Confirmation**
+
+  **Description:** Add a delete action to each row in the data viewer grid. A trash icon at the end of each row should open a confirmation dialog (reusing the existing `ConfirmDialog` component) before issuing a `DELETE /rest/v1/:table?<primary_key>=eq.<value>` request via the private key. On confirmation, remove the row from the local grid state immediately (optimistic UI) and confirm with the backend. If the backend returns an error, restore the row and display an error toast.
+
+  > **Success Criteria:** Clicking the trash icon shows a confirmation dialog containing the row's primary key for clarity. Confirming removes the row from both the UI and the database. Cancelling leaves the row untouched. A backend error on delete triggers a toast and restores the row in the grid.
+
+---
+
+- [ ] **Task 05: Visual Schema Management**
+
+  **Description:** Build a Schema Editor panel within the Table Editor page, toggled from the header (e.g., a "Schema" tab alongside the "Data" tab). The Schema view should introspect the table structure using `PRAGMA table_info` and display each column with its name, type, constraints (PK, NOT NULL, DEFAULT), and a delete action. Allow users to add new columns via an inline form (name, type, constraints). Adding a column should issue an `ALTER TABLE <name> ADD COLUMN <col> <type>` query via `POST /api/system/query`. Column deletion should issue a `DROP COLUMN` query (where SQLite supports it) with a confirmation dialog. The "Create New Table" flow should also support constraint definitions (UNIQUE, NOT NULL, DEFAULT) from the creation form.
+
+  > **Success Criteria:** Schema tab renders all columns with correct types and constraints. Adding a valid column updates the schema view immediately. Attempting to delete a PRIMARY KEY column is blocked with an explanatory error. The Create Table form accepts and applies column constraints correctly.
+
+---
+
+- [ ] **Task 06: Table Editor E2E Test Coverage**
+
+  **Description:** Extend `tests/suite.cjs` with a dedicated **Phase 10: Table Editor Integration** block. Using the existing private key credentials from Phase 2 setup, write assertions that cover: (1) creating a new test table with typed columns via the system API, (2) inserting a row via the REST API private key, (3) fetching and verifying the row appears in the REST response, (4) patching (updating) the row and confirming the change, (5) deleting the row and confirming 0 rows are returned, (6) confirming the table schema is readable via the `PRAGMA table_info` system route. All 6 assertions must pass cleanly against a running `npm run dev:server` instance.
+
+  > **Success Criteria:** `node tests/suite.cjs` outputs `Phase 10: Table Editor Integration` with 6 green passes. Overall suite count increases to 56 assertions, all passing.
+
+---
+
+## Phase 2: Access Control, Operations & Public Access
+
+> **Phase Feature Set Overview:**
+> This phase secures CaraBase as a production-grade, public-ready platform. It introduces granular role-based access control for multi-user dashboard governance, standardizes the UI feedback system across all async operations, implements automated database backup and recovery, and formalizes Cloudflare Tunnel support as a first-class citizen — making the LAN-first philosophy and optional public access a coherent, documented feature of the product.
+
+---
+
+- [ ] **Task 07: Role-Based Access Control (RBAC)**
+
+  **Description:** Introduce a `role` field to the `users` system table (values: `superadmin`, `admin`, `viewer`). `superadmin` has unrestricted access to all system APIs. `admin` can manage tables, keys, policies, and storage but cannot manage users. `viewer` can only access the Table Editor data view in read-only mode. Enforce these roles in the backend middleware chain by checking `(req as any).userSession.role` after authentication and before routing to any `systemApi` handler. Define a `requireRole(minRole)` middleware factory in `src/server/middleware/`. Update the setup wizard to assign the first registered user the `superadmin` role automatically.
+
+  > **Success Criteria:** A `viewer` token cannot access `POST /api/system/keys`, `DELETE /api/system/tables`, or any write system endpoint — returns `403 Forbidden`. An `admin` token can create keys and tables but cannot manage users. A `superadmin` token has unrestricted access. The setup wizard auto-assigns the `superadmin` role to the initial user.
+
+---
+
+- [ ] **Task 08: Global Toast & UI Feedback System**
+
+  **Description:** Implement a centralized `ToastContext` in `src/context/ToastContext.tsx` that provides a `useToast()` hook. The hook exposes `toast.success(msg)`, `toast.error(msg)`, and `toast.info(msg)` methods. Toasts should render in a fixed bottom-right stack with smooth slide-in and auto-dismiss (4 seconds) animations. Replace all existing inline error `alert()` calls and ad-hoc error state patterns across the dashboard (TableEditor, RLS, ApiBuilder, Storage, APIKeys pages) with standardized `useToast()` calls. Add a `disabled` + spinner state to all primary action buttons during async operations to prevent duplicate submissions.
+
+  > **Success Criteria:** No `alert()` calls remain in any frontend TSX file. All API errors surface as red toasts. All successful mutations surface as green toasts. All submit buttons are disabled and show a spinner during pending operations. Toasts auto-dismiss after 4 seconds and can be manually dismissed by clicking.
+
+---
+
+- [ ] **Task 09: Automated SQLite Backup Engine**
+
+  **Description:** Implement a scheduled backup system in `server.ts` using `node-cron` (or a lightweight equivalent). Every 24 hours, copy the SQLite database file to a `./data/backups/` directory using SQLite's `.backup()` API to ensure a consistent snapshot. Filename format: `carabase-backup-<ISO8601-date>.sqlite`. Retain the 7 most recent backups and delete older ones automatically. Make the backup directory and retention count configurable via `BACKUP_DIR` and `BACKUP_RETENTION_COUNT` environment variables (with documented defaults). Expose a `GET /api/system/backups` endpoint (superadmin only) listing available backups, and a `POST /api/system/backups/trigger` endpoint to manually trigger an immediate backup.
+
+  > **Success Criteria:** The backup cron job creates a valid `.sqlite` copy on schedule. Manual trigger via `POST /api/system/backups/trigger` creates a backup within 5 seconds. `GET /api/system/backups` returns a list of backup filenames and their sizes. Retention policy removes backups beyond the configured count. Backup files are readable and not corrupt (can be opened by `better-sqlite3`).
+
+---
+
+- [ ] **Task 10: Cloudflare Tunnel Integration & Public Access**
+
+  **Description:** Document and validate first-class Cloudflare Tunnel support as an officially supported deployment pattern. Create a `docs/cloudflare-tunnel.md` guide with copy-paste setup instructions (installing `cloudflared`, creating a tunnel, pointing it to `localhost:5252`). Add `CLOUDFLARE_TUNNEL_URL` as an optional environment variable. When set, the server should include the tunnel URL in health check responses (`GET /api/health`) and reference it in the storage public URL generation logic — so that uploaded files return the public tunnel URL instead of the LAN IP. Update `README.md` and `docker-compose.yml` to document the optional tunnel configuration.
+
+  > **Success Criteria:** `GET /api/health` returns `{"tunnelUrl": "<CLOUDFLARE_TUNNEL_URL>"}` when the env var is set. Storage file upload returns a public URL using the tunnel URL instead of the LAN address when the var is set. `docs/cloudflare-tunnel.md` contains complete, accurate, copy-paste-ready setup instructions. The feature degrades gracefully — omitting the tunnel URL from responses when the var is not set.
+
+---
+
+- [ ] **Task 11: Public Shareable Asset Deep Links**
+
+  **Description:** Extend the storage system to support rich public deep-link URLs for assets. When an asset is uploaded and marked as public, generate a canonical share URL in the format `/storage/v1/share/:assetId`. When that URL is visited in a browser (detected by `Accept: text/html` header), serve a minimal, self-contained HTML preview page that shows the asset (image, video, or a download card for other types) with the file name, upload date, and a "Download" button. When visited by a non-browser client (API/curl), serve the raw file. This enables Joplin-style or Immich-style public sharing directly from the CaraBase dashboard.
+
+  > **Success Criteria:** Uploading a file and marking it public generates a `/storage/v1/share/:id` URL. Visiting the URL in a browser renders an HTML preview page with the asset displayed. A `curl` request to the same URL returns the raw file binary. The preview page renders correctly for images, and shows a download card for non-image types.
+
+---
+
+- [ ] **Task 12: Operations E2E Test Coverage**
+
+  **Description:** Extend `tests/suite.cjs` with **Phase 11: Access Control & Operations**. Write assertions covering: (1) a viewer-role token is rejected from a write system endpoint with `403`, (2) an admin-role token can create a table but is rejected from user management endpoints, (3) `POST /api/system/backups/trigger` creates a backup file and returns success, (4) `GET /api/system/backups` lists at least one backup, (5) the storage share URL returns `200` with `Content-Type: text/html` when called with `Accept: text/html`, (6) the storage share URL returns the raw binary when called without an HTML accept header.
+
+  > **Success Criteria:** `node tests/suite.cjs` outputs `Phase 11: Access Control & Operations` with 6 green passes. Overall suite count increases to 62 assertions, all passing.
+
+---
+
+## Phase 3: Developer Ecosystem & SDK
+
+> **Phase Feature Set Overview:**
+> This phase completes CaraBase's transformation from a dashboard tool into a full developer platform. It ships the CaraBase JS/TS client SDK — enabling any frontend or agent to integrate with CaraBase exactly as they would with Supabase — and adds advanced SQLite-specific visual tooling (Foreign Keys, Views, Triggers) that makes CaraBase genuinely more powerful than Supabase for database-centric developers. Success here means a developer can swap `createClient(SUPABASE_URL, KEY)` for `createClient(CARABASE_URL, KEY)` and have their app work.
+
+---
+
+- [ ] **Task 13: CaraBase JS/TS Client SDK**
+
+  **Description:** Create a standalone `sdk/` directory at the project root containing a lightweight TypeScript library: `carabase-js`. The SDK must expose a `createClient(url, apiKey)` factory that returns a client object with: `.from('<table>').select('col1, col2')`, `.from('<table>').insert({...})`, `.from('<table>').update({...}).eq('col', val)`, `.from('<table>').delete().eq('col', val)`, `.storage.upload(bucket, file)`, `.storage.getPublicUrl(path)`, and `.realtime.subscribe('<table>', callback)` (wrapping the existing SSE endpoint). The SDK should be publishable as an npm package and buildable with `tsup`. Write a usage guide in `sdk/README.md` with a direct Supabase migration comparison table.
+
+  > **Success Criteria:** `createClient(url, key).from('users').select('*')` returns the correct rows. `insert`, `update`, and `delete` correctly mutate data. `.realtime.subscribe` opens an SSE connection and calls `callback` when a mutation fires on the target table. The SDK compiles with `tsc --noEmit` without errors. `sdk/README.md` contains a Supabase → CaraBase migration table.
+
+---
+
+- [ ] **Task 14: Advanced Schema Features — Foreign Keys & Indexes**
+
+  **Description:** Extend the Schema Editor (Task 05) with Foreign Key and Index management. In the Schema view, add a "Foreign Keys" section that reads from `PRAGMA foreign_key_list(<table>)` and renders each FK relationship (column → referenced table → referenced column). Add an "Add Foreign Key" form. Since SQLite requires table recreation for FK additions, the backend should implement the safe table-copy-and-rename migration pattern in a new `POST /api/system/tables/:table/fk` route. Add an "Indexes" section reading from `PRAGMA index_list(<table>)` allowing users to create new indexes (`CREATE INDEX`) and drop existing ones.
+
+  > **Success Criteria:** The Schema view displays existing Foreign Keys and Indexes for any table. Adding a Foreign Key via the UI results in the correct FK being present in the recreated table (verified by `PRAGMA foreign_key_list`). Creating an index via the UI results in it appearing in `PRAGMA index_list`. Dropping an index via the UI removes it.
+
+---
+
+- [ ] **Task 15: Database Views & Triggers**
+
+  **Description:** Add a "Views" section to the dashboard sidebar navigation. Build a `src/pages/Views.tsx` page that lists all user-defined SQLite views (`SELECT name FROM sqlite_master WHERE type='view'`). Allow users to create new views by writing SQL in a code editor input (using a minimal embedded editor or a `<textarea>` with monospace styling), previewing the result, and submitting `CREATE VIEW`. Allow deleting views with a confirmation dialog (`DROP VIEW`). Add a "Triggers" section following the same pattern — listing, creating (`CREATE TRIGGER`), and deleting triggers, with a readonly preview of the trigger body.
+
+  > **Success Criteria:** The Views page lists all existing SQLite views. Creating a valid `CREATE VIEW` statement creates the view and it appears in the list. Deleting a view removes it from `sqlite_master`. The Triggers page lists all existing triggers. Creating a trigger via the UI creates it in the database. Deleting a trigger removes it.
+
+---
+
+- [ ] **Task 16: SDK Integration Examples & Migration Guide**
+
+  **Description:** Create a `docs/` directory containing complete, runnable integration examples. Write `docs/react-integration.md` showing a full React component that uses `carabase-js` to fetch, display, and mutate table data — with RLS-aware public key patterns demonstrated. Write `docs/realtime-example.md` showing a live-updating list component using `.realtime.subscribe`. Write `docs/supabase-migration.md` as a comprehensive side-by-side migration guide covering client initialization, CRUD operations, storage, and real-time. All code examples must be syntactically valid and tested against a local CaraBase instance.
+
+  > **Success Criteria:** All three documentation files exist and contain complete, working code examples. The Supabase migration guide covers client init, all CRUD operations, storage upload/download, and real-time subscriptions. The React integration example can be copy-pasted into a new Vite app and function correctly against a running CaraBase instance.
+
+---
+
+- [ ] **Task 17: Dashboard Polish & Supabase UX Alignment**
+
+  **Description:** Perform a comprehensive UI/UX pass to align the CaraBase dashboard more closely with the Supabase dashboard experience. Key improvements: (1) Add breadcrumb navigation showing the current database > table context. (2) Add a global keyboard shortcut system (`⌘K` / `Ctrl+K`) that opens a command palette (list of tables, pages, and actions). (3) Add a "SQL Editor" page (`src/pages/SqlEditor.tsx`) with a `<textarea>` code editor for writing and executing arbitrary SQL queries against the database (superadmin only), with results displayed in a data grid below. (4) Ensure the sidebar collapsibility is persistent across page reloads via `localStorage`.
+
+  > **Success Criteria:** Breadcrumbs correctly reflect the current navigation context. `⌘K` / `Ctrl+K` opens the command palette. The SQL Editor executes a query and renders results in a grid. Invalid SQL displays a formatted error. The sidebar collapse state is persisted across page reloads. No visual regressions on existing pages.
+
+---
+
+- [ ] **Task 18: Final E2E Suite & Ecosystem Validation**
+
+  **Description:** Extend `tests/suite.cjs` with **Phase 12: Developer Ecosystem** assertions: (1) `GET /api/system/views` lists the sqlite_master views, (2) creating a view via the system API makes it queryable, (3) the SDK's `createClient().from('table').select('*')` correctly returns data (test by importing the compiled SDK in a Node CJS script), (4) the SDK's `.realtime.subscribe` receives an event payload within 2 seconds of a test insert, (5) the SQL Editor endpoint `POST /api/system/sql` executes a valid query and returns rows, (6) the SQL Editor endpoint rejects a `DROP TABLE` on a system table. Update `CRUSTAGENT.md` files to reflect final system topology.
+
+  > **Success Criteria:** `node tests/suite.cjs` outputs `Phase 12: Developer Ecosystem` with 6 green passes. Overall suite count reaches 68 assertions, all passing. `npm run lint` exits with code 0. All documentation and CRUSTAGENT files are up to date.
