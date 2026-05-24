@@ -471,6 +471,14 @@ async function startServer() {
   systemApi.post('/query', requireRole('admin'), (req, res) => {
     const { query, method = 'all', params = [] } = req.body;
     try {
+      const upperQuery = query.trim().toUpperCase();
+      if (upperQuery.startsWith('DROP TABLE')) {
+        const match = query.match(/DROP TABLE\s+(?:IF EXISTS\s+)?["'`]?(_carabase_[a-zA-Z0-9_]+|sqlite_[a-zA-Z0-9_]+)["'`]?/i);
+        if (match) {
+           return res.status(403).json({ error: 'Modification of core system tables is restricted via raw query API.' });
+        }
+      }
+
       if (method === 'run') {
         const result = db.prepare(query).run(...params);
         res.json(result);

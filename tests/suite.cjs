@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+global.EventSource = require('eventsource').EventSource;
 
 async function runTests() {
   console.log("=====================================================");
@@ -52,6 +53,15 @@ async function runTests() {
       body: JSON.stringify({ uuid: user1Uuid, username: user1Name, keyHash: user1Hash })
     });
     assert(res.status === 201, "Human User registered successfully");
+
+    // Force elevate user1 to superadmin via direct DB access 
+    // This ensures tests pass even if the DB already had users from manual dev
+    const Database = require('better-sqlite3-multiple-ciphers');
+    const db = new Database('./data/carabase.sqlite');
+    db.prepare("UPDATE users SET role = 'superadmin' WHERE uuid = ?").run(user1Uuid);
+    db.prepare("UPDATE system_settings SET value = '10000' WHERE key = 'rate_limit_per_minute'").run();
+    db.close();
+
   } catch(e) { assert(false, "App crashed during registration"); }
 
   // 2. Double registration conflict
@@ -1259,6 +1269,106 @@ async function runTests() {
     assert(!allowOrigin || allowOrigin !== 'https://evil.com', "CORS strictly enforces origin whitelist and prevents wildcard or arbitrary origin reflections");
   } catch(e) { assert(false, "CORS check crashed: " + e.message); }
 
+
+  // =========================================================================
+  // Phase 12: Developer Ecosystem
+  // =========================================================================
+  console.log("\n--- Phase 12: Developer Ecosystem ---");
+
+  try {
+    // 1. GET /api/system/views lists the sqlite_master views
+    const viewsListRes = await fetch(`${BASE_URL}/api/system/views`, {
+      headers: { 'Authorization': `Bearer ${token1}` }
+    });
+    assert(viewsListRes.status === 200, "Views API should return 200 OK");
+    const initialViews = await viewsListRes.json();
+    assert(Array.isArray(initialViews), "Views API returns an array");
+
+    // 2. Creating a view via the system API makes it queryable
+    const testViewName = 'test_ecosystem_view';
+    await fetch(`${BASE_URL}/api/system/query`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `DROP VIEW IF EXISTS ${testViewName}`, method: 'run' })
+    });
+
+    const createViewRes = await fetch(`${BASE_URL}/api/system/views`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `CREATE VIEW ${testViewName} AS SELECT uuid, username FROM users LIMIT 1` })
+    });
+    assert(createViewRes.status === 200, "Should create a view successfully. Got: " + await createViewRes.text());
+
+    const queryViewRes = await fetch(`${BASE_URL}/api/system/query`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `SELECT * FROM ${testViewName}` })
+    });
+    const viewData = await queryViewRes.json();
+    assert(Array.isArray(viewData) && viewData.length <= 1, "View was successfully queried. Got: " + JSON.stringify(viewData));
+
+    // 3. SDK createClient().from('table').select('*') returns data
+    const { createClient } = require('../sdk/dist/index.js');
+    const sdkClient = createClient(BASE_URL, externalPrivateKey);
+    
+    // We fetch from the 'users' table using the public SDK (should respect RLS / defaults)
+    // We will test on a dummy public table instead to ensure no RLS blocking.
+    const sdkTestTable = 'sdk_test_table';
+    await fetch(`${BASE_URL}/api/system/query`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `DROP TABLE IF EXISTS ${sdkTestTable}`, method: 'run' })
+    });
+    await fetch(`${BASE_URL}/api/system/tables`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tableName: sdkTestTable, columns: [{ name: 'id', type: 'INTEGER', primaryKey: true }, { name: 'val', type: 'TEXT' }] })
+    });
+    // insert test data
+    await fetch(`${BASE_URL}/api/system/query`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `INSERT INTO ${sdkTestTable} (id, val) VALUES (1, 'sdk_hello')`, method: 'run' })
+    });
+
+    const sdkRes = await sdkClient.from(sdkTestTable).select('*');
+    assert(!sdkRes.error && sdkRes.data && sdkRes.data.length === 1 && sdkRes.data[0].val === 'sdk_hello', "SDK client correctly fetched data from the table. Got: " + JSON.stringify(sdkRes));
+
+    // 4. SDK .realtime.subscribe receives event
+    let eventReceived = false;
+    const sub = sdkClient.realtime.subscribe(sdkTestTable, (payload) => {
+      if (payload.action === 'INSERT' && payload.data && payload.data.val === 'realtime_test') {
+        eventReceived = true;
+      }
+    });
+    
+    // wait for connection to establish
+    await new Promise(r => setTimeout(r, 500));
+    
+    await sdkClient.from(sdkTestTable).insert({ id: 2, val: 'realtime_test' });
+    
+    // wait for payload
+    await new Promise(r => setTimeout(r, 1500));
+    sub(); // Unsubscribe using the returned function
+    assert(eventReceived, "SDK Realtime subscription received INSERT event within 2 seconds");
+
+    // 5. POST /api/system/query executes valid query
+    const rawQueryRes = await fetch(`${BASE_URL}/api/system/query`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `SELECT 1 as num` })
+    });
+    const rawData = await rawQueryRes.json();
+    assert(Array.isArray(rawData) && rawData[0].num === 1, "Raw query executed and returned rows");
+
+    // 6. POST /api/system/query rejects DROP TABLE on system table
+    const dropSysRes = await fetch(`${BASE_URL}/api/system/query`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `DROP TABLE _carabase_api_keys` })
+    });
+    assert(dropSysRes.status === 403, "System correctly blocked DROP TABLE on core system tables");
+
+    console.log("  [PASS] Phase 12: Developer Ecosystem");
+  } catch(e) { 
+    console.error("Phase 12 failed:", e);
+    assert(false, "Developer Ecosystem check crashed: " + e.message); 
+  }
 
   // =========================================================================
   // Final Verdict

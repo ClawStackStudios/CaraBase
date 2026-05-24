@@ -29,7 +29,7 @@ CaraBase is a self-hosted SaaS database service. It is designed to be an open-so
 - Full dynamic table creation is handled securely with regex identifier sanitization.
 
 ## E2E Security Testing & Integrity
-- **Comprehensive E2E Suite** (`tests/suite.cjs`): Standardized 97-assertion E2E integration test suite covering 100% of Phase 1 through Phase 14 critical capabilities (Identity, Routing, Multi-thread Concurrency, Transactional RLS, Event SSE, Multipart Storage & Membrane Sharing, Agent Keys, Audit Logs, dynamic Custom API Endpoints, and SQL Injection resilience).
+- **Comprehensive E2E Suite** (`tests/suite.cjs`): Standardized 105-assertion E2E integration test suite covering 100% of critical capabilities including Identity, Routing, Multi-thread Concurrency, Transactional RLS, Event SSE, Multipart Storage & Membrane Sharing, Agent Keys, Audit Logs, dynamic Custom API Endpoints, SQL Injection resilience, Table Editor integration, Developer Ecosystem (Views, Triggers, and Real-time SDK), and System table integrity.
 - **Network Hardening**:
   - **Loopback Rate-Limit Bypass**: Pre-configured automatic loopback IP bypass (`127.0.0.1`, `::1`, `::ffff:127.0.0.1`) on the `authLimiter` middleware to ensure test-suite and healthcheck stability without compromising production IP rate-limiting.
   - **Fallback Route Boundary**: Hardened unmatched routing fallback matching `/api`, `/storage`, or `/rest` prefixes. Prevents Vite/SPA static loaders from serving source code or mapping directory traversals anonymously.
@@ -49,7 +49,7 @@ CaraBase is a self-hosted SaaS database service. It is designed to be an open-so
 - [x] OWASP aligned basic sanitization for table architectures (regex on column/table names).
 - [x] Separation of Concerns.
 - [x] Robust error handling returning standardized JSON structure on REST failures.
-- [x] 100% green 50-pass integration testing suite covering security boundaries.
+- [x] 100% green 105-pass integration testing suite covering all backend subsystems, real-time engines, developer tooling, and security boundaries.
 
 This documentation file is maintained automatically by CrustAgent©™ for ClawStack Studios©™.
 

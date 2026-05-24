@@ -45,6 +45,11 @@ Custom dynamic API routes are built through the Visual API Builder (`src/pages/A
 - **Restricted Responses**: Response columns are sanitized dynamically on execution. Non-permitted fields (such as `key_hash` or unselected columns) are omitted before output to strictly maintain security barriers.
 - **E2E Testing Suite**: Phase 9 test coverage enforces the system's dynamic interceptor, route registration, anonymous custom GET queries with public API keys, restricted column response sanitizations, and route deletion.
 
+## Developer Ecosystem (Views, Triggers, & SDK)
+
+- **Database Views & Triggers**: CaraBase provides native UI and API endpoints to create and manage SQLite views (`CREATE VIEW`) and triggers (`CREATE TRIGGER`). These are safely governed by system-level endpoints and are executed using the same core infrastructure as the data layer.
+- **Client SDK & Real-time Integration**: The `carabase-js` SDK provides an intuitive interface for Supabase-like data fetching (`from('table').select()`), REST mutation, and storage interactions. It also integrates real-time Server-Sent Events (SSE) via the `.realtime.subscribe()` method, ensuring live table updates stream securely through RLS filters before reaching the connected client.
+
 ## Network Hardening & Testing Topology
 
 - **Loopback Rate-Limit Bypass**: E2E automated test runs fire requests extremely rapidly. In `src/server/middleware/rateLimiter.ts`, loopback IP blocks are explicitly checked and bypassed so test suites can run without trigger flakiness, while keeping production rate limits set to 10 requests per 60 seconds per IP.

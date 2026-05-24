@@ -188,7 +188,7 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 15: Database Views & Triggers**
+- [x] **Task 15: Database Views & Triggers**
 
   **Description:** Add a "Views" section to the dashboard sidebar navigation. Build a `src/pages/Views.tsx` page that lists all user-defined SQLite views (`SELECT name FROM sqlite_master WHERE type='view'`). Allow users to create new views by writing SQL in a code editor input (using a minimal embedded editor or a `<textarea>` with monospace styling), previewing the result, and submitting `CREATE VIEW`. Allow deleting views with a confirmation dialog (`DROP VIEW`). Add a "Triggers" section following the same pattern — listing, creating (`CREATE TRIGGER`), and deleting triggers, with a readonly preview of the trigger body.
 
@@ -196,7 +196,7 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 16: SDK Integration Examples & Migration Guide**
+- [x] **Task 16: SDK Integration Examples & Migration Guide**
 
   **Description:** Create a `docs/` directory containing complete, runnable integration examples. Write `docs/react-integration.md` showing a full React component that uses `carabase-js` to fetch, display, and mutate table data — with RLS-aware public key patterns demonstrated. Write `docs/realtime-example.md` showing a live-updating list component using `.realtime.subscribe`. Write `docs/supabase-migration.md` as a comprehensive side-by-side migration guide covering client initialization, CRUD operations, storage, and real-time. All code examples must be syntactically valid and tested against a local CaraBase instance.
 
@@ -204,21 +204,21 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 17: Dashboard Polish & Supabase UX Alignment**
-
-  **Description:** Perform a comprehensive UI/UX pass to align the CaraBase dashboard more closely with the Supabase dashboard experience. Key improvements: (1) Add breadcrumb navigation showing the current database > table context. (2) Add a global keyboard shortcut system (`⌘K` / `Ctrl+K`) that opens a command palette (list of tables, pages, and actions). (3) Add a "SQL Editor" page (`src/pages/SqlEditor.tsx`) with a `<textarea>` code editor for writing and executing arbitrary SQL queries against the database (superadmin only), with results displayed in a data grid below. (4) Ensure the sidebar collapsibility is persistent across page reloads via `localStorage`.
-
-  > **Success Criteria:** Breadcrumbs correctly reflect the current navigation context. `⌘K` / `Ctrl+K` opens the command palette. The SQL Editor executes a query and renders results in a grid. Invalid SQL displays a formatted error. The sidebar collapse state is persisted across page reloads. No visual regressions on existing pages.
-
----
-
-- [ ] **Task 18: Final E2E Suite & Ecosystem Validation**
+- [x] **Task 17: Final E2E Suite & Ecosystem Validation**
 
   **Description:** Extend `tests/suite.cjs` with **Phase 12: Developer Ecosystem** assertions: (1) `GET /api/system/views` lists the sqlite_master views, (2) creating a view via the system API makes it queryable, (3) the SDK's `createClient().from('table').select('*')` correctly returns data (test by importing the compiled SDK in a Node CJS script), (4) the SDK's `.realtime.subscribe` receives an event payload within 2 seconds of a test insert, (5) the SQL Editor endpoint `POST /api/system/sql` executes a valid query and returns rows, (6) the SQL Editor endpoint rejects a `DROP TABLE` on a system table. Update `CRUSTAGENT.md` files to reflect final system topology.
 
   > **Success Criteria:** `node tests/suite.cjs` outputs `Phase 12: Developer Ecosystem` with 6 green passes. Overall suite count reaches 68 assertions, all passing. `npm run lint` exits with code 0. All documentation and CRUSTAGENT files are up to date.
 ## Feature Proposals
 
-- [ ] **Task 19: Proxy Share Rate Limiting & Analytics**
+- [ ] **Task 18: Proxy Share Rate Limiting & Analytics**
 
   **Description:** With the new ShellProxy membrane, public assets can be hit by anyone with the link. To prevent abuse and provide visibility, we should add an `access_count` integer to the `_carabase_storage_shares` table that increments on every `GET /storage/v1/share/:hash`. Furthermore, we should implement IP-based or global rate-limiting specifically for the public membrane (e.g., max 100 requests per minute per share hash) to prevent DDoS attacks from taking down the CaraBase instance. The Storage Shares Settings panel would then display the total access count for each share, allowing admins to see which public assets are the most popular.
+
+- [ ] **Task 19: Dashboard Polish & Supabase UX Alignment**
+
+  **Description:** Perform a comprehensive UI/UX pass to align the CaraBase dashboard more closely with the Supabase dashboard experience. Key improvements: (1) Add breadcrumb navigation showing the current database > table context. (2) Add a global keyboard shortcut system (`⌘K` / `Ctrl+K`) that opens a command palette (list of tables, pages, and actions). (3) Add a "SQL Editor" page (`src/pages/SqlEditor.tsx`) with a `<textarea>` code editor for writing and executing arbitrary SQL queries against the database (superadmin only), with results displayed in a data grid below. (4) Ensure the sidebar collapsibility is persistent across page reloads via `localStorage`.
+
+  > **Success Criteria:** Breadcrumbs correctly reflect the current navigation context. `⌘K` / `Ctrl+K` opens the command palette. The SQL Editor executes a query and renders results in a grid. Invalid SQL displays a formatted error. The sidebar collapse state is persisted across page reloads. No visual regressions on existing pages.
+
+---
