@@ -198,6 +198,11 @@ db.exec(`
     value      TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
+
+  INSERT OR IGNORE INTO system_settings (key, value, updated_at) VALUES 
+    ('cors_origins', '', CURRENT_TIMESTAMP),
+    ('api_enabled', 'true', CURRENT_TIMESTAMP),
+    ('rate_limit_per_minute', '100', CURRENT_TIMESTAMP);
 `);
 
 // Run database migrations

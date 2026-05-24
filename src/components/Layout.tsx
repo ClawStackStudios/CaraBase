@@ -9,6 +9,7 @@ import ApiKeys from "../pages/ApiKeys";
 import Policies from "../pages/Policies";
 import Storage from "../pages/Storage";
 import ApiBuilder from "../pages/ApiBuilder";
+import SdkSettings from "../pages/SdkSettings";
 
 export function AppLayout() {
   return (
@@ -21,6 +22,7 @@ export function AppLayout() {
         <Route path="policies" element={<Policies />} />
         <Route path="storage" element={<Storage />} />
         <Route path="settings" element={<SettingsPanel />} />
+        <Route path="sdk" element={<SdkSettings />} />
       </Routes>
     </DashboardShell>
   );

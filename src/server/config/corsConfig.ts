@@ -1,9 +1,10 @@
 import { CorsOptions } from 'cors';
+import db from '../db.js';
 
 export function getCorsConfig(): CorsOptions {
   const isProduction = process.env.NODE_ENV === "production";
-  const corsOrigin = process.env.CORS_ORIGINS || process.env.CLOUDFLARE_TUNNEL_URL;
-  const allowedOrigins = corsOrigin ? corsOrigin.split(",").map((o) => o.trim()) : [];
+  const corsOriginEnv = process.env.CORS_ORIGINS || process.env.CLOUDFLARE_TUNNEL_URL;
+  const envOrigins = corsOriginEnv ? corsOriginEnv.split(",").map((o) => o.trim()) : [];
 
   const isLocalhost = (hostname: string) => 
     hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
@@ -23,6 +24,19 @@ export function getCorsConfig(): CorsOptions {
         const url = new URL(origin);
         const hostname = url.hostname;
 
+        // Fetch dynamic origins from DB
+        let dbOrigins: string[] = [];
+        try {
+          const row = db.prepare("SELECT value FROM system_settings WHERE key = 'cors_origins'").get() as any;
+          if (row && row.value) {
+            dbOrigins = row.value.split(',').map((o: string) => o.trim()).filter(Boolean);
+          }
+        } catch (e) {
+          console.error('[CORS] Failed to read dynamic origins from DB', e);
+        }
+
+        const allowedOrigins = [...envOrigins, ...dbOrigins];
+
         // 1. Always allow localhost
         if (isLocalhost(hostname)) return callback(null, true);
 
@@ -30,7 +44,7 @@ export function getCorsConfig(): CorsOptions {
         if (isPrivateIP(hostname)) return callback(null, true);
 
         if (isProduction) {
-          // 3. In Prod: Allow explicit CORS origins (CF tunnels, etc.)
+          // 3. In Prod: Allow explicit CORS origins
           if (allowedOrigins.includes(origin)) return callback(null, true);
 
           console.warn(`[CORS] ⚠️ Rejected origin in production: ${origin}`);

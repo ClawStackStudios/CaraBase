@@ -1,4 +1,4 @@
-import { LayoutDashboard, Database, Code, Key, Shield, HardDrive, Settings, User, Palette, LogOut, Globe } from "lucide-react";
+import { LayoutDashboard, Database, Code, Key, Shield, HardDrive, Settings, User, Palette, LogOut, Globe, Network } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 export type SettingsTab = "profile" | "appearance" | "agents" | "import-export" | "storage-shares";
@@ -142,6 +142,16 @@ export function SidebarNav({
       active: "bg-sky-100 text-sky-900 dark:bg-sky-900/30 dark:text-sky-300 shadow-sm",
       inactive: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
       activeBadge: `${badgeBase} bg-sky-200 text-sky-900 dark:bg-sky-800 dark:text-sky-100`,
+      badge: null,
+    },
+    {
+      id: "sdk",
+      href: "/dashboard/sdk",
+      label: "SDK & Network",
+      icon: Network,
+      active: "bg-indigo-100 text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-300 shadow-sm",
+      inactive: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
+      activeBadge: `${badgeBase} bg-indigo-200 text-indigo-900 dark:bg-indigo-800 dark:text-indigo-100`,
       badge: null,
     },
   ];

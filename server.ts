@@ -472,6 +472,47 @@ async function startServer() {
     };
   };
 
+  // SDK / Public API Middleware: Kill Switch & Rate Limiter
+  const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+  
+  const publicApiGuard = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+      const settingsRows = db.prepare("SELECT key, value FROM system_settings WHERE key IN ('api_enabled', 'rate_limit_per_minute')").all() as any[];
+      const settings = settingsRows.reduce((acc, row) => ({ ...acc, [row.key]: row.value }), {});
+
+      if (settings.api_enabled === 'false') {
+        return res.status(503).json({ error: 'Data API is currently disabled by administrator.' });
+      }
+
+      const limit = parseInt(settings.rate_limit_per_minute, 10);
+      if (limit > 0) {
+        const ip = req.ip || req.socket.remoteAddress || 'unknown';
+        const now = Date.now();
+        let record = rateLimitMap.get(ip);
+        
+        if (!record || now > record.resetTime) {
+          record = { count: 0, resetTime: now + 60000 };
+        }
+
+        if (record.count >= limit) {
+          res.setHeader('X-RateLimit-Reset', new Date(record.resetTime).toISOString());
+          return res.status(429).json({ error: 'Too Many Requests' });
+        }
+
+        record.count++;
+        rateLimitMap.set(ip, record);
+
+        res.setHeader('X-RateLimit-Limit', limit);
+        res.setHeader('X-RateLimit-Remaining', Math.max(0, limit - record.count));
+      }
+
+      next();
+    } catch (e: any) {
+      console.error('[Public API Guard] Error:', e);
+      next(); // Fail open if db error so we don't brick the app, or fail closed? Fail open is safer.
+    }
+  };
+
   const externalApi = express.Router();
   externalApi.use(authenticateDataApi);
 
@@ -911,7 +952,7 @@ async function startServer() {
       }
   });
 
-  app.use('/rest/v1', externalApi);
+  app.use('/rest/v1', publicApiGuard, externalApi);
 
   const storageApi = express.Router();
   storageApi.use(authenticateDataApi);
@@ -926,6 +967,9 @@ async function startServer() {
       res.status(500).json({ error: e.message });
     }
   });
+
+  // Apply rate limiter and kill switch to all /storage/v1 routes
+  app.use('/storage/v1', publicApiGuard);
 
   // Public direct file retrieval route (mounted before auth router for anonymous sharing)
   app.get('/storage/v1/file/:id', (req, res) => {
@@ -1090,6 +1134,39 @@ async function startServer() {
   systemApi.delete('/storage/shares/:hash', requireRole('admin'), (req, res) => {
       try {
           db.prepare('DELETE FROM _carabase_storage_shares WHERE share_hash = ?').run(req.params.hash);
+          res.json({ success: true });
+      } catch (e: any) {
+          res.status(500).json({ error: e.message });
+      }
+  });
+
+  systemApi.get('/settings', requireRole('admin'), (req, res) => {
+      try {
+          const rows = db.prepare("SELECT key, value FROM system_settings WHERE key IN ('cors_origins', 'api_enabled', 'rate_limit_per_minute')").all() as any[];
+          const settings = rows.reduce((acc, row) => ({ ...acc, [row.key]: row.value }), {});
+          res.json({ success: true, data: settings });
+      } catch (e: any) {
+          res.status(500).json({ error: e.message });
+      }
+  });
+
+  systemApi.patch('/settings', requireRole('admin'), express.json(), (req, res) => {
+      try {
+          const { settings } = req.body;
+          if (!settings || typeof settings !== 'object') {
+              return res.status(400).json({ error: 'Invalid settings payload' });
+          }
+
+          const updateSettingsTx = db.transaction((updates: Record<string, string>) => {
+              const stmt = db.prepare('UPDATE system_settings SET value = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?');
+              for (const [key, value] of Object.entries(updates)) {
+                  if (['cors_origins', 'api_enabled', 'rate_limit_per_minute'].includes(key)) {
+                      stmt.run(String(value), key);
+                  }
+              }
+          });
+
+          updateSettingsTx(settings);
           res.json({ success: true });
       } catch (e: any) {
           res.status(500).json({ error: e.message });
