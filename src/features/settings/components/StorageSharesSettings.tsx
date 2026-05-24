@@ -4,6 +4,7 @@ import { Copy, Trash, Globe, Calendar, Link as LinkIcon, Shield } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/config/apiConfig";
 import { useToast } from "@/context/ToastContext";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface StorageShare {
   id: string;
@@ -20,6 +21,7 @@ export function StorageSharesSettings() {
   const [shares, setShares] = useState<StorageShare[]>([]);
   const [publicBaseUrl, setPublicBaseUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [confirmRevokeData, setConfirmRevokeData] = useState<{hash: string, filename: string} | null>(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -53,11 +55,11 @@ export function StorageSharesSettings() {
     }
   };
 
-  const revokeShare = async (hash: string, filename: string) => {
-    if (!confirm(`Are you sure you want to revoke the public share for ${filename}? The link will break instantly.`)) return;
+  const executeRevoke = async () => {
+    if (!confirmRevokeData) return;
     
     try {
-      const res = await apiFetch(`/api/system/storage/shares/${hash}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/system/storage/shares/${confirmRevokeData.hash}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to revoke share');
       
       toast.success('Public share revoked successfully.');
@@ -65,6 +67,8 @@ export function StorageSharesSettings() {
     } catch (e: any) {
       console.error(e);
       toast.error("Revocation failed: " + e.message);
+    } finally {
+      setConfirmRevokeData(null);
     }
   };
 
@@ -166,7 +170,7 @@ export function StorageSharesSettings() {
                               <LinkIcon className="h-4 w-4" />
                             </button>
                             <button
-                              onClick={() => revokeShare(share.share_hash, share.original_name)}
+                              onClick={() => setConfirmRevokeData({ hash: share.share_hash, filename: share.original_name })}
                               className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 bg-slate-100 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-900/30 rounded transition-colors"
                               title="Revoke share"
                             >
@@ -183,6 +187,15 @@ export function StorageSharesSettings() {
           )}
         </CardContent>
       </Card>
+      
+      <ConfirmDialog
+        isOpen={!!confirmRevokeData}
+        title="Revoke Public Share"
+        description={`Are you sure you want to revoke the public share for ${confirmRevokeData?.filename}? The proxy link will break instantly and cannot be recovered.`}
+        onConfirm={executeRevoke}
+        onCancel={() => setConfirmRevokeData(null)}
+        confirmText="Revoke Share"
+      />
     </div>
   );
 }
