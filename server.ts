@@ -7,6 +7,8 @@ import multer from 'multer';
 import crypto from 'crypto';
 import fs from 'fs';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import helmet from 'helmet';
 
 // Use the new db and auth router
 import db, { rlsContext } from './src/server/db.js';
@@ -17,6 +19,7 @@ import { createAuditLogger } from './src/server/utils/auditLogger.js';
 import { requireAuth } from './src/server/middleware/auth.js';
 import { requireRole } from './src/server/middleware/requireRole.js';
 import { triggerBackup, getBackupsList, startBackupSchedule } from './src/server/utils/backup.js';
+import { getCorsConfig } from './src/server/config/corsConfig.js';
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const realtimeEmitter = new EventEmitter();
@@ -24,7 +27,33 @@ const realtimeEmitter = new EventEmitter();
 async function startServer() {
   const audit = createAuditLogger(db);
   const app = express();
+  const isProduction = process.env.NODE_ENV === 'production';
+
   app.set('trust proxy', 1);
+
+  // --- Security Middleware ---
+  app.use(helmet({
+    strictTransportSecurity: process.env.ENFORCE_HTTPS === 'true' ? undefined : false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'", 'wss:', 'ws:'],
+        frameAncestors: isProduction ? ["'self'"] : ["'self'", "*"],
+        upgradeInsecureRequests: process.env.ENFORCE_HTTPS === 'true' ? [] : null,
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false,
+    crossOriginOpenerPolicy: false,
+    originAgentCluster: false,
+    frameguard: isProduction ? { action: 'sameorigin' } : false,
+  }));
+
+  app.use(cors(getCorsConfig()));
   app.use(express.json());
   app.use(cookieParser());
 
@@ -45,7 +74,10 @@ async function startServer() {
   const upload = multer({ storage: storageOptions });
 
   // --- Core API Routes ---
-  app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+  app.get('/api/health', (req, res) => res.json({ 
+    status: 'ok',
+    tunnelUrl: process.env.CLOUDFLARE_TUNNEL_URL || null
+  }));
   app.get('/api/info', (req, res) => res.json({ name: 'CaraBase', version: '2.0.0' }));
 
   // --- Mount Auth & Agent Key Routers ---
@@ -946,7 +978,9 @@ async function startServer() {
   // Generate a session ID for uptime tracking
   const sessionId = uuidv4();
 
-  const server = app.listen(PORT, '0.0.0.0', () => {
+  const HOST = process.env.HOST ?? (isProduction ? '0.0.0.0' : '127.0.0.1');
+
+  const server = app.listen(PORT, HOST, () => {
     console.log(`\n[Database] Checking migrations...`);
     console.log(`[Database] Migrations complete.`);
     console.log(`\n🔑 System auth and REST routes ready.`);

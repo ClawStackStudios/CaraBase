@@ -141,7 +141,7 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 10: Cloudflare Tunnel Integration & Public Access**
+- [x] **Task 10: Cloudflare Tunnel Integration & Public Access**
 
   **Description:** Document and validate first-class Cloudflare Tunnel support as an officially supported deployment pattern. Create a `docs/cloudflare-tunnel.md` guide with copy-paste setup instructions (installing `cloudflared`, creating a tunnel, pointing it to `localhost:5252`). Add `CLOUDFLARE_TUNNEL_URL` as an optional environment variable. When set, the server should include the tunnel URL in health check responses (`GET /api/health`) and reference it in the storage public URL generation logic — so that uploaded files return the public tunnel URL instead of the LAN IP. Update `README.md` and `docker-compose.yml` to document the optional tunnel configuration.
 

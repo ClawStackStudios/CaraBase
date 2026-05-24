@@ -8,11 +8,25 @@ import { useToast } from "@/context/ToastContext";
 export default function Storage() {
   const [files, setFiles] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [publicBaseUrl, setPublicBaseUrl] = useState<string>('');
   const toast = useToast();
 
   useEffect(() => {
     fetchFiles();
+    fetchSystemInfo();
   }, []);
+
+  const fetchSystemInfo = async () => {
+    try {
+      const res = await apiFetch('/api/health');
+      if (res.ok) {
+        const data = await res.json();
+        setPublicBaseUrl(data.tunnelUrl || window.location.origin);
+      }
+    } catch {
+      setPublicBaseUrl(window.location.origin);
+    }
+  };
 
   const fetchFiles = async () => {
     try {
@@ -140,8 +154,9 @@ export default function Storage() {
                                 <div className="flex items-center gap-2">
                                  <button
                                      onClick={() => {
-                                         navigator.clipboard.writeText(`${window.location.origin}/storage/v1/file/${file.id}`);
-                                         toast.success("URL copied to clipboard!");
+                                         const baseUrl = publicBaseUrl || window.location.origin;
+                                         navigator.clipboard.writeText(`${baseUrl}/storage/v1/file/${file.id}`);
+                                         toast.success("Public URL copied to clipboard!");
                                      }}
                                      className="p-1 text-slate-400 hover:text-blue-600 dark:text-slate-500 dark:hover:text-blue-400 transition-colors bg-transparent border-0 cursor-pointer"
                                      title="Copy public URL"

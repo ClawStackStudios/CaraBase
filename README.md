@@ -69,3 +69,9 @@ Running CaraBase via Docker is the recommended approach to ensure a consistent e
    ```
 
 *(Note: The `./data` directory must be mounted as a volume so that your database files persist across container restarts. Optional environment variables like `DB_ENCRYPTION_KEY` can be injected via standard Docker environment flags or inside the `docker-compose.yml`.)*
+
+### Public Access & Security
+
+If you intend to expose CaraBase to the internet, we strongly recommend using Cloudflare Tunnels rather than opening incoming firewall ports. 
+CaraBase natively supports `cloudflared` to provide zero-port-exposure hosting, explicit CORS locking, and public file sharing URLs.
+Please read the [Cloudflare Tunnel Setup Guide](./docs/cloudflare-tunnel.md) for quick deployment instructions.

@@ -14,3 +14,16 @@ services:
       - PORT=3000
       # - DB_ENCRYPTION_KEY=your_encryption_key_here
       # - TOKEN_TTL_DEFAULT=1d
+      # - CLOUDFLARE_TUNNEL_URL=https://carabase.yourdomain.com
+      # - CORS_ORIGINS=https://carabase.yourdomain.com,https://yourfrontend.com
+
+  # Optional: Cloudflare Tunnel for secure, zero-port-exposure public access
+  # cloudflared:
+  #   image: cloudflare/cloudflared:latest
+  #   container_name: carabase-tunnel
+  #   command: tunnel run
+  #   environment:
+  #     - TUNNEL_TOKEN=your_token_here
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - carabase
