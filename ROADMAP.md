@@ -211,7 +211,7 @@ Phase 2 → Access Control, Operations & Public Access
   > **Success Criteria:** `node tests/suite.cjs` outputs `Phase 12: Developer Ecosystem` with 6 green passes. Overall suite count reaches 68 assertions, all passing. `npm run lint` exits with code 0. All documentation and CRUSTAGENT files are up to date.
 ## Feature Proposals
 
-- [ ] **Task 18: Proxy Share Rate Limiting & Analytics**
+- [x] **Task 18: Proxy Share Rate Limiting & Analytics**
 
   **Description:** With the new ShellProxy membrane, public assets can be hit by anyone with the link. To prevent abuse and provide visibility, we should add an `access_count` integer to the `_carabase_storage_shares` table that increments on every `GET /storage/v1/share/:hash`. Furthermore, we should implement IP-based or global rate-limiting specifically for the public membrane (e.g., max 100 requests per minute per share hash) to prevent DDoS attacks from taking down the CaraBase instance. The Storage Shares Settings panel would then display the total access count for each share, allowing admins to see which public assets are the most popular.
 

@@ -14,11 +14,14 @@ export default function Storage() {
   const [shareFileId, setShareFileId] = useState<string | null>(null);
   const [expiresInDays, setExpiresInDays] = useState<string>('');
   const [isGeneratingShare, setIsGeneratingShare] = useState(false);
+  const [shares, setShares] = useState<any[]>([]);
   const [confirmDeleteData, setConfirmDeleteData] = useState<{id: string, filename: string} | null>(null);
+  const [confirmRevokeData, setConfirmRevokeData] = useState<{hash: string, original_name: string} | null>(null);
   const toast = useToast();
 
   useEffect(() => {
     fetchFiles();
+    fetchShares();
     fetchSystemInfo();
   }, []);
 
@@ -39,6 +42,18 @@ export default function Storage() {
       const res = await apiFetch('/api/system/storage');
       const data = await res.json();
       setFiles(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const fetchShares = async () => {
+    try {
+      const res = await apiFetch('/api/system/storage/shares');
+      if (res.ok) {
+        const data = await res.json();
+        setShares(data);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -121,10 +136,25 @@ export default function Storage() {
       toast.success("Proxy Share URL created and copied to clipboard!");
       setShareFileId(null);
       setExpiresInDays('');
+      fetchShares();
     } catch (err: any) {
       toast.error(err.message);
     } finally {
       setIsGeneratingShare(false);
+    }
+  };
+
+  const executeRevokeShare = async () => {
+    if (!confirmRevokeData) return;
+    try {
+      await apiFetch(`/api/system/storage/shares/${confirmRevokeData.hash}`, { method: 'DELETE' });
+      toast.success('Proxy Share revoked successfully');
+      fetchShares();
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Revoke failed: " + e.message);
+    } finally {
+      setConfirmRevokeData(null);
     }
   };
 
@@ -210,6 +240,77 @@ export default function Storage() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Active Proxy Shares</CardTitle>
+        </CardHeader>
+        <CardContent>
+            {shares.length === 0 ? (
+                 <div className="text-center py-12 text-slate-500 dark:text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-lg">
+                     <Globe className="h-10 w-10 mx-auto text-emerald-500/50 mb-3" />
+                     <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-1">No Active Shares</h3>
+                     <p className="text-xs">Create a proxy share from an uploaded file to see analytics here.</p>
+                 </div>
+            ) : (
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                     <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
+                         <tr>
+                         <th className="px-4 py-3">Original File</th>
+                         <th className="px-4 py-3">Proxy Hash</th>
+                         <th className="px-4 py-3 text-center">Access Count</th>
+                         <th className="px-4 py-3">Expires At</th>
+                         <th className="px-4 py-3 text-right">Actions</th>
+                         </tr>
+                     </thead>
+                    <tbody>
+                         {shares.map((share) => (
+                         <tr key={share.id} className="border-b dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-950/20 transition-colors">
+                             <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">
+                                 <span className="truncate max-w-[200px] inline-block" title={share.original_name}>{share.original_name}</span>
+                             </td>
+                             <td className="px-4 py-3 text-slate-500 dark:text-slate-400 font-mono text-xs">
+                                 {share.share_hash.substring(0, 16)}...
+                             </td>
+                             <td className="px-4 py-3 text-center">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                  {share.access_count}
+                                </span>
+                             </td>
+                             <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
+                                {share.expires_at ? new Date(share.expires_at).toLocaleString() : 'Never'}
+                             </td>
+                             <td className="px-4 py-3 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                 <button
+                                     onClick={async () => {
+                                        const baseUrl = publicBaseUrl || window.location.origin;
+                                        await navigator.clipboard.writeText(`${baseUrl}/storage/v1/share/${share.share_hash}`);
+                                        toast.success("Copied to clipboard!");
+                                     }}
+                                     className="p-1 text-slate-400 hover:text-emerald-500 dark:text-slate-500 dark:hover:text-emerald-400 transition-colors bg-transparent border-0 cursor-pointer"
+                                     title="Copy Link"
+                                 >
+                                     <Copy className="h-4 w-4" />
+                                 </button>
+                                 <button
+                                    onClick={() => setConfirmRevokeData({ hash: share.share_hash, original_name: share.original_name })}
+                                    className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 bg-slate-100 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-900/30 rounded transition-colors"
+                                    title="Revoke Share"
+                                 >
+                                     <Trash className="h-4 w-4" />
+                                 </button>
+                                </div>
+                            </td>
+                         </tr>
+                         ))}
+                    </tbody>
+                    </table>
+                </div>
+            )}
+        </CardContent>
+      </Card>
+
       {/* Share Modal */}
       {shareFileId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
@@ -259,6 +360,15 @@ export default function Storage() {
         onConfirm={executeDelete}
         onCancel={() => setConfirmDeleteData(null)}
         confirmText="Delete"
+      />
+
+      <ConfirmDialog
+        isOpen={!!confirmRevokeData}
+        title="Revoke Share"
+        description={`Are you sure you want to revoke the proxy link for ${confirmRevokeData?.original_name}? Anyone with the link will instantly receive a 404.`}
+        onConfirm={executeRevokeShare}
+        onCancel={() => setConfirmRevokeData(null)}
+        confirmText="Revoke"
       />
     </div>
   );

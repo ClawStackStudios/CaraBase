@@ -14,6 +14,7 @@ interface SidebarNavProps {
   onShowDatabaseStats?: () => void;
   onLogout?: () => void;
   onClose?: () => void;
+  isCollapsed?: boolean;
 }
 
 export function SidebarNav({
@@ -25,6 +26,7 @@ export function SidebarNav({
   onShowDatabaseStats,
   onLogout,
   onClose,
+  isCollapsed,
 }: SidebarNavProps) {
   const location = useLocation();
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -80,12 +82,13 @@ export function SidebarNav({
             <button
               key={id}
               onClick={() => onSettingsTabChange(id)}
-              className={`w-full flex items-center gap-3 px-3 py-3 md:py-2 rounded-xl text-sm font-bold transition-all ${
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center p-2' : 'gap-3 px-3 py-3 md:py-2'} rounded-xl text-sm font-bold transition-all ${
                 isActive ? active : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
               }`}
+              title={isCollapsed ? label : undefined}
             >
-              <Icon className="w-5 h-5 md:w-4 md:h-4" />
-              {label}
+              <Icon className="w-5 h-5 md:w-4 md:h-4 shrink-0" />
+              {!isCollapsed && label}
             </button>
           );
         })}
@@ -132,6 +135,14 @@ export function SidebarNav({
       inactive: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
       badge: null,
       children: [
+        {
+          id: "sql",
+          href: "/dashboard/sql",
+          label: "SQL Editor",
+          icon: Code,
+          active: "bg-purple-100 text-purple-900 dark:bg-purple-900/30 dark:text-purple-300 shadow-sm",
+          inactive: "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
+        },
         {
           id: "views",
           href: "/dashboard/views",
@@ -200,18 +211,19 @@ export function SidebarNav({
           return (
             <div key={item.id} className="space-y-1">
               <button
-                onClick={() => toggleSection(item.id)}
-                className={`w-full flex items-center justify-between px-3 py-3 md:py-2 rounded-xl text-sm font-bold transition-all ${item.inactive}`}
+                onClick={() => !isCollapsed && toggleSection(item.id)}
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center p-2' : 'justify-between px-3 py-3 md:py-2'} rounded-xl text-sm font-bold transition-all ${item.inactive}`}
+                title={isCollapsed ? item.label : undefined}
               >
-                <div className="flex items-center gap-3">
-                  <item.icon className="w-5 h-5 md:w-4 md:h-4 text-slate-400" />
-                  {item.label}
+                <div className={`flex items-center ${isCollapsed ? '' : 'gap-3'}`}>
+                  <item.icon className="w-5 h-5 md:w-4 md:h-4 text-slate-400 shrink-0" />
+                  {!isCollapsed && item.label}
                 </div>
-                {isExpanded ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+                {!isCollapsed && (isExpanded ? <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />)}
               </button>
               
-              {isExpanded && (
-                <div className="pl-9 space-y-1 pt-1">
+              {(isExpanded || isCollapsed) && (
+                <div className={`${isCollapsed ? 'space-y-1 pt-1 flex flex-col items-center' : 'pl-9 space-y-1 pt-1'}`}>
                   {item.children.map(child => {
                     const isChildActive = location.pathname.startsWith(child.href);
                     return (
@@ -221,10 +233,11 @@ export function SidebarNav({
                         onClick={() => {
                           if (window.innerWidth < 768) onClose?.();
                         }}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-bold transition-all ${isChildActive ? child.active : child.inactive}`}
+                        className={`w-full flex items-center ${isCollapsed ? 'justify-center p-2' : 'gap-3 px-3 py-2'} rounded-xl text-sm font-bold transition-all ${isChildActive ? child.active : child.inactive}`}
+                        title={isCollapsed ? child.label : undefined}
                       >
-                        <child.icon className="w-4 h-4" />
-                        {child.label}
+                        <child.icon className="w-5 h-5 md:w-4 md:h-4 shrink-0" />
+                        {!isCollapsed && child.label}
                       </Link>
                     )
                   })}
@@ -245,13 +258,14 @@ export function SidebarNav({
             onClick={() => {
               if (window.innerWidth < 768) onClose?.();
             }}
-            className={`w-full flex items-center justify-between px-3 py-3 md:py-2 rounded-xl text-sm font-bold transition-all ${isActive ? item.active : item.inactive}`}
+            className={`w-full flex items-center ${isCollapsed ? 'justify-center p-2' : 'justify-between px-3 py-3 md:py-2'} rounded-xl text-sm font-bold transition-all ${isActive ? item.active : item.inactive}`}
+            title={isCollapsed ? item.label : undefined}
           >
-            <div className="flex items-center gap-3">
-              <item.icon className="w-5 h-5 md:w-4 md:h-4" />
-              {item.label}
+            <div className={`flex items-center ${isCollapsed ? '' : 'gap-3'}`}>
+              <item.icon className="w-5 h-5 md:w-4 md:h-4 shrink-0" />
+              {!isCollapsed && item.label}
             </div>
-            {item.badge !== null && item.badge !== undefined && (
+            {!isCollapsed && item.badge !== null && item.badge !== undefined && (
               <span className={isActive && item.activeBadge ? item.activeBadge : inactiveBadge}>
                 {item.badge}
               </span>

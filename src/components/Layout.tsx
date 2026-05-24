@@ -12,6 +12,8 @@ import ApiBuilder from "../pages/ApiBuilder";
 import SdkSettings from "../pages/SdkSettings";
 import Views from "../pages/Views";
 import Triggers from "../pages/Triggers";
+import SqlEditor from "../pages/SqlEditor";
+import { CommandPalette } from "./ui/CommandPalette";
 
 export function AppLayout() {
   return (
@@ -27,7 +29,9 @@ export function AppLayout() {
         <Route path="sdk" element={<SdkSettings />} />
         <Route path="views" element={<Views />} />
         <Route path="triggers" element={<Triggers />} />
+        <Route path="sql" element={<SqlEditor />} />
       </Routes>
+      <CommandPalette />
     </DashboardShell>
   );
 }

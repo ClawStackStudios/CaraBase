@@ -14,6 +14,7 @@ interface SidebarProps {
   onSettingsTabChange?: (tab: SettingsTab) => void;
   onGoToDashboard?: () => void;
   onClose?: () => void;
+  isCollapsed?: boolean;
 }
 
 export function Sidebar({
@@ -25,6 +26,7 @@ export function Sidebar({
   onSettingsTabChange,
   onGoToDashboard,
   onClose,
+  isCollapsed,
 }: SidebarProps) {
   return (
     <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-colors duration-300">
@@ -37,12 +39,12 @@ export function Sidebar({
               onGoToDashboard();
             }
           }}
-          className="flex items-center gap-2"
+          className={`flex items-center gap-2 ${isCollapsed ? 'mx-auto' : ''}`}
         >
-          <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-md shadow-emerald-500/20">
+          <div className="w-8 h-8 shrink-0 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-md shadow-emerald-500/20">
             <span className="text-lg">🦞</span>
           </div>
-          <BouncyBrand variant="subtle" className="text-xl" />
+          {!isCollapsed && <BouncyBrand variant="subtle" className="text-xl" />}
         </Link>
         <button
           onClick={onClose}
@@ -64,6 +66,7 @@ export function Sidebar({
               onShowDatabaseStats={onShowDatabaseStats}
               onLogout={onLogout}
               onClose={onClose}
+              isCollapsed={isCollapsed}
             />
           </div>
         ) : (
@@ -75,6 +78,7 @@ export function Sidebar({
                 onShowDatabaseStats={onShowDatabaseStats}
                 onLogout={onLogout}
                 onClose={onClose}
+                isCollapsed={isCollapsed}
               />
             </div>
             
@@ -88,19 +92,21 @@ export function Sidebar({
           {settingsMode ? (
             <button
               onClick={() => { onGoToDashboard?.(); if (window.innerWidth < 768) onClose?.(); }}
-              className="w-full flex items-center gap-3 px-3 py-3 md:py-2 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center p-2' : 'gap-3 px-3 py-3 md:py-2'} rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all`}
+              title={isCollapsed ? "Back to Dashboard" : undefined}
             >
-              <LayoutDashboard className="w-5 h-5 md:w-4 md:h-4" />
-              Back to Dashboard
+              <LayoutDashboard className="w-5 h-5 md:w-4 md:h-4 shrink-0" />
+              {!isCollapsed && "Back to Dashboard"}
             </button>
           ) : (
             onGoToSettings && (
               <button
                 onClick={() => { onGoToSettings(); if (window.innerWidth < 768) onClose?.(); }}
-                className="w-full flex items-center gap-3 px-3 py-3 md:py-2 rounded-xl text-sm font-bold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all"
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center p-2' : 'gap-3 px-3 py-3 md:py-2'} rounded-xl text-sm font-bold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all`}
+                title={isCollapsed ? "System Settings" : undefined}
               >
-                <Settings className="w-5 h-5 md:w-4 md:h-4" />
-                Settings
+                <Settings className="w-5 h-5 md:w-4 md:h-4 shrink-0" />
+                {!isCollapsed && "System Settings"}
               </button>
             )
           )}
@@ -108,20 +114,22 @@ export function Sidebar({
           {onShowDatabaseStats && (
             <button
               onClick={() => { onShowDatabaseStats(); if (window.innerWidth < 768) onClose?.(); }}
-              className="w-full flex items-center gap-3 px-3 py-3 md:py-2 rounded-xl text-sm font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all"
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center p-2' : 'gap-3 px-3 py-3 md:py-2'} rounded-xl text-sm font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all`}
+              title={isCollapsed ? "Database Stats" : undefined}
             >
-              <Database className="w-5 h-5 md:w-4 md:h-4" />
-              Database Stats
+              <Database className="w-5 h-5 md:w-4 md:h-4 shrink-0" />
+              {!isCollapsed && "Database Stats"}
             </button>
           )}
 
           {onLogout && (
             <button
               onClick={() => { onLogout(); if (window.innerWidth < 768) onClose?.(); }}
-              className="w-full flex items-center gap-3 px-3 py-3 md:py-2 rounded-xl text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center p-2' : 'gap-3 px-3 py-3 md:py-2'} rounded-xl text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all`}
+              title={isCollapsed ? "Logout" : undefined}
             >
-              <LogOut className="w-5 h-5 md:w-4 md:h-4" />
-              Claw Out
+              <LogOut className="w-5 h-5 md:w-4 md:h-4 shrink-0" />
+              {!isCollapsed && "Logout"}
             </button>
           )}
         </div>

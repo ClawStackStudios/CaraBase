@@ -468,12 +468,12 @@ async function startServer() {
     }
   });
 
-  systemApi.post('/query', requireRole('admin'), (req, res) => {
+  systemApi.post('/query', requireRole('superadmin'), (req, res) => {
     const { query, method = 'all', params = [] } = req.body;
     try {
       const upperQuery = query.trim().toUpperCase();
       if (upperQuery.startsWith('DROP TABLE')) {
-        const match = query.match(/DROP TABLE\s+(?:IF EXISTS\s+)?["'`]?(_carabase_[a-zA-Z0-9_]+|sqlite_[a-zA-Z0-9_]+)["'`]?/i);
+        const match = query.match(/DROP TABLE\s+(?:IF EXISTS\s+)?["'`]?(_carabase_[a-zA-Z0-9_]+|sqlite_[a-zA-Z0-9_]+|users)["'`]?/i);
         if (match) {
            return res.status(403).json({ error: 'Modification of core system tables is restricted via raw query API.' });
         }
@@ -1178,6 +1178,9 @@ async function startServer() {
      }
   });
 
+  // ShellProxy Rate Limiter State
+  const shareRateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
   // ShellProxy Public Membrane route
   app.get('/storage/v1/share/:share_hash', (req, res) => {
      const { share_hash } = req.params;
@@ -1196,6 +1199,24 @@ async function startServer() {
        `).get(share_hash) as any;
 
        if (!row) return res.status(404).end();
+
+       // Proxy Share Rate Limiting (100 req / minute per IP + Share Hash)
+       const ip = req.ip || req.socket.remoteAddress || 'unknown';
+       const rateLimitKey = `${ip}_${share_hash}`;
+       const now = Date.now();
+       let record = shareRateLimitMap.get(rateLimitKey);
+       
+       if (!record || now > record.resetTime) {
+         record = { count: 0, resetTime: now + 60000 };
+       }
+       if (record.count >= 100) {
+         return res.status(429).end(); // Silent drop on rate limit
+       }
+       record.count++;
+       shareRateLimitMap.set(rateLimitKey, record);
+
+       // Increment Analytics
+       db.prepare(`UPDATE _carabase_storage_shares SET access_count = access_count + 1 WHERE id = ?`).run(row.id);
 
        const filePath = path.join(storageDir, row.filename);
        if (!fs.existsSync(filePath)) return res.status(404).end();
@@ -1293,7 +1314,7 @@ async function startServer() {
   systemApi.get('/storage/shares', requireRole('admin'), (req, res) => {
       try {
           const shares = db.prepare(`
-             SELECT s.id, s.storage_id, s.share_hash, s.created_at, s.expires_at,
+             SELECT s.id, s.storage_id, s.share_hash, s.created_at, s.expires_at, s.access_count,
                     file.original_name, file.mime_type, file.size
              FROM _carabase_storage_shares s
              JOIN _carabase_storage file ON s.storage_id = file.id

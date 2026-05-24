@@ -58,12 +58,13 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
       {/* Sidebar - FIXED to the left viewport wall */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 h-full flex flex-col overflow-hidden bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-40 h-full flex flex-col overflow-hidden bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-300 ease-in-out ${
+          !isMobile && !sidebarOpen ? "w-[64px] translate-x-0" : 
+          sidebarOpen ? "w-[256px] translate-x-0" : "w-[256px] -translate-x-full"
         }`}
-        style={{ width: "256px" }}
       >
         <Sidebar
+          isCollapsed={!isMobile && !sidebarOpen}
           onGoToSettings={() => navigate("/dashboard/settings")}
           onLogout={handleLogout}
           onClose={() => setSidebarOpen(false)}
@@ -74,7 +75,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
       <main 
         className="h-full w-full flex flex-col min-h-0 bg-slate-50 dark:bg-slate-950 overflow-hidden relative transition-all duration-300 ease-in-out"
         style={{ 
-          paddingLeft: sidebarOpen && !isMobile ? "256px" : 0 
+          paddingLeft: isMobile ? 0 : sidebarOpen ? "256px" : "64px" 
         }}
       >
         <Header

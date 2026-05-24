@@ -1,18 +1,39 @@
-import { Menu, Sun, Moon } from "lucide-react";
+import React from "react";
+import { Menu, Sun, Moon, ChevronRight } from "lucide-react";
 import { useTheme } from "../../../../context/ThemeContext";
+import { useLocation } from "react-router-dom";
 
 interface HeaderProps {
   user: { username: string } | null;
   onToggleSidebar?: () => void;
-  title?: string;
+  title?: string; // Kept for backwards compatibility but we will use location for breadcrumbs
 }
 
 export function Header({
   user,
   onToggleSidebar,
-  title,
 }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
+  const location = useLocation();
+
+  const getBreadcrumbs = () => {
+    const path = location.pathname;
+    const crumbs = ["CaraBase"];
+    if (path.startsWith("/dashboard/editor")) crumbs.push("Database", "Table Editor");
+    else if (path.startsWith("/dashboard/sql")) crumbs.push("Database", "SQL Editor");
+    else if (path.startsWith("/dashboard/api-builder")) crumbs.push("API", "API Builder");
+    else if (path.startsWith("/dashboard/keys")) crumbs.push("API", "API Keys");
+    else if (path.startsWith("/dashboard/policies")) crumbs.push("Auth", "Policies (RLS)");
+    else if (path.startsWith("/dashboard/storage")) crumbs.push("Storage", "Buckets");
+    else if (path.startsWith("/dashboard/views")) crumbs.push("Database", "Views");
+    else if (path.startsWith("/dashboard/triggers")) crumbs.push("Database", "Triggers");
+    else if (path.startsWith("/dashboard/sdk")) crumbs.push("API", "SDK Settings");
+    else if (path.startsWith("/dashboard/settings")) crumbs.push("System", "Settings");
+    else if (path === "/dashboard") crumbs.push("Dashboard");
+    return crumbs;
+  };
+
+  const breadcrumbs = getBreadcrumbs();
 
   return (
     <header className="bg-white dark:bg-slate-900 border-b-2 border-emerald-500 dark:border-red-500 px-4 md:px-6 py-2 md:py-3 flex-shrink-0 h-16 transition-colors duration-300">
@@ -22,17 +43,24 @@ export function Header({
           {onToggleSidebar && (
             <button
               onClick={onToggleSidebar}
-              className="text-slate-700 dark:text-slate-300 p-2 h-10 w-10 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors md:hidden"
+              className="text-slate-700 dark:text-slate-300 p-2 h-10 w-10 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5" />
             </button>
           )}
           
-          {title && (
-            <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 ml-1 md:ml-0 truncate">
-              {title}
-            </span>
-          )}
+          <div className="flex items-center gap-1.5 ml-1 md:ml-0 overflow-hidden">
+            {breadcrumbs.map((crumb, idx) => (
+              <React.Fragment key={idx}>
+                <span className={`text-[11px] md:text-sm font-medium tracking-wide truncate ${idx === breadcrumbs.length - 1 ? 'text-slate-900 dark:text-slate-100 font-semibold' : 'text-slate-500 dark:text-slate-400'}`}>
+                  {crumb}
+                </span>
+                {idx < breadcrumbs.length - 1 && (
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600 shrink-0" />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
 
         {/* Right Side: Greeting & Actions */}

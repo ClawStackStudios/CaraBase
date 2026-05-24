@@ -79,6 +79,13 @@ try {
   // Ignore error if column already exists or table doesn't exist yet
 }
 
+try {
+  // Graceful migration to add access_count to existing storage shares
+  db.prepare("ALTER TABLE _carabase_storage_shares ADD COLUMN access_count INTEGER NOT NULL DEFAULT 0").run();
+} catch (e) {
+  // Ignore error if column already exists or table doesn't exist yet
+}
+
 db.exec(`
   -- Legacy carabase tables
   CREATE TABLE IF NOT EXISTS _carabase_api_keys (
@@ -111,6 +118,7 @@ db.exec(`
     share_hash  TEXT NOT NULL UNIQUE,
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
     expires_at  DATETIME,
+    access_count INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY(storage_id) REFERENCES _carabase_storage(id) ON DELETE CASCADE
   );
 
