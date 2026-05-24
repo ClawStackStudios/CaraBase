@@ -180,7 +180,7 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 14: Advanced Schema Features — Foreign Keys & Indexes**
+- [x] **Task 14: Advanced Schema Features — Foreign Keys & Indexes**
 
   **Description:** Extend the Schema Editor (Task 05) with Foreign Key and Index management. In the Schema view, add a "Foreign Keys" section that reads from `PRAGMA foreign_key_list(<table>)` and renders each FK relationship (column → referenced table → referenced column). Add an "Add Foreign Key" form. Since SQLite requires table recreation for FK additions, the backend should implement the safe table-copy-and-rename migration pattern in a new `POST /api/system/tables/:table/fk` route. Add an "Indexes" section reading from `PRAGMA index_list(<table>)` allowing users to create new indexes (`CREATE INDEX`) and drop existing ones.
 

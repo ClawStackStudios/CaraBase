@@ -283,6 +283,116 @@ async function startServer() {
     }
   });
 
+  // ---- Advanced Schema Features (Task 14) ----
+  systemApi.get('/tables/:name/indexes', (req, res) => {
+    const safeTable = req.params.name.replace(/[^a-zA-Z0-9_]/g, '');
+    try {
+      const indexes = db.prepare(`PRAGMA index_list(${safeTable})`).all() as any[];
+      // Fetch index columns info
+      for (let idx of indexes) {
+         idx.columns = db.prepare(`PRAGMA index_info('${idx.name}')`).all();
+      }
+      res.json(indexes);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.post('/tables/:name/indexes', requireRole('admin'), (req, res) => {
+    const safeTable = req.params.name.replace(/[^a-zA-Z0-9_]/g, '');
+    const { indexName, columnName, isUnique } = req.body;
+    if (!indexName || !columnName) return res.status(400).json({ error: 'Missing indexName or columnName' });
+    
+    const safeIndex = indexName.replace(/[^a-zA-Z0-9_]/g, '');
+    const safeCol = columnName.replace(/[^a-zA-Z0-9_]/g, '');
+    const uniqueStr = isUnique ? 'UNIQUE' : '';
+    
+    try {
+      db.exec(`CREATE ${uniqueStr} INDEX ${safeIndex} ON ${safeTable} (${safeCol})`);
+      res.json({ success: true, message: `Index ${safeIndex} created` });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.delete('/tables/:name/indexes/:indexName', requireRole('admin'), (req, res) => {
+    const safeIndex = req.params.indexName.replace(/[^a-zA-Z0-9_]/g, '');
+    try {
+      db.exec(`DROP INDEX ${safeIndex}`);
+      res.json({ success: true, message: `Index ${safeIndex} dropped` });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.get('/tables/:name/foreign_keys', (req, res) => {
+    const safeTable = req.params.name.replace(/[^a-zA-Z0-9_]/g, '');
+    try {
+      const fks = db.prepare(`PRAGMA foreign_key_list(${safeTable})`).all();
+      res.json(fks);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.post('/tables/:name/fk', requireRole('admin'), (req, res) => {
+    const safeTable = req.params.name.replace(/[^a-zA-Z0-9_]/g, '');
+    const { localColumn, foreignTable, foreignColumn, onDelete = 'RESTRICT', onUpdate = 'RESTRICT' } = req.body;
+    
+    if (!localColumn || !foreignTable || !foreignColumn) {
+      return res.status(400).json({ error: 'Missing FK configuration' });
+    }
+    
+    const safeLocalCol = localColumn.replace(/[^a-zA-Z0-9_]/g, '');
+    const safeForeignTab = foreignTable.replace(/[^a-zA-Z0-9_]/g, '');
+    const safeForeignCol = foreignColumn.replace(/[^a-zA-Z0-9_]/g, '');
+
+    const validActions = ['RESTRICT', 'CASCADE', 'SET NULL', 'NO ACTION', 'SET DEFAULT'];
+    const safeOnDelete = validActions.includes(onDelete) ? onDelete : 'RESTRICT';
+    const safeOnUpdate = validActions.includes(onUpdate) ? onUpdate : 'RESTRICT';
+
+    try {
+      const schemaRow = db.prepare(`SELECT sql FROM sqlite_schema WHERE type='table' AND name=?`).get(safeTable) as any;
+      if (!schemaRow || !schemaRow.sql) {
+         return res.status(404).json({ error: 'Table schema not found' });
+      }
+      
+      const currentSql: string = schemaRow.sql;
+      const lastParenIndex = currentSql.lastIndexOf(')');
+      if (lastParenIndex === -1) {
+         return res.status(500).json({ error: 'Could not parse table schema' });
+      }
+      
+      const fkConstraint = `, FOREIGN KEY ("${safeLocalCol}") REFERENCES "${safeForeignTab}"("${safeForeignCol}") ON DELETE ${safeOnDelete} ON UPDATE ${safeOnUpdate}`;
+      
+      let newTableSql = currentSql.substring(0, lastParenIndex) + fkConstraint + currentSql.substring(lastParenIndex);
+      
+      const tmpTable = `__carabase_tmp_${Date.now()}`;
+      newTableSql = newTableSql.replace(new RegExp(`CREATE TABLE (\\w+|"${safeTable}")`, 'i'), `CREATE TABLE ${tmpTable}`);
+
+      db.exec('PRAGMA foreign_keys=off;');
+      const migrate = db.transaction(() => {
+         db.exec(newTableSql);
+         db.exec(`INSERT INTO ${tmpTable} SELECT * FROM ${safeTable}`);
+         db.exec(`DROP TABLE ${safeTable}`);
+         db.exec(`ALTER TABLE ${tmpTable} RENAME TO ${safeTable}`);
+         
+         const violations = db.prepare('PRAGMA foreign_key_check').all();
+         if (violations.length > 0) {
+            throw new Error('Foreign key constraint violation in existing data');
+         }
+      });
+      
+      migrate();
+      db.exec('PRAGMA foreign_keys=on;');
+      
+      res.json({ success: true, message: 'Foreign Key added successfully' });
+    } catch (e: any) {
+      db.exec('PRAGMA foreign_keys=on;'); 
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   systemApi.post('/query', requireRole('admin'), (req, res) => {
     const { query, method = 'all', params = [] } = req.body;
     try {

@@ -17,7 +17,10 @@ import {
   AlertCircle,
   FileText,
   Hammer,
-  Loader2
+  Loader2,
+  Key,
+  Link,
+  Hash
 } from "lucide-react";
 import { apiFetch } from "@/config/apiConfig";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -34,6 +37,9 @@ export default function TableEditor() {
   const [isSubmittingColumn, setIsSubmittingColumn] = useState(false);
   const [isDroppingColumn, setIsDroppingColumn] = useState(false);
   const [isDeletingRow, setIsDeletingRow] = useState(false);
+
+  const [indexes, setIndexes] = useState<any[]>([]);
+  const [foreignKeys, setForeignKeys] = useState<any[]>([]);
 
   // Layout Tab toggling ("data" | "schema")
   const [activeTab, setActiveTab] = useState<"data" | "schema">("data");
@@ -84,6 +90,17 @@ export default function TableEditor() {
   const [isDropColConfirmOpen, setIsDropColConfirmOpen] = useState(false);
   const [colToDelete, setColToDelete] = useState<string | null>(null);
 
+  // Advanced Schema State (Indexes & FKs)
+  const [indexForm, setIndexForm] = useState({ name: "", column: "", unique: false });
+  const [fkForm, setFkForm] = useState({ localCol: "", foreignTable: "", foreignCol: "", onDelete: "RESTRICT", onUpdate: "RESTRICT" });
+  const [isSubmittingIndex, setIsSubmittingIndex] = useState(false);
+  const [isSubmittingFK, setIsSubmittingFK] = useState(false);
+  const [schemaError, setSchemaError] = useState<string | null>(null);
+
+  const [indexToDelete, setIndexToDelete] = useState<string | null>(null);
+  const [isDropIndexConfirmOpen, setIsDropIndexConfirmOpen] = useState(false);
+  const [isDroppingIndex, setIsDroppingIndex] = useState(false);
+
   useEffect(() => {
     fetchTables();
   }, []);
@@ -121,10 +138,15 @@ export default function TableEditor() {
   ) {
     setLoadingRows(true);
     try {
-      // Introspect columns (schema)
-      const colsRes = await apiFetch(`/api/system/tables/${tableName}/schema`);
-      const colsData = await colsRes.json();
-      setColumns(colsData);
+      // Introspect schema features
+      const [colsRes, idxRes, fkRes] = await Promise.all([
+        apiFetch(`/api/system/tables/${tableName}/schema`),
+        apiFetch(`/api/system/tables/${tableName}/indexes`),
+        apiFetch(`/api/system/tables/${tableName}/foreign_keys`)
+      ]);
+      setColumns(await colsRes.json());
+      setIndexes(await idxRes.json());
+      setForeignKeys(await fkRes.json());
 
       // Build fetch URL with pagination and optional sorting params
       const offset = (pageNum - 1) * pageSize;
@@ -305,6 +327,86 @@ export default function TableEditor() {
       toast.error('Drop column failed: ' + (err as Error).message);
     } finally {
       setIsDroppingColumn(false);
+    }
+  }
+
+  // --- Advanced Schema (Indexes) ---
+  async function handleAddIndex(e: React.FormEvent) {
+    e.preventDefault();
+    setSchemaError(null);
+    if (!indexForm.name || !indexForm.column || !selectedTable) return;
+    
+    setIsSubmittingIndex(true);
+    try {
+      const res = await apiFetch(`/api/system/tables/${selectedTable}/indexes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ indexName: indexForm.name, columnName: indexForm.column, isUnique: indexForm.unique })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      setIndexForm({ name: "", column: "", unique: false });
+      toast.success("Index created successfully");
+      fetchTableData(selectedTable, page);
+    } catch (err) {
+      console.error(err);
+      setSchemaError((err as Error).message);
+    } finally {
+      setIsSubmittingIndex(false);
+    }
+  }
+
+  function triggerDropIndex(idxName: string) {
+    setIndexToDelete(idxName);
+    setIsDropIndexConfirmOpen(true);
+  }
+
+  async function confirmDropIndex() {
+    if (!indexToDelete || !selectedTable) return;
+    setIsDropIndexConfirmOpen(false);
+    setIsDroppingIndex(true);
+
+    try {
+      const res = await apiFetch(`/api/system/tables/${selectedTable}/indexes/${indexToDelete}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(await res.text());
+      setIndexToDelete(null);
+      toast.success(`Index dropped successfully`);
+      fetchTableData(selectedTable, page);
+    } catch (err) {
+      console.error(err);
+      toast.error('Drop index failed: ' + (err as Error).message);
+    } finally {
+      setIsDroppingIndex(false);
+    }
+  }
+
+  // --- Advanced Schema (Foreign Keys) ---
+  async function handleAddFK(e: React.FormEvent) {
+    e.preventDefault();
+    setSchemaError(null);
+    if (!fkForm.localCol || !fkForm.foreignTable || !fkForm.foreignCol || !selectedTable) return;
+
+    setIsSubmittingFK(true);
+    try {
+      const res = await apiFetch(`/api/system/tables/${selectedTable}/fk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          localColumn: fkForm.localCol,
+          foreignTable: fkForm.foreignTable,
+          foreignColumn: fkForm.foreignCol,
+          onDelete: fkForm.onDelete,
+          onUpdate: fkForm.onUpdate
+        })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      setFkForm({ localCol: "", foreignTable: "", foreignCol: "", onDelete: "RESTRICT", onUpdate: "RESTRICT" });
+      toast.success("Foreign Key added successfully");
+      fetchTableData(selectedTable, page);
+    } catch (err) {
+      console.error(err);
+      setSchemaError((err as Error).message);
+    } finally {
+      setIsSubmittingFK(false);
     }
   }
 
@@ -999,6 +1101,162 @@ export default function TableEditor() {
                             </Button>
                           </div>
                         </div>
+                      </form>
+                    </CardContent>
+                  </Card>
+
+                  {/* Indexes Panel */}
+                  <Card className="border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900/40">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                         <h4 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                           <Hash className="h-4 w-4 text-emerald-500" /> Indexes
+                         </h4>
+                      </div>
+                      
+                      <div className="mb-6 overflow-hidden rounded-md border border-slate-100 dark:border-slate-800">
+                        <table className="w-full text-sm text-left">
+                          <thead className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-100 dark:border-slate-800">
+                            <tr>
+                              <th className="px-4 py-2 font-medium">Index Name</th>
+                              <th className="px-4 py-2 font-medium">Columns</th>
+                              <th className="px-4 py-2 font-medium text-center">Unique</th>
+                              <th className="px-4 py-2 font-medium text-right w-16">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {indexes.map(idx => (
+                              <tr key={idx.name} className="border-b border-slate-50 dark:border-slate-800/50 last:border-0">
+                                <td className="px-4 py-2 font-mono text-xs text-slate-700 dark:text-slate-300">{idx.name}</td>
+                                <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
+                                  {idx.columns ? idx.columns.map((c: any) => c.name).join(', ') : 'unknown'}
+                                </td>
+                                <td className="px-4 py-2 text-center">
+                                  {idx.unique === 1 ? (
+                                    <span className="text-[10px] bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/50 px-1.5 py-0.5 rounded font-semibold uppercase">Unique</span>
+                                  ) : (
+                                    <span className="text-[10px] text-slate-400 uppercase">No</span>
+                                  )}
+                                </td>
+                                <td className="px-4 py-2 text-right">
+                                  {idx.origin !== 'pk' && (
+                                    <Button variant="ghost" size="sm" onClick={() => triggerDropIndex(idx.name)} className="h-6 w-6 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20">
+                                      <Trash className="h-3.5 w-3.5" />
+                                    </Button>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                            {indexes.length === 0 && (
+                              <tr><td colSpan={4} className="px-4 py-4 text-center text-slate-400 text-xs italic">No user-defined indexes</td></tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <form onSubmit={handleAddIndex} className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                         <h5 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Create New Index</h5>
+                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                            <div>
+                               <label className="text-xs font-semibold mb-1 block text-slate-600 dark:text-slate-350">Index Name</label>
+                               <Input value={indexForm.name} onChange={e => setIndexForm(prev => ({...prev, name: e.target.value}))} placeholder="idx_name" className="focus-visible:ring-emerald-500 h-9" />
+                            </div>
+                            <div>
+                               <label className="text-xs font-semibold mb-1 block text-slate-600 dark:text-slate-350">Column</label>
+                               <select className="flex h-9 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-1 text-sm shadow-sm focus:ring-emerald-500 focus:border-emerald-555" value={indexForm.column} onChange={e => setIndexForm(prev => ({...prev, column: e.target.value}))}>
+                                 <option value="">Select Column...</option>
+                                 {columns.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                               </select>
+                            </div>
+                            <div className="flex items-center h-9 justify-between md:justify-start gap-4 col-span-2">
+                              <div className="flex items-center gap-1.5 mr-2">
+                                <input type="checkbox" id="idx-unique" checked={indexForm.unique} onChange={e => setIndexForm(prev => ({...prev, unique: e.target.checked}))} className="h-4.5 w-4.5 rounded text-emerald-650 focus:ring-emerald-500 bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700" />
+                                <label htmlFor="idx-unique" className="text-xs font-semibold text-slate-700 dark:text-slate-350 select-none">UNIQUE</label>
+                              </div>
+                              <Button type="submit" disabled={isSubmittingIndex} className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 py-1.5 px-4 h-9 shadow-xs text-xs font-semibold whitespace-nowrap">
+                                {isSubmittingIndex ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : null} Create Index
+                              </Button>
+                            </div>
+                         </div>
+                      </form>
+                    </CardContent>
+                  </Card>
+
+                  {/* Foreign Keys Panel */}
+                  <Card className="border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900/40">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                         <h4 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                           <Link className="h-4 w-4 text-emerald-500" /> Foreign Keys
+                         </h4>
+                      </div>
+                      
+                      <div className="mb-6 overflow-hidden rounded-md border border-slate-100 dark:border-slate-800">
+                        <table className="w-full text-sm text-left">
+                          <thead className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-100 dark:border-slate-800">
+                            <tr>
+                              <th className="px-4 py-2 font-medium">Local Column</th>
+                              <th className="px-4 py-2 font-medium">References</th>
+                              <th className="px-4 py-2 font-medium text-center">On Delete</th>
+                              <th className="px-4 py-2 font-medium text-center">On Update</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {foreignKeys.map((fk, idx) => (
+                              <tr key={idx} className="border-b border-slate-50 dark:border-slate-800/50 last:border-0">
+                                <td className="px-4 py-2 font-mono text-xs text-slate-700 dark:text-slate-300">{fk.from}</td>
+                                <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
+                                  <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400">{fk.table}.{fk.to}</span>
+                                </td>
+                                <td className="px-4 py-2 text-center text-xs text-slate-500 uppercase font-semibold">{fk.on_delete}</td>
+                                <td className="px-4 py-2 text-center text-xs text-slate-500 uppercase font-semibold">{fk.on_update}</td>
+                              </tr>
+                            ))}
+                            {foreignKeys.length === 0 && (
+                              <tr><td colSpan={4} className="px-4 py-4 text-center text-slate-400 text-xs italic">No foreign keys defined</td></tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <form onSubmit={handleAddFK} className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                         <h5 className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            Add Foreign Key Constraint
+                            <span className="text-amber-500 dark:text-amber-400 font-normal italic flex items-center gap-1.5"><AlertCircle className="h-3.5 w-3.5" /> Notice: Safe Table Recreation Required</span>
+                         </h5>
+                         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                            <div>
+                               <label className="text-xs font-semibold mb-1 block text-slate-600 dark:text-slate-350">Local Column</label>
+                               <select className="flex h-9 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-1 text-sm shadow-sm focus:ring-emerald-500 focus:border-emerald-555" value={fkForm.localCol} onChange={e => setFkForm(prev => ({...prev, localCol: e.target.value}))}>
+                                 <option value="">Select Column...</option>
+                                 {columns.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                               </select>
+                            </div>
+                            <div>
+                               <label className="text-xs font-semibold mb-1 block text-slate-600 dark:text-slate-350">Ref Table</label>
+                               <select className="flex h-9 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-1 text-sm shadow-sm focus:ring-emerald-500 focus:border-emerald-555" value={fkForm.foreignTable} onChange={e => setFkForm(prev => ({...prev, foreignTable: e.target.value}))}>
+                                 <option value="">Select Table...</option>
+                                 {tables.filter(t => t.name !== selectedTable).map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+                               </select>
+                            </div>
+                            <div>
+                               <label className="text-xs font-semibold mb-1 block text-slate-600 dark:text-slate-350">Ref Column</label>
+                               <Input value={fkForm.foreignCol} onChange={e => setFkForm(prev => ({...prev, foreignCol: e.target.value}))} placeholder="e.g. id" className="focus-visible:ring-emerald-500 h-9" />
+                            </div>
+                            <div>
+                               <label className="text-xs font-semibold mb-1 block text-slate-600 dark:text-slate-350">On Delete</label>
+                               <select className="flex h-9 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-1 text-sm shadow-sm focus:ring-emerald-500 focus:border-emerald-555" value={fkForm.onDelete} onChange={e => setFkForm(prev => ({...prev, onDelete: e.target.value}))}>
+                                 <option value="RESTRICT">RESTRICT</option>
+                                 <option value="CASCADE">CASCADE</option>
+                                 <option value="SET NULL">SET NULL</option>
+                               </select>
+                            </div>
+                            <div className="flex justify-end">
+                              <Button type="submit" disabled={isSubmittingFK} className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 py-1.5 px-4 h-9 shadow-xs text-xs font-semibold w-full">
+                                {isSubmittingFK ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : null} Add FK
+                              </Button>
+                            </div>
+                         </div>
                       </form>
                     </CardContent>
                   </Card>
