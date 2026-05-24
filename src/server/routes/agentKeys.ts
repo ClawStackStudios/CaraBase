@@ -16,7 +16,7 @@ const audit = createAuditLogger(db);
 router.get('/', requireAuth, requireHuman, (req, res) => {
   const authReq = req as AuthRequest;
   const rows = db.prepare(
-    'SELECT id, name, description, permissions, is_active, created_at, last_used, expiration_date FROM agent_keys WHERE user_uuid = ? ORDER BY created_at DESC'
+    'SELECT id, name, description, permissions, is_active, created_at, last_used, expiration_date, rate_limit FROM agent_keys WHERE user_uuid = ? ORDER BY created_at DESC'
   ).all(authReq.userUuid) as any[];
 
   res.json({
@@ -101,9 +101,15 @@ router.post(
       data: {
         id: keyData.id,
         name: keyData.name,
+        description: keyData.description,
         key: plainKey,
+        api_key: plainKey,
         permissions: permissions || {},
-        expiresAt: expDate
+        expiration_date: keyData.expiration_date,
+        rate_limit: keyData.rate_limit,
+        is_active: keyData.is_active,
+        created_at: keyData.created_at,
+        last_used: keyData.last_used
       }
     });
   }

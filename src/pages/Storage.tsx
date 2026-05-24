@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/config/apiConfig";
 import { useToast } from "@/context/ToastContext";
 import { Globe, X, Loader2 } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export default function Storage() {
   const [files, setFiles] = useState<any[]>([]);
@@ -13,6 +14,7 @@ export default function Storage() {
   const [shareFileId, setShareFileId] = useState<string | null>(null);
   const [expiresInDays, setExpiresInDays] = useState<string>('');
   const [isGeneratingShare, setIsGeneratingShare] = useState(false);
+  const [confirmDeleteData, setConfirmDeleteData] = useState<{id: string, filename: string} | null>(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -73,15 +75,17 @@ export default function Storage() {
     }
   };
 
-  const deleteFile = async (id: string, filename: string) => {
-    if (!confirm(`Are you sure you want to delete ${filename}?`)) return;
+  const executeDelete = async () => {
+    if (!confirmDeleteData) return;
     try {
-      await apiFetch(`/api/system/storage/${id}`, { method: 'DELETE' });
+      await apiFetch(`/api/system/storage/${confirmDeleteData.id}`, { method: 'DELETE' });
       toast.success('File deleted successfully');
       fetchFiles();
     } catch (e: any) {
       console.error(e);
       toast.error("Delete failed: " + e.message);
+    } finally {
+      setConfirmDeleteData(null);
     }
   };
 
@@ -189,9 +193,9 @@ export default function Storage() {
                                      <Globe className="h-4 w-4" />
                                  </button>
                                  <button
-                                     onClick={() => deleteFile(file.id, file.original_name)}
-                                     className="p-1 text-slate-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 transition-colors bg-transparent border-0 cursor-pointer"
-                                     title="Delete file"
+                                    onClick={() => setConfirmDeleteData({ id: file.id, filename: file.original_name })}
+                                    className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 bg-slate-100 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-900/30 rounded transition-colors"
+                                    title="Delete file"
                                  >
                                      <Trash className="h-4 w-4" />
                                  </button>
@@ -247,6 +251,15 @@ export default function Storage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={!!confirmDeleteData}
+        title="Delete File"
+        description={`Are you sure you want to delete ${confirmDeleteData?.filename}? This action cannot be undone.`}
+        onConfirm={executeDelete}
+        onCancel={() => setConfirmDeleteData(null)}
+        confirmText="Delete"
+      />
     </div>
   );
 }

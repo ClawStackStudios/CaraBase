@@ -119,6 +119,111 @@ async function startServer() {
     res.download(filePath);
   });
 
+  systemApi.delete('/backups/:filename', requireRole('superadmin'), (req, res) => {
+    const filename = req.params.filename;
+    if (!filename.startsWith('carabase-backup-') || !filename.endsWith('.sqlite') || filename.includes('/')) {
+      return res.status(400).json({ error: 'Invalid backup file format' });
+    }
+    const filePath = path.join(process.cwd(), 'data', 'backups', filename);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'Backup not found' });
+    }
+    try {
+      fs.unlinkSync(filePath);
+      res.json({ success: true });
+    } catch (e: any) {
+      res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+  systemApi.post('/backups/import', requireRole('superadmin'), upload.single('db_file'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ success: false, error: 'No database file provided' });
+      }
+
+      // Quick sanity check - must be a sqlite file
+      if (!req.file.originalname.endsWith('.sqlite') && !req.file.originalname.endsWith('.db')) {
+        fs.unlinkSync(req.file.path);
+        return res.status(400).json({ success: false, error: 'Must be a SQLite database file' });
+      }
+
+      const activeDbPath = path.join(process.cwd(), 'data', 'carabase.sqlite');
+
+      // 1. Close active DB connection to prevent WAL corruption
+      db.close();
+
+      // 2. Overwrite the active DB with the uploaded file
+      fs.copyFileSync(req.file.path, activeDbPath);
+
+      // 3. Delete the uploaded temp file
+      fs.unlinkSync(req.file.path);
+
+      // We respond before shutting down so the client knows it worked
+      res.json({ success: true, message: 'Database imported. Server restarting...' });
+
+      // 4. Force server restart to load the new database cleanly
+      setTimeout(() => {
+        console.log('[CaraBase] Database replaced via import. Restarting process...');
+        process.exit(0);
+      }, 1000);
+      
+    } catch (e: any) {
+      console.error('[CaraBase] Import error:', e);
+      // Try to clean up
+      if (req.file && fs.existsSync(req.file.path)) {
+        try { fs.unlinkSync(req.file.path); } catch (err) {}
+      }
+      res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+  systemApi.delete('/wipe', requireRole('superadmin'), (req, res) => {
+    try {
+      const activeDbPath = path.join(process.cwd(), 'data', 'carabase.sqlite');
+      const storageDirPath = path.join(process.cwd(), 'data', 'storage');
+
+      // 1. Close DB connection
+      db.close();
+
+      // 2. Delete database file(s)
+      if (fs.existsSync(activeDbPath)) {
+        fs.unlinkSync(activeDbPath);
+      }
+      const walPath = activeDbPath + '-wal';
+      if (fs.existsSync(walPath)) {
+        fs.unlinkSync(walPath);
+      }
+      const shmPath = activeDbPath + '-shm';
+      if (fs.existsSync(shmPath)) {
+        fs.unlinkSync(shmPath);
+      }
+
+      // 3. Delete storage files
+      if (fs.existsSync(storageDirPath)) {
+        const files = fs.readdirSync(storageDirPath);
+        for (const file of files) {
+          if (file !== '.gitkeep') {
+            fs.unlinkSync(path.join(storageDirPath, file));
+          }
+        }
+      }
+
+      res.json({ success: true, message: 'Volume wiped. Server restarting...' });
+
+      // 4. Force restart
+      setTimeout(() => {
+        console.log('[CaraBase] Volume wiped. Restarting process to rebuild schema...');
+        process.exit(0);
+      }, 1000);
+
+    } catch (e: any) {
+      console.error('[CaraBase] Wipe error:', e);
+      res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+
   systemApi.get('/tables', (req, res) => {
     try {
       const tables = db.prepare(`
@@ -220,7 +325,7 @@ async function startServer() {
     const { name, type } = req.body;
     if (!name || (type !== 'public' && type !== 'private')) return res.status(400).json({ error: 'Invalid parameters' });
     const id = uuidv4();
-    const prefix = type === 'public' ? 'pk_' : 'ls-';
+    const prefix = type === 'public' ? 'ls-' : 'ls-p-';
     const key = prefix + crypto.randomBytes(32).toString('hex');
     try {
       db.prepare('INSERT INTO _carabase_api_keys (id, name, key, type) VALUES (?, ?, ?, ?)').run(id, name, key, type);
@@ -246,7 +351,7 @@ async function startServer() {
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.substring(7).trim();
-      if (token.startsWith('pk_') || token.startsWith('ls-')) {
+      if (token.startsWith('ls-p-') || token.startsWith('ls-') || token.startsWith('pk_')) {
         apiKey = token;
       } else {
         sessionToken = token;
@@ -268,13 +373,16 @@ async function startServer() {
                   (req as any).username = userRow.username;
                 }
                 if (!apiKey) {
-                  (req as any).apiKey = { type: 'private' };
+                  (req as any).apiKey = { type: 'session' };
                 }
               } else if (tokenRow.owner_type === 'agent') {
                 const agentRow = db.prepare('SELECT user_uuid, name FROM agent_keys WHERE api_key_hash = ? AND is_active = 1').get(tokenRow.owner_key) as any;
                 if (agentRow) {
                   (req as any).userUuid = agentRow.user_uuid;
                   (req as any).username = `agent:${agentRow.name}`;
+                }
+                if (!apiKey) {
+                  (req as any).apiKey = { type: 'session' };
                 }
               }
             }
@@ -286,7 +394,20 @@ async function startServer() {
             (req as any).userUuid = userRow.uuid;
             (req as any).username = userRow.username;
             if (!apiKey) {
-               (req as any).apiKey = { type: 'private' };
+               (req as any).apiKey = { type: 'session' };
+            }
+          }
+        } else if (sessionToken.startsWith('lb-')) {
+          const keyHash = crypto.createHash('sha256').update(sessionToken).digest('hex');
+          const agentRow = db.prepare('SELECT user_uuid, name, expiration_date FROM agent_keys WHERE api_key_hash = ? AND is_active = 1').get(keyHash) as any;
+          if (agentRow) {
+            const isExpired = agentRow.expiration_date && new Date(agentRow.expiration_date) < new Date();
+            if (!isExpired) {
+              (req as any).userUuid = agentRow.user_uuid;
+              (req as any).username = `agent:${agentRow.name}`;
+              if (!apiKey) {
+                 (req as any).apiKey = { type: 'session' };
+              }
             }
           }
         }

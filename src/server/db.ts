@@ -200,4 +200,13 @@ db.exec(`
   );
 `);
 
+// Run database migrations
+import { runMigrations } from './utils/migrations';
+try {
+  runMigrations(db);
+} catch (e: any) {
+  console.error('[CaraBase DB] Fatal error running migrations:', e.message);
+  process.exit(1);
+}
+
 export default db;
