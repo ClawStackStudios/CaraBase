@@ -21,7 +21,7 @@ function cn(...inputs: any[]) { return twMerge(clsx(inputs)); }
 
 type WizardStep = 'details' | 'permissions' | 'expiration' | 'review' | 'generated';
 
-export type PermissionLevel = "READ" | "WRITE" | "EDIT" | "MOVE" | "FULL" | "PINCHPAD" | "CUSTOM";
+export type PermissionLevel = "READ" | "WRITE" | "EDIT" | "MOVE" | "FULL" | "ECOSYSTEM" | "CUSTOM";
 
 export interface AgentPermission {
   level: PermissionLevel;
@@ -59,7 +59,7 @@ export const PERMISSION_CONFIGS: Record<PermissionLevel, AgentPermission> = {
   WRITE: { level: "WRITE", canRead: true, canWrite: true, canEdit: false, canMove: false, canDelete: false },
   EDIT: { level: "EDIT", canRead: true, canWrite: true, canEdit: true, canMove: false, canDelete: false },
   MOVE: { level: "MOVE", canRead: true, canWrite: true, canEdit: true, canMove: true, canDelete: false },
-  PINCHPAD: { level: "PINCHPAD", canRead: true, canWrite: true, canEdit: true, canMove: true, canDelete: false },
+  ECOSYSTEM: { level: "ECOSYSTEM", canRead: true, canWrite: true, canEdit: true, canMove: true, canDelete: false },
   FULL: { level: "FULL", canRead: true, canWrite: true, canEdit: true, canMove: true, canDelete: true },
   CUSTOM: { level: "CUSTOM", canRead: false, canWrite: false, canEdit: false, canMove: false, canDelete: false },
 };
@@ -67,7 +67,7 @@ export const PERMISSION_CONFIGS: Record<PermissionLevel, AgentPermission> = {
 export const PERMISSION_INFO: Record<PermissionLevel, {
   label: string; description: string; color: string; bgColor: string; borderColor: string; icon: string;
 }> = {
-  PINCHPAD: { label: "PinchPad Ecosystem", description: "1-Click Preset: Optimized for ClawChives/PinchPad. Includes all capabilities except permanent deletion.", color: "text-emerald-600", bgColor: "bg-emerald-50 dark:bg-emerald-900/20", borderColor: "border-emerald-500", icon: "🦀" },
+  ECOSYSTEM: { label: "ClawStack Ecosystem", description: "1-Click Preset: Optimized for ClawChives & PinchPad. Includes all capabilities except permanent deletion.", color: "text-emerald-600", bgColor: "bg-emerald-50 dark:bg-emerald-900/20", borderColor: "border-emerald-500", icon: "🦀" },
   READ: { label: "Read Only", description: "Can read bookmarks and folders. Cannot create, modify, or delete.", color: "text-blue-600", bgColor: "bg-blue-50 dark:bg-blue-900/20", borderColor: "border-blue-200 dark:border-blue-800", icon: "📖" },
   WRITE: { label: "Write", description: "Can create new bookmarks and folders. Cannot modify or delete.", color: "text-green-600", bgColor: "bg-green-50 dark:bg-green-900/20", borderColor: "border-green-200 dark:border-green-800", icon: "✏️" },
   EDIT: { label: "Edit", description: "Can read, write, and modify bookmarks/folders. Cannot delete.", color: "text-orange-600", bgColor: "bg-orange-50 dark:bg-orange-900/20", borderColor: "border-orange-200 dark:border-orange-800", icon: "🔧" },
