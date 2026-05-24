@@ -149,7 +149,7 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 11: Public Shareable Asset Deep Links**
+- [x] **Task 11: Public Shareable Asset Deep Links**
 
   **Description:** Extend the storage system to support rich public deep-link URLs for assets. When an asset is uploaded and marked as public, generate a canonical share URL in the format `/storage/v1/share/:assetId`. When that URL is visited in a browser (detected by `Accept: text/html` header), serve a minimal, self-contained HTML preview page that shows the asset (image, video, or a download card for other types) with the file name, upload date, and a "Download" button. When visited by a non-browser client (API/curl), serve the raw file. This enables Joplin-style or Immich-style public sharing directly from the CaraBase dashboard.
 
@@ -157,7 +157,7 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 12: Operations E2E Test Coverage**
+- [x] **Task 12: Operations E2E Test Coverage**
 
   **Description:** Extend `tests/suite.cjs` with **Phase 11: Access Control & Operations**. Write assertions covering: (1) a viewer-role token is rejected from a write system endpoint with `403`, (2) an admin-role token can create a table but is rejected from user management endpoints, (3) `POST /api/system/backups/trigger` creates a backup file and returns success, (4) `GET /api/system/backups` lists at least one backup, (5) the storage share URL returns `200` with `Content-Type: text/html` when called with `Accept: text/html`, (6) the storage share URL returns the raw binary when called without an HTML accept header.
 
