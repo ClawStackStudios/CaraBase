@@ -125,7 +125,7 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 08: Global Toast & UI Feedback System**
+- [x] **Task 08: Global Toast & UI Feedback System**
 
   **Description:** Implement a centralized `ToastContext` in `src/context/ToastContext.tsx` that provides a `useToast()` hook. The hook exposes `toast.success(msg)`, `toast.error(msg)`, and `toast.info(msg)` methods. Toasts should render in a fixed bottom-right stack with smooth slide-in and auto-dismiss (4 seconds) animations. Replace all existing inline error `alert()` calls and ad-hoc error state patterns across the dashboard (TableEditor, RLS, ApiBuilder, Storage, APIKeys pages) with standardized `useToast()` calls. Add a `disabled` + spinner state to all primary action buttons during async operations to prevent duplicate submissions.
 
@@ -133,9 +133,9 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 09: Automated SQLite Backup Engine**
+- [x] **Task 09: Automated SQLite Backup Engine**
 
-  **Description:** Implement a scheduled backup system in `server.ts` using `node-cron` (or a lightweight equivalent). Every 24 hours, copy the SQLite database file to a `./data/backups/` directory using SQLite's `.backup()` API to ensure a consistent snapshot. Filename format: `carabase-backup-<ISO8601-date>.sqlite`. Retain the 7 most recent backups and delete older ones automatically. Make the backup directory and retention count configurable via `BACKUP_DIR` and `BACKUP_RETENTION_COUNT` environment variables (with documented defaults). Expose a `GET /api/system/backups` endpoint (superadmin only) listing available backups, and a `POST /api/system/backups/trigger` endpoint to manually trigger an immediate backup.
+  **Description:** Implement a scheduled backup system in `server.ts` using `node-cron` (or a lightweight equivalent). Every 24 hours, copy the SQLite database file to a `./data/backups/` directory using SQLite's `.backup()` API to ensure a consistent snapshot. Filename format: `carabase-backup-<ISO8601-date>.sqlite`. Retain the 5 most recent backups and delete older ones automatically. Make the backup directory and retention count configurable via `BACKUP_DIR` and `BACKUP_RETENTION_COUNT` environment variables (with documented defaults). Expose a `GET /api/system/backups` endpoint (superadmin only) listing available backups, and a `POST /api/system/backups/trigger` endpoint to manually trigger an immediate backup.
 
   > **Success Criteria:** The backup cron job creates a valid `.sqlite` copy on schedule. Manual trigger via `POST /api/system/backups/trigger` creates a backup within 5 seconds. `GET /api/system/backups` returns a list of backup filenames and their sizes. Retention policy removes backups beyond the configured count. Backup files are readable and not corrupt (can be opened by `better-sqlite3`).
 

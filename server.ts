@@ -16,6 +16,7 @@ import adminRouter from './src/server/routes/admin.js';
 import { createAuditLogger } from './src/server/utils/auditLogger.js';
 import { requireAuth } from './src/server/middleware/auth.js';
 import { requireRole } from './src/server/middleware/requireRole.js';
+import { triggerBackup, getBackupsList, startBackupSchedule } from './src/server/utils/backup.js';
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const realtimeEmitter = new EventEmitter();
@@ -55,6 +56,36 @@ async function startServer() {
   // --- System API: Internal dashboard management ---
   const systemApi = express.Router();
   systemApi.use(requireAuth);
+
+  systemApi.get('/backups', requireRole('superadmin'), (req, res) => {
+    try {
+      const backups = getBackupsList();
+      res.json({ success: true, data: backups });
+    } catch (e: any) {
+      res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+  systemApi.post('/backups/trigger', requireRole('superadmin'), async (req, res) => {
+    try {
+      const info = await triggerBackup(db);
+      res.json({ success: true, data: info });
+    } catch (e: any) {
+      res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
+  systemApi.get('/backups/download/:filename', requireRole('superadmin'), (req, res) => {
+    const filename = req.params.filename;
+    if (!filename.startsWith('carabase-backup-') || !filename.endsWith('.sqlite') || filename.includes('/')) {
+      return res.status(400).json({ error: 'Invalid backup file format' });
+    }
+    const filePath = path.join(process.cwd(), 'data', 'backups', filename);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'Backup not found' });
+    }
+    res.download(filePath);
+  });
 
   systemApi.get('/tables', (req, res) => {
     try {
@@ -928,6 +959,9 @@ async function startServer() {
       outcome: 'success',
       details: { session_id: sessionId, port: PORT }
     });
+
+    // Start automated SQLite backup schedule
+    startBackupSchedule(db);
   });
 
   // Graceful Shutdown Hook
