@@ -174,9 +174,9 @@ Phase 2 → Access Control, Operations & Public Access
 
 - [ ] **Task 13: CaraBase JS/TS Client SDK**
 
-  **Description:** Create a standalone `sdk/` directory at the project root containing a lightweight TypeScript library: `carabase-js`. The SDK must expose a `createClient(url, apiKey)` factory that returns a client object with: `.from('<table>').select('col1, col2')`, `.from('<table>').insert({...})`, `.from('<table>').update({...}).eq('col', val)`, `.from('<table>').delete().eq('col', val)`, `.storage.upload(bucket, file)`, `.storage.getPublicUrl(path)`, and `.realtime.subscribe('<table>', callback)` (wrapping the existing SSE endpoint). The SDK should be publishable as an npm package and buildable with `tsup`. Write a usage guide in `sdk/README.md` with a direct Supabase migration comparison table.
+  **Description:** Create a standalone `sdk/` directory at the project root containing a lightweight TypeScript library: `carabase-js`. The SDK must expose a `createClient(url, apiKey)` factory that returns a client object with: `.from('<table>').select('col1, col2')`, `.from('<table>').insert({...})`, `.from('<table>').update({...}).eq('col', val)`, `.from('<table>').delete().eq('col', val)`, `.storage.upload(file)`, `.storage.getPublicUrl(path)`, and `.realtime.subscribe('<table>', callback)` (wrapping the existing SSE endpoint). The SDK should be publishable as an npm package and buildable with `tsup`. Write a usage guide in `sdk/README.md`.
 
-  > **Success Criteria:** `createClient(url, key).from('users').select('*')` returns the correct rows. `insert`, `update`, and `delete` correctly mutate data. `.realtime.subscribe` opens an SSE connection and calls `callback` when a mutation fires on the target table. The SDK compiles with `tsc --noEmit` without errors. `sdk/README.md` contains a Supabase → CaraBase migration table.
+  > **Success Criteria:** `createClient(url, key).from('users').select('*')` returns the correct rows. `insert`, `update`, and `delete` correctly mutate data. `.realtime.subscribe` opens an SSE connection and calls `callback` when a mutation fires on the target table. The SDK compiles with `tsc --noEmit` without errors. `sdk/README.md` contains proper usage documentation.
 
 ---
 
