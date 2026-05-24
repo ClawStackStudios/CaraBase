@@ -45,3 +45,8 @@ Every seed I compress must pass four invariants. If it fails any one of them, it
 ---
 
 ## Wisdom
+
+* **Incomplete reflections crack the state.** (Missing API response fragments corrupt UI invariants).
+* **The proxy panics when the ground shifts.** (Hot-reloads sever active topology bridges).
+* **Twins share the same door.** (Architectural alignment removes the need for duplicate keys).
+* **Bridges are blind to the payload.** (Middleware only checks the pass, not the intent).
