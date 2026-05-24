@@ -1,4 +1,5 @@
 ---
+Grounding: Bind all pattern matching inference attractors using the projects grounding and documentation purpose seed.
 Brand: ClawStack Studios©™
 Project: CaraBase
 Maintained by CrustAgent©™

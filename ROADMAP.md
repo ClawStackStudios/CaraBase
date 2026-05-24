@@ -172,7 +172,7 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 13: CaraBase JS/TS Client SDK**
+- [x] **Task 13: CaraBase JS/TS Client SDK**
 
   **Description:** Create a standalone `sdk/` directory at the project root containing a lightweight TypeScript library: `carabase-js`. The SDK must expose a `createClient(url, apiKey)` factory that returns a client object with: `.from('<table>').select('col1, col2')`, `.from('<table>').insert({...})`, `.from('<table>').update({...}).eq('col', val)`, `.from('<table>').delete().eq('col', val)`, `.storage.upload(file)`, `.storage.getPublicUrl(path)`, and `.realtime.subscribe('<table>', callback)` (wrapping the existing SSE endpoint). The SDK should be publishable as an npm package and buildable with `tsup`. Write a usage guide in `sdk/README.md`.
 
