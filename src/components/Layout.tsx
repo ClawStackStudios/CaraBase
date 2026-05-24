@@ -10,6 +10,8 @@ import Policies from "../pages/Policies";
 import Storage from "../pages/Storage";
 import ApiBuilder from "../pages/ApiBuilder";
 import SdkSettings from "../pages/SdkSettings";
+import Views from "../pages/Views";
+import Triggers from "../pages/Triggers";
 
 export function AppLayout() {
   return (
@@ -23,6 +25,8 @@ export function AppLayout() {
         <Route path="storage" element={<Storage />} />
         <Route path="settings" element={<SettingsPanel />} />
         <Route path="sdk" element={<SdkSettings />} />
+        <Route path="views" element={<Views />} />
+        <Route path="triggers" element={<Triggers />} />
       </Routes>
     </DashboardShell>
   );

@@ -1,4 +1,5 @@
-import { LayoutDashboard, Database, Code, Key, Shield, HardDrive, Settings, User, Palette, LogOut, Globe, Network } from "lucide-react";
+import React, { useState } from "react";
+import { LayoutDashboard, Database, Code, Key, Shield, HardDrive, Settings, User, Palette, LogOut, Globe, Network, ChevronDown, ChevronRight, Eye, Zap } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 export type SettingsTab = "profile" | "appearance" | "agents" | "import-export" | "storage-shares";
@@ -26,6 +27,14 @@ export function SidebarNav({
   onClose,
 }: SidebarNavProps) {
   const location = useLocation();
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    'database-objects': true
+  });
+
+  const toggleSection = (id: string) => {
+    setExpandedSections(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   const badgeBase = "text-xs px-2 py-0.5 rounded-full font-bold transition-all duration-200";
   const inactiveBadge = `${badgeBase} bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200`;
 
@@ -115,6 +124,33 @@ export function SidebarNav({
       badge: null,
     },
     {
+      id: "database-objects",
+      href: "#",
+      label: "Database Objects",
+      icon: Database,
+      active: "",
+      inactive: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
+      badge: null,
+      children: [
+        {
+          id: "views",
+          href: "/dashboard/views",
+          label: "Views",
+          icon: Eye,
+          active: "bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-300 shadow-sm",
+          inactive: "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
+        },
+        {
+          id: "triggers",
+          href: "/dashboard/triggers",
+          label: "Triggers",
+          icon: Zap,
+          active: "bg-fuchsia-100 text-fuchsia-900 dark:bg-fuchsia-900/30 dark:text-fuchsia-300 shadow-sm",
+          inactive: "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
+        }
+      ]
+    },
+    {
       id: "keys",
       href: "/dashboard/keys",
       label: "API Keys",
@@ -158,28 +194,66 @@ export function SidebarNav({
 
   return (
     <nav className="space-y-1.5">
-      {navItems.map(({ id, href, label, icon: Icon, active, inactive, badge, activeBadge }) => {
-        // Dashboard matches exactly, others prefix match
-        const isActive = href === "/dashboard" 
-          ? location.pathname === href 
-          : location.pathname.startsWith(href);
+      {navItems.map((item) => {
+        if (item.children) {
+          const isExpanded = expandedSections[item.id];
+          return (
+            <div key={item.id} className="space-y-1">
+              <button
+                onClick={() => toggleSection(item.id)}
+                className={`w-full flex items-center justify-between px-3 py-3 md:py-2 rounded-xl text-sm font-bold transition-all ${item.inactive}`}
+              >
+                <div className="flex items-center gap-3">
+                  <item.icon className="w-5 h-5 md:w-4 md:h-4 text-slate-400" />
+                  {item.label}
+                </div>
+                {isExpanded ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+              </button>
+              
+              {isExpanded && (
+                <div className="pl-9 space-y-1 pt-1">
+                  {item.children.map(child => {
+                    const isChildActive = location.pathname.startsWith(child.href);
+                    return (
+                      <Link
+                        key={child.id}
+                        to={child.href}
+                        onClick={() => {
+                          if (window.innerWidth < 768) onClose?.();
+                        }}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-bold transition-all ${isChildActive ? child.active : child.inactive}`}
+                      >
+                        <child.icon className="w-4 h-4" />
+                        {child.label}
+                      </Link>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        const isActive = item.href === "/dashboard" 
+          ? location.pathname === item.href 
+          : location.pathname.startsWith(item.href);
           
         return (
           <Link
-            key={id}
-            to={href}
+            key={item.id}
+            to={item.href}
             onClick={() => {
               if (window.innerWidth < 768) onClose?.();
             }}
-            className={`w-full flex items-center justify-between px-3 py-3 md:py-2 rounded-xl text-sm font-bold transition-all ${isActive ? active : inactive}`}
+            className={`w-full flex items-center justify-between px-3 py-3 md:py-2 rounded-xl text-sm font-bold transition-all ${isActive ? item.active : item.inactive}`}
           >
             <div className="flex items-center gap-3">
-              <Icon className="w-5 h-5 md:w-4 md:h-4" />
-              {label}
+              <item.icon className="w-5 h-5 md:w-4 md:h-4" />
+              {item.label}
             </div>
-            {badge !== null && badge !== undefined && (
-              <span className={isActive && activeBadge ? activeBadge : inactiveBadge}>
-                {badge}
+            {item.badge !== null && item.badge !== undefined && (
+              <span className={isActive && item.activeBadge ? item.activeBadge : inactiveBadge}>
+                {item.badge}
               </span>
             )}
           </Link>

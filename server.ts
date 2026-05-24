@@ -393,6 +393,81 @@ async function startServer() {
     }
   });
 
+  // ---- Advanced Schema Features (Task 15: Views & Triggers) ----
+  systemApi.get('/views', requireRole('admin'), (req, res) => {
+    try {
+      const views = db.prepare(`SELECT name, sql FROM sqlite_schema WHERE type='view' AND name NOT LIKE 'sqlite_%'`).all();
+      res.json(views);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.post('/views', requireRole('admin'), (req, res) => {
+    const { query } = req.body;
+    if (!query || typeof query !== 'string') return res.status(400).json({ error: 'Query is required' });
+    
+    // Security validation: ensure it's actually a CREATE VIEW statement
+    const trimmed = query.trim().toUpperCase();
+    if (!trimmed.startsWith('CREATE VIEW') && !trimmed.startsWith('CREATE TEMPORARY VIEW') && !trimmed.startsWith('CREATE TEMP VIEW')) {
+      return res.status(400).json({ error: 'Only CREATE VIEW statements are allowed here' });
+    }
+
+    try {
+      db.exec(query);
+      res.json({ success: true, message: 'View created successfully' });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.delete('/views/:name', requireRole('admin'), (req, res) => {
+    const safeName = req.params.name.replace(/[^a-zA-Z0-9_]/g, '');
+    try {
+      db.exec(`DROP VIEW IF EXISTS "${safeName}"`);
+      res.json({ success: true, message: `View ${safeName} dropped` });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.get('/triggers', requireRole('admin'), (req, res) => {
+    try {
+      const triggers = db.prepare(`SELECT name, sql FROM sqlite_schema WHERE type='trigger' AND name NOT LIKE 'sqlite_%'`).all();
+      res.json(triggers);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.post('/triggers', requireRole('admin'), (req, res) => {
+    const { query } = req.body;
+    if (!query || typeof query !== 'string') return res.status(400).json({ error: 'Query is required' });
+    
+    // Security validation: ensure it's actually a CREATE TRIGGER statement
+    const trimmed = query.trim().toUpperCase();
+    if (!trimmed.startsWith('CREATE TRIGGER') && !trimmed.startsWith('CREATE TEMPORARY TRIGGER') && !trimmed.startsWith('CREATE TEMP TRIGGER')) {
+      return res.status(400).json({ error: 'Only CREATE TRIGGER statements are allowed here' });
+    }
+
+    try {
+      db.exec(query);
+      res.json({ success: true, message: 'Trigger created successfully' });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.delete('/triggers/:name', requireRole('admin'), (req, res) => {
+    const safeName = req.params.name.replace(/[^a-zA-Z0-9_]/g, '');
+    try {
+      db.exec(`DROP TRIGGER IF EXISTS "${safeName}"`);
+      res.json({ success: true, message: `Trigger ${safeName} dropped` });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   systemApi.post('/query', requireRole('admin'), (req, res) => {
     const { query, method = 'all', params = [] } = req.body;
     try {
