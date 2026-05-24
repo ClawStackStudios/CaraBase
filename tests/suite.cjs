@@ -960,7 +960,7 @@ async function runTests() {
   // =========================================================================
   console.log("\n--- Phase 14: Key Prefix Integrity & LobsterService Keys ---");
 
-  // 1. New private keys use ls- prefix
+  // 1. New private keys use ls-p- prefix
   try {
     const newKeyRes = await fetch(`${BASE_URL}/api/system/keys`, {
       method: 'POST',
@@ -968,10 +968,10 @@ async function runTests() {
       body: JSON.stringify({ name: 'LS_Prefix_Test_' + Date.now(), type: 'private' })
     });
     const newKey = await newKeyRes.json();
-    assert(newKey.key.startsWith('ls-'), "Newly generated private key uses ls- (LobsterService) prefix");
+    assert(newKey.key.startsWith('ls-p-'), "Newly generated private key uses ls-p- (LobsterService) prefix");
   } catch(e) { assert(false, "LobsterService key prefix test crashed: " + e.message); }
 
-  // 2. New public keys still use pk_ prefix
+  // 2. New public keys use ls- prefix
   try {
     const pubRes = await fetch(`${BASE_URL}/api/system/keys`, {
       method: 'POST',
@@ -979,7 +979,7 @@ async function runTests() {
       body: JSON.stringify({ name: 'PK_Prefix_Test_' + Date.now(), type: 'public' })
     });
     const pubKey = await pubRes.json();
-    assert(pubKey.key.startsWith('pk_'), "Newly generated public key retains pk_ prefix");
+    assert(pubKey.key.startsWith('ls-'), "Newly generated public key uses ls- prefix");
   } catch(e) { assert(false, "Public key prefix test crashed: " + e.message); }
 
   // 3. Agent keys use lb- prefix

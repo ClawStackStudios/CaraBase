@@ -17,7 +17,7 @@ CaraBase is a self-hosted SaaS database service. It is designed to be an open-so
 - **Backend**: Express + SQLite (`better-sqlite3` logic replicated with async `sqlite` and `sqlite3`). Built-in Vite middleware for local dev, compiled to a single CommonJS node script for production.
 - **Frontend**: React + Vite + Tailwind CSS. Designed with a clean, functional dashboard UI using Lucide-react icons and custom component primitives mapping to Shadcn UI's style.
 - **Security**: 
-    - Database is secured via API Keys (Secret `service_role` and Public `anon` types).
+    - Database is secured via API Keys (Private `ls-p-` and Public `ls-` types).
     - Public API keys evaluate dynamic *Row Level Security (RLS)* policies attached to tables.
     - An SQLite representation of standard RLS enables complex application logic through dynamic WHERE clause appending.
 

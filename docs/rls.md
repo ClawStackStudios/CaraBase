@@ -54,4 +54,4 @@ Updates are even more complex, requiring both `SELECT` (Can they see the row to 
 
 ## Private Keys Bypass RLS
 
-If your backend code connects using a Private LobsterService Key (`ls-...`), the RLS Engine is entirely bypassed. The UDFs will still resolve if called, but no policies will be appended or checked, allowing your server-side logic unhindered access.
+If your backend code connects using a Private LobsterService Key (`ls-p-...`), the RLS Engine is entirely bypassed. The UDFs will still resolve if called, but no policies will be appended or checked, allowing your server-side logic unhindered access.
