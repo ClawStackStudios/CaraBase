@@ -220,7 +220,7 @@ async function startServer() {
     const { name, type } = req.body;
     if (!name || (type !== 'public' && type !== 'private')) return res.status(400).json({ error: 'Invalid parameters' });
     const id = uuidv4();
-    const prefix = type === 'public' ? 'pk_' : 'ls-';
+    const prefix = type === 'public' ? 'ls-' : 'ls-p-';
     const key = prefix + crypto.randomBytes(32).toString('hex');
     try {
       db.prepare('INSERT INTO _carabase_api_keys (id, name, key, type) VALUES (?, ?, ?, ?)').run(id, name, key, type);
@@ -246,7 +246,7 @@ async function startServer() {
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.substring(7).trim();
-      if (token.startsWith('pk_') || token.startsWith('ls-')) {
+      if (token.startsWith('ls-p-') || token.startsWith('ls-') || token.startsWith('pk_')) {
         apiKey = token;
       } else {
         sessionToken = token;
@@ -268,13 +268,16 @@ async function startServer() {
                   (req as any).username = userRow.username;
                 }
                 if (!apiKey) {
-                  (req as any).apiKey = { type: 'private' };
+                  (req as any).apiKey = { type: 'session' };
                 }
               } else if (tokenRow.owner_type === 'agent') {
                 const agentRow = db.prepare('SELECT user_uuid, name FROM agent_keys WHERE api_key_hash = ? AND is_active = 1').get(tokenRow.owner_key) as any;
                 if (agentRow) {
                   (req as any).userUuid = agentRow.user_uuid;
                   (req as any).username = `agent:${agentRow.name}`;
+                }
+                if (!apiKey) {
+                  (req as any).apiKey = { type: 'session' };
                 }
               }
             }
@@ -286,7 +289,20 @@ async function startServer() {
             (req as any).userUuid = userRow.uuid;
             (req as any).username = userRow.username;
             if (!apiKey) {
-               (req as any).apiKey = { type: 'private' };
+               (req as any).apiKey = { type: 'session' };
+            }
+          }
+        } else if (sessionToken.startsWith('lb-')) {
+          const keyHash = crypto.createHash('sha256').update(sessionToken).digest('hex');
+          const agentRow = db.prepare('SELECT user_uuid, name, expiration_date FROM agent_keys WHERE api_key_hash = ? AND is_active = 1').get(keyHash) as any;
+          if (agentRow) {
+            const isExpired = agentRow.expiration_date && new Date(agentRow.expiration_date) < new Date();
+            if (!isExpired) {
+              (req as any).userUuid = agentRow.user_uuid;
+              (req as any).username = `agent:${agentRow.name}`;
+              if (!apiKey) {
+                 (req as any).apiKey = { type: 'session' };
+              }
             }
           }
         }
