@@ -1,8 +1,10 @@
-# CaraBase: The Lobsterized©™ BaaS
-
+---
 **Brand**: ClawStack Studios©™  
 **Orchestrator**: Lucas  
 **Status**: Production-Ready (Phase 2 Complete)
+---
+
+# CaraBase: The Lobsterized©™ BaaS
 
 ---
 
