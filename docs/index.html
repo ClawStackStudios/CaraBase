@@ -29,6 +29,23 @@
     .markdown-section h1, .markdown-section h2, .markdown-section h3 {
       color: #f3f4f6;
     }
+    
+    /* Hamburger Menu Positioning */
+    .sidebar-toggle {
+      bottom: auto !important;
+      top: 15px !important;
+      left: 240px !important;
+      width: 44px !important;
+      background: transparent !important;
+      transition: left 0.25s ease-out !important;
+      z-index: 100 !important;
+    }
+    body.close .sidebar-toggle {
+      left: 10px !important;
+    }
+    .sidebar-toggle span {
+      background-color: #f59e0b !important; /* Amber brand color */
+    }
   </style>
 </head>
 <body>
