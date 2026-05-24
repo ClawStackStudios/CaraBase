@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CaraBase Documentation | ClawStack Studios©™</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="CaraBase: The Lobsterized©™ BaaS">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <!-- Theme: vue, buble, dark, or custom -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/dark.css">
+  <style>
+    :root {
+      --theme-color: #f59e0b; /* Amber */
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .sidebar {
+      background-color: #111827;
+      color: #9ca3af;
+    }
+    .sidebar h1 {
+      color: #f59e0b;
+      font-weight: 800;
+    }
+    .markdown-section a {
+      color: #14b8a6; /* Teal */
+    }
+    .markdown-section h1, .markdown-section h2, .markdown-section h3 {
+      color: #f3f4f6;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">Loading CaraBase Docs... 🦞</div>
+  <script>
+    window.$docsify = {
+      name: 'CaraBase',
+      repo: 'https://github.com/', // Replace with actual Github URL later
+      loadSidebar: true,
+      subMaxLevel: 3,
+      auto2top: true,
+      search: 'auto', // default
+      search: {
+        maxAge: 86400000, 
+        paths: 'auto',
+        placeholder: 'Search docs...',
+        noData: 'No Results!',
+        depth: 3
+      }
+    }
+  </script>
+  <!-- Docsify v4 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+  <!-- Search Plugin -->
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <!-- Code Highlighting -->
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-typescript.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+</body>
+</html>
