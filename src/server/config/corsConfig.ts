@@ -36,8 +36,10 @@ export function getCorsConfig(): CorsOptions {
           console.warn(`[CORS] ⚠️ Rejected origin in production: ${origin}`);
           return callback(new Error("CORS: Origin not allowed in production"));
         } else {
-          // In Dev: Allow all origins to prevent friction during LAN testing
-          return callback(null, true);
+          // In Dev: Allow configured origins or reject
+          if (allowedOrigins.includes(origin)) return callback(null, true);
+          console.warn(`[CORS] ⚠️ Rejected origin in development: ${origin}`);
+          return callback(new Error("CORS: Origin not allowed"));
         }
       } catch (err) {
         callback(new Error(`CORS: Invalid origin format: ${origin}`));

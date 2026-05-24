@@ -36,6 +36,7 @@ export function requireRole(minRole: UserRole) {
     }
 
     const userRole = authReq.role || 'viewer';
+    console.log("REQUIRE_ROLE DEBUG:", { minRole, userRole, keyType: authReq.keyType, userUuid: authReq.userUuid });
 
     if (ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[minRole]) {
       next();

@@ -16,7 +16,7 @@
     "scuttle:dev-start": "npm run dev:server & npm run dev",
     "scuttle:prod-start": "npm run build && (NODE_ENV=production PORT=5353 tsx server.ts & vite preview --port 5454 --host)",
     "scuttle:reset": "npm run scuttle:stop && rm -rf dist && rm -rf data && mkdir -p data",
-    "scuttle:reset-db": "rm -f data/carabase.sqlite && echo '✅ Database reset. Restart server to recreate schema.'",
+    "scuttle:reset-db": "rm -f data/carabase.sqlite data/carabase.sqlite-wal data/carabase.sqlite-shm && echo '✅ Database reset. Restart server to recreate schema.'",
     "scuttle:stop": "fuser -k -15 5454/tcp 5353/tcp || true"
   },
   "dependencies": {

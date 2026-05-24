@@ -1,7 +1,7 @@
-import { LayoutDashboard, Database, Code, Key, Shield, HardDrive, Settings, User, Palette, LogOut } from "lucide-react";
+import { LayoutDashboard, Database, Code, Key, Shield, HardDrive, Settings, User, Palette, LogOut, Globe } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
-export type SettingsTab = "profile" | "appearance" | "agents" | "import-export";
+export type SettingsTab = "profile" | "appearance" | "agents" | "import-export" | "storage-shares";
 
 interface SidebarNavProps {
   // Settings mode
@@ -53,6 +53,12 @@ export function SidebarNav({
         id: "import-export" as SettingsTab,
         label: "Database Actions",
         icon: Database,
+        active: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shadow-sm",
+      },
+      {
+        id: "storage-shares" as SettingsTab,
+        label: "Storage Shares",
+        icon: Globe,
         active: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shadow-sm",
       },
     ];

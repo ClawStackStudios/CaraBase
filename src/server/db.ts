@@ -105,7 +105,16 @@ db.exec(`
     size INTEGER NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+  CREATE TABLE IF NOT EXISTS _carabase_storage_shares (
+    id          TEXT PRIMARY KEY,
+    storage_id  TEXT NOT NULL,
+    share_hash  TEXT NOT NULL UNIQUE,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expires_at  DATETIME,
+    FOREIGN KEY(storage_id) REFERENCES _carabase_storage(id) ON DELETE CASCADE
+  );
 
+  CREATE INDEX IF NOT EXISTS idx_storage_shares_hash ON _carabase_storage_shares(share_hash);
   CREATE TABLE IF NOT EXISTS _carabase_custom_endpoints (
     id          TEXT PRIMARY KEY,
     name        TEXT NOT NULL UNIQUE,

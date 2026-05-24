@@ -4,11 +4,15 @@ import { Copy, Trash, UploadCloud, File, FileCode2, ImageIcon } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/config/apiConfig";
 import { useToast } from "@/context/ToastContext";
+import { Globe, X, Loader2 } from "lucide-react";
 
 export default function Storage() {
   const [files, setFiles] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [publicBaseUrl, setPublicBaseUrl] = useState<string>('');
+  const [shareFileId, setShareFileId] = useState<string | null>(null);
+  const [expiresInDays, setExpiresInDays] = useState<string>('');
+  const [isGeneratingShare, setIsGeneratingShare] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -95,6 +99,31 @@ export default function Storage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const handleGenerateShare = async () => {
+    if (!shareFileId) return;
+    setIsGeneratingShare(true);
+    try {
+      const expires_at = expiresInDays ? new Date(Date.now() + parseInt(expiresInDays) * 24 * 60 * 60 * 1000).toISOString() : null;
+      const res = await apiFetch(`/api/system/storage/${shareFileId}/shares`, {
+        method: 'POST',
+        body: JSON.stringify({ expires_at })
+      });
+      if (!res.ok) throw new Error('Failed to generate share link');
+      const data = await res.json();
+      
+      const baseUrl = publicBaseUrl || window.location.origin;
+      const shareUrl = `${baseUrl}/storage/v1/share/${data.share_hash}`;
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Proxy Share URL created and copied to clipboard!");
+      setShareFileId(null);
+      setExpiresInDays('');
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsGeneratingShare(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -153,15 +182,11 @@ export default function Storage() {
                              <td className="px-4 py-3">
                                 <div className="flex items-center gap-2">
                                  <button
-                                     onClick={() => {
-                                         const baseUrl = publicBaseUrl || window.location.origin;
-                                         navigator.clipboard.writeText(`${baseUrl}/storage/v1/file/${file.id}`);
-                                         toast.success("Public URL copied to clipboard!");
-                                     }}
-                                     className="p-1 text-slate-400 hover:text-blue-600 dark:text-slate-500 dark:hover:text-blue-400 transition-colors bg-transparent border-0 cursor-pointer"
-                                     title="Copy public URL"
+                                     onClick={() => setShareFileId(file.id)}
+                                     className="p-1 text-slate-400 hover:text-emerald-500 dark:text-slate-500 dark:hover:text-emerald-400 transition-colors bg-transparent border-0 cursor-pointer"
+                                     title="Create Proxy Share"
                                  >
-                                     <Copy className="h-4 w-4" />
+                                     <Globe className="h-4 w-4" />
                                  </button>
                                  <button
                                      onClick={() => deleteFile(file.id, file.original_name)}
@@ -180,6 +205,48 @@ export default function Storage() {
             )}
         </CardContent>
       </Card>
+
+      {/* Share Modal */}
+      {shareFileId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900">
+              <div className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-emerald-500" />
+                <h3 className="font-semibold text-slate-900 dark:text-slate-50">Create Proxy Share</h3>
+              </div>
+              <button onClick={() => setShareFileId(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Generate a secure, cryptographically random public link for this file.
+              </p>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Expiration (Optional)</label>
+                <select 
+                  value={expiresInDays}
+                  onChange={(e) => setExpiresInDays(e.target.value)}
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">Never expires</option>
+                  <option value="1">1 Day</option>
+                  <option value="7">7 Days</option>
+                  <option value="30">30 Days</option>
+                </select>
+              </div>
+            </div>
+            <div className="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShareFileId(null)} disabled={isGeneratingShare}>Cancel</Button>
+              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2" onClick={handleGenerateShare} disabled={isGeneratingShare}>
+                {isGeneratingShare ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe className="h-4 w-4" />}
+                Generate Link
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

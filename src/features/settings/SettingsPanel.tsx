@@ -3,6 +3,7 @@ import { ProfileSettings } from "./components/ProfileSettings";
 import { AppearanceSettings } from "./components/AppearanceSettings";
 import { LobsterKeySettings } from "./components/LobsterKeySettings";
 import { DatabaseSettings } from "./components/DatabaseSettings";
+import { StorageSharesSettings } from "./components/StorageSharesSettings";
 import { Sidebar } from "../dashboard/components/layout/Sidebar";
 import { Header } from "../dashboard/components/layout/Header";
 import type { SettingsTab } from "../dashboard/components/layout/SidebarNav";
@@ -92,6 +93,7 @@ export function SettingsPanel() {
           {activeTab === "appearance" && <AppearanceSettings />}
           {activeTab === "agents" && <LobsterKeySettings />}
           {activeTab === "import-export" && <DatabaseSettings />}
+          {activeTab === "storage-shares" && <StorageSharesSettings />}
         </div>
       </main>
     </div>

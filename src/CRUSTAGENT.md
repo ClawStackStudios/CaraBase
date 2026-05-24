@@ -30,10 +30,12 @@ Row-Level Security (RLS) is achieved via `applyRls` in `server.ts` combined with
 - **Private Keys** (`ls-...`): Bypass all RLS constraints.
 - **Public Keys** (`pk_...`): Gated strictly by SQLite policies and UDF context.
 
-## Public Storage & Uploads
+## Public Storage, Uploads & Shares (ShellProxy Membrane)
 
 - **Anonymous Downloads**: Public files are shared securely via `/storage/v1/file/:id` which bypasses API auth middleware for easy browser embedding.
 - **System Upload Endpoint**: Secured dashboard uploads are routed to `/api/system/storage/upload` via `FormData` and are guarded by human/agent session tokens.
+- **ShellProxy Membrane**: File sharing is managed via cryptographic `share_hash` generation. The ShellProxy membrane strictly enforces access boundaries. It rejects bypass attempts using the raw `storage_id` and securely enforces `share_expires_at` expirations (silently returning 404 for expired links). 
+- **Dual-Serve Capabilities**: Shared links adapt based on the client's `Accept` header. Browser requests (`text/html`) render a styled Tailwind preview interface, while automated systems receive raw binary streams with strict `X-Content-Type-Options: nosniff` security headers.
 
 ## Custom Dynamic REST API Engine
 

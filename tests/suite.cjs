@@ -205,7 +205,10 @@ async function runTests() {
      }
      const responses = await Promise.all(reqs);
      for (let r of responses) {
-         if (!r.ok) racePass = false;
+         if (!r.ok) {
+            racePass = false;
+            console.error("Phase 3 Failed Response:", r.status, await r.text());
+         }
      }
      assert(racePass, "Successfully inserted 50 API keys concurrently (verified DB thread safety)");
   } catch(e) { assert(false, "Concurrent DB insertion failed: " + e.message); }
@@ -696,7 +699,7 @@ async function runTests() {
 
      const customEp = await createEpRes.json();
      customEndpointId = customEp.id;
-     assert(customEp.id !== undefined, "Custom dynamic API endpoint registered successfully");
+     assert(customEndpointId !== undefined, "Custom dynamic API endpoint registered successfully");
      assert(customEp.path === 'test-users', "Custom endpoint configuration matches input schema path");
 
      // 2. Fetch custom endpoints list
@@ -736,7 +739,7 @@ async function runTests() {
      const testDeletedRes = await fetch(`${BASE_URL}/rest/v1/custom/test-users`, {
        headers: { 'apikey': externalPublicKey }
      });
-     assert(testDeletedRes.status === 404, "Deleted dynamic route correctly returns 404 Not Found");
+     assert(testDeletedRes.status === 404, "Deleted dynamic route correctly returns 404 Not Found. Got: " + testDeletedRes.status + " " + await testDeletedRes.text());
 
   } catch(e) { assert(false, "Custom API Generator validation crashed: " + e.message); }
 
@@ -1116,6 +1119,145 @@ async function runTests() {
       body: JSON.stringify({ query: `DROP TABLE IF EXISTS ${testEditorTable}`, method: 'run' })
     });
   } catch(e) { assert(false, "Failed to read schema or cleanup table: " + e.message); }
+
+  // =========================================================================
+  // Phase 11: Access Control, Operations & Share Boundaries
+  // =========================================================================
+  console.log("\n--- Phase 11: Access Control, Operations & Share Boundaries ---");
+
+  let viewerToken = null;
+  let adminToken = null;
+
+  // 1. Setup RBAC Identites
+  try {
+    let viewerUuid = crypto.randomUUID();
+    let viewerSecret = crypto.randomBytes(32).toString('hex');
+    let viewerHash = crypto.createHash('sha256').update("hu-" + viewerSecret).digest('hex');
+    const vr = await fetch(`${BASE_URL}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ uuid: viewerUuid, username: "viewer_" + Date.now(), keyHash: viewerHash }) });
+    if (!vr.ok) throw new Error("Viewer register failed: " + await vr.text());
+    let vRes = await fetch(`${BASE_URL}/api/auth/token`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: 'human', uuid: viewerUuid, keyHash: viewerHash }) });
+    viewerToken = (await vRes.json()).token;
+
+    let adminUuid = crypto.randomUUID();
+    let adminSecret = crypto.randomBytes(32).toString('hex');
+    let adminHash = crypto.createHash('sha256').update("hu-" + adminSecret).digest('hex');
+    const ar = await fetch(`${BASE_URL}/api/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ uuid: adminUuid, username: "admin_" + Date.now(), keyHash: adminHash }) });
+    if (!ar.ok) throw new Error("Admin register failed: " + await ar.text());
+    let aRes = await fetch(`${BASE_URL}/api/auth/token`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: 'human', uuid: adminUuid, keyHash: adminHash }) });
+    adminToken = (await aRes.json()).token;
+
+    // Elevate admin
+    await fetch(`${BASE_URL}/api/system/query`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `UPDATE users SET role = 'admin' WHERE uuid = '${adminUuid}'`, method: 'run' })
+    });
+    // Elevate user1 to superadmin (which token1 uses)
+    await fetch(`${BASE_URL}/api/system/query`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `UPDATE users SET role = 'superadmin' WHERE uuid = '${user1Uuid}'`, method: 'run' })
+    });
+
+  } catch(e) { assert(false, "Failed to setup RBAC identities: " + e.message); }
+
+  // 2. Viewer Role Boundary
+  try {
+    const vRes = await fetch(`${BASE_URL}/api/system/tables`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${viewerToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tableName: 'should_fail', columns: [{ name: 'id', type: 'INTEGER' }] })
+    });
+    assert(vRes.status === 403, "Viewer token strictly rejected from write system endpoint (403 Forbidden). Got: " + vRes.status + " " + await vRes.text());
+  } catch(e) { assert(false, "Viewer RBAC check crashed: " + e.message); }
+
+  // 3. Admin vs Superadmin Role Boundary
+  try {
+    const aRes = await fetch(`${BASE_URL}/api/system/audit-logs`, {
+      headers: { 'Authorization': `Bearer ${adminToken}` }
+    });
+    assert(aRes.status === 403, "Admin token correctly rejected from superadmin-only audit logs (403). Got: " + aRes.status + " " + (await aRes.text()).substring(0, 50));
+    
+    const saRes = await fetch(`${BASE_URL}/api/system/audit-logs`, {
+      headers: { 'Authorization': `Bearer ${token1}` }
+    });
+    assert(saRes.status === 200, "Superadmin token successfully accessed audit logs. Got: " + saRes.status + " " + (await saRes.text()).substring(0, 50));
+  } catch(e) { assert(false, "Admin/Superadmin RBAC check crashed: " + e.message); }
+
+  // 4. Backups Operations
+  let backupFile = null;
+  try {
+    // Viewer/Admin blocked
+    const aBackupRes = await fetch(`${BASE_URL}/api/system/backups/trigger`, { method: 'POST', headers: { 'Authorization': `Bearer ${adminToken}` } });
+    assert(aBackupRes.status === 403, "Admin token blocked from triggering backup. Got: " + aBackupRes.status + " " + await aBackupRes.text());
+
+    // Superadmin success
+    const backupRes = await fetch(`${BASE_URL}/api/system/backups/trigger`, { method: 'POST', headers: { 'Authorization': `Bearer ${token1}` } });
+    assert(backupRes.status === 200, "Superadmin successfully triggered backup creation. Got: " + backupRes.status + " " + await backupRes.text());
+    
+    const listRes = await fetch(`${BASE_URL}/api/system/backups`, { headers: { 'Authorization': `Bearer ${token1}` } });
+    const listData = await listRes.json();
+    assert(listData.success && Array.isArray(listData.data) && listData.data.length > 0, "Superadmin successfully listed backups. Data: " + JSON.stringify(listData));
+    backupFile = listData.data ? listData.data[0]?.filename : null;
+
+    const blockRes = await fetch(`${BASE_URL}/api/system/backups/download/${backupFile}`, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+    assert(blockRes.status === 403, "Admin strictly blocked from downloading physical database backup. Got: " + blockRes.status + " " + await blockRes.text());
+  } catch(e) { assert(false, "Backup operations check crashed: " + e.message); }
+
+  // 5. Storage ShellProxy Membrane Boundaries
+  try {
+    // 5.1 Upload a test file as admin
+    const formData = new FormData();
+    formData.append('file', new Blob(['Secret Payload Data'], { type: 'text/plain' }), 'secret.txt');
+    const uploadRes = await fetch(`${BASE_URL}/storage/v1/upload?apikey=${externalPrivateKey}`, { method: 'POST', body: formData });
+    const fileData = await uploadRes.json();
+    const storageId = fileData.id;
+
+    // 5.2 Create Share
+    const shareRes = await fetch(`${BASE_URL}/api/system/storage/${storageId}/shares`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expires_in_days: null })
+    });
+    const shareData = await shareRes.json();
+    const hash = shareData.share_hash;
+    assert(shareRes.status === 200 && hash && hash.length === 64, "Share hash correctly generated with 64-char cryptography");
+
+    // 5.3 Attempt to bypass with raw storageId
+    const bypassRes = await fetch(`${BASE_URL}/storage/v1/share/${storageId}`);
+    assert(bypassRes.status === 404, "Membrane strictly drops bypass attempts using non-hash storage_id (404)");
+
+    // 5.4 Dual-Serve Logic
+    const htmlRes = await fetch(`${BASE_URL}/storage/v1/share/${hash}`, { headers: { 'Accept': 'text/html' } });
+    const htmlText = await htmlRes.text();
+    assert(htmlRes.status === 200 && htmlRes.headers.get('content-type').includes('text/html') && htmlText.includes('<html'), "Dual-serve: Accurately renders Tailwind HTML preview when requested via browser (Accept: text/html)");
+
+    const rawRes = await fetch(`${BASE_URL}/storage/v1/share/${hash}`, { headers: { 'Accept': 'application/json' } });
+    const rawText = await rawRes.text();
+    assert(rawRes.status === 200 && rawRes.headers.get('content-type').includes('text/plain') && rawRes.headers.get('x-content-type-options') === 'nosniff' && rawText === 'Secret Payload Data', "Dual-serve: Streams raw binary with strict nosniff security headers when no HTML accept header is present");
+
+    // 5.5 Expiration Edge Case
+    const expiredHash = crypto.createHash('sha256').update(Date.now().toString()).digest('hex');
+    await fetch(`${BASE_URL}/api/system/query`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${token1}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `INSERT INTO _carabase_storage_shares (id, storage_id, share_hash, expires_at) VALUES ('exp-1', '${storageId}', '${expiredHash}', datetime('now', '-1 day'))`, method: 'run' })
+    });
+    const expRes = await fetch(`${BASE_URL}/storage/v1/share/${expiredHash}`);
+    assert(expRes.status === 404, "Membrane successfully enforces expiration and 404s expired shares silently");
+
+    // 5.6 Revocation
+    const revRes = await fetch(`${BASE_URL}/api/system/storage/shares/${hash}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token1}` } });
+    assert(revRes.status === 200, "Share hash instantly revoked via system API");
+    const checkRevRes = await fetch(`${BASE_URL}/storage/v1/share/${hash}`);
+    assert(checkRevRes.status === 404, "Revoked share hash results in immediate public 404 proxy rejection");
+
+  } catch(e) { assert(false, "Storage ShellProxy check crashed: " + e.message); }
+
+  // 6. CORS Validation
+  try {
+    const corsRes = await fetch(`${BASE_URL}/api/health`, {
+      method: 'GET',
+      headers: { 'Origin': 'https://evil.com' }
+    });
+    const allowOrigin = corsRes.headers.get('access-control-allow-origin');
+    assert(!allowOrigin || allowOrigin !== 'https://evil.com', "CORS strictly enforces origin whitelist and prevents wildcard or arbitrary origin reflections");
+  } catch(e) { assert(false, "CORS check crashed: " + e.message); }
 
 
   // =========================================================================

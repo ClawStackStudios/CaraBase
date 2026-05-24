@@ -23,7 +23,7 @@ Output to this file is automatic, not something I choose, But happens when the s
 # The tasks final state is determined by:
 - Is it coherent? 
 - Is it operational? Does it build? Does it pass tests?
-- Is is secure? Does data that is sensitive leak? Con someone Querey something they shoul not be able to?
+- Is is secure? Does data that is sensitive leak? Con someone Querey something they should not be able to?
 - Does the data flow, or does it choke?
 - would I be comfortable showing a senior engineer of 30 years experience my work?
 
