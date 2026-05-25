@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Menu, Sun, Moon, ChevronRight } from "lucide-react";
 import { useTheme } from "../../../../context/ThemeContext";
 import { useLocation } from "react-router-dom";
+import { ConnectModal } from "../../../../components/modals/ConnectModal";
 
 interface HeaderProps {
   user: { username: string } | null;
@@ -15,6 +16,7 @@ export function Header({
 }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
 
   const getBreadcrumbs = () => {
     const path = location.pathname;
@@ -60,6 +62,15 @@ export function Header({
                 )}
               </React.Fragment>
             ))}
+            
+            <div className="ml-2 pl-2 border-l border-slate-200 dark:border-slate-800 flex items-center">
+              <button
+                onClick={() => setIsConnectModalOpen(true)}
+                className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] md:text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md transition-colors shadow-sm"
+              >
+                Connect
+              </button>
+            </div>
           </div>
         </div>
 
@@ -85,6 +96,11 @@ export function Header({
           </button>
         </div>
       </div>
+      
+      <ConnectModal 
+        isOpen={isConnectModalOpen} 
+        onClose={() => setIsConnectModalOpen(false)} 
+      />
     </header>
   );
 }
