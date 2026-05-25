@@ -21,6 +21,7 @@ import { AdminDashboard } from './features/admin/AdminDashboard';
 import { AdminUserList } from './features/admin/AdminUserList';
 import { AdminAuditLog } from './features/admin/AdminAuditLog';
 import { Loader2 } from 'lucide-react';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 
 function PublicLanding() {
   const { isAuthenticated } = useAuth();
@@ -31,15 +32,17 @@ function PublicLanding() {
 export default function App() {
   return (
     <ThemeProvider>
-      <ToastProvider>
-        <AuthProvider>
-          <AdminProvider>
-            <BrowserRouter>
-              <AppRoutes />
-            </BrowserRouter>
-          </AdminProvider>
-        </AuthProvider>
-      </ToastProvider>
+      <ErrorBoundary>
+        <ToastProvider>
+          <AuthProvider>
+            <AdminProvider>
+              <BrowserRouter>
+                <AppRoutes />
+              </BrowserRouter>
+            </AdminProvider>
+          </AuthProvider>
+        </ToastProvider>
+      </ErrorBoundary>
     </ThemeProvider>
   );
 }

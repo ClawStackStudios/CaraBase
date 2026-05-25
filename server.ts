@@ -18,6 +18,7 @@ import adminRouter from './src/server/routes/admin.js';
 import { createAuditLogger } from './src/server/utils/auditLogger.js';
 import { requireAuth } from './src/server/middleware/auth.js';
 import { requireRole } from './src/server/middleware/requireRole.js';
+import { globalLimiter } from './src/server/middleware/globalLimiter.js';
 import { triggerBackup, getBackupsList, startBackupSchedule } from './src/server/utils/backup.js';
 import { getCorsConfig } from './src/server/config/corsConfig.js';
 
@@ -33,7 +34,13 @@ async function startServer() {
 
   // --- Security Middleware ---
   app.use(helmet({
-    strictTransportSecurity: process.env.ENFORCE_HTTPS === 'true' ? undefined : false,
+    strictTransportSecurity: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true
+    },
+    xssFilter: true,
+    noSniff: true,
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
@@ -50,8 +57,10 @@ async function startServer() {
     crossOriginResourcePolicy: false,
     crossOriginOpenerPolicy: false,
     originAgentCluster: false,
-    frameguard: isProduction ? { action: 'sameorigin' } : false,
+    frameguard: { action: 'sameorigin' },
   }));
+
+  app.use(globalLimiter);
 
   app.use(cors(getCorsConfig()));
   app.use(express.json());
@@ -80,6 +89,15 @@ async function startServer() {
   }));
   app.get('/api/info', (req, res) => res.json({ name: 'CaraBase', version: '2.0.0' }));
 
+  // Sandboxing middleware to protect internal routes from agent keys
+  const sandboxAgentKeys = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    // If the request has an agent keytype, forbid access to these internal routes
+    if ((req as any).keyType === 'agent') {
+       return res.status(403).json({ error: 'Forbidden: LobsterKeys are strictly sandboxed from system and admin routes.' });
+    }
+    next();
+  };
+
   // --- Mount Auth & Agent Key Routers ---
   app.use('/api/auth', authRouter);
   app.use('/api/agent-keys', agentKeysRouter);
@@ -87,7 +105,7 @@ async function startServer() {
 
   // --- System API: Internal dashboard management ---
   const systemApi = express.Router();
-  systemApi.use(requireAuth);
+  systemApi.use(requireAuth, sandboxAgentKeys);
 
   systemApi.get('/backups', requireRole('superadmin'), (req, res) => {
     try {
@@ -722,6 +740,11 @@ async function startServer() {
 
           const schema = JSON.parse(endpoint.schema);
           const table = endpoint.table_name;
+
+          // Strict Regex Validation for Dynamic SQL injection prevention
+          if (!/^[a-zA-Z0-9_]+$/.test(table)) {
+              return res.status(400).json({ error: 'Invalid table name pattern in endpoint configuration.' });
+          }
 
           // 1. Validate request body against builder parameters (POST / PATCH / PUT)
           if (['POST', 'PATCH', 'PUT'].includes(method)) {
@@ -1505,6 +1528,30 @@ async function startServer() {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
+
+  // --- Global Error Handler (Harden the Shell) ---
+  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error('[Global Error Boundary]', err);
+    
+    // Log fatal errors to audit_logs if db is available
+    try {
+       const auditLogger = createAuditLogger(db);
+       auditLogger.log('SYSTEM_FATAL_ERROR', {
+         actor: 'system',
+         actor_type: 'system',
+         resource: 'backend',
+         action: 'crash',
+         outcome: 'failure',
+         ip_address: req.ip || req.socket.remoteAddress || 'unknown',
+         user_agent: req.headers['user-agent'] || '',
+         details: { message: err.message, path: req.path }
+       });
+    } catch (auditErr) {
+       console.error('[Audit Logger Failed in Error Boundary]', auditErr);
+    }
+
+    res.status(500).json({ error: 'Internal Server Error' });
+  });
 
   // Generate a session ID for uptime tracking
   const sessionId = uuidv4();
