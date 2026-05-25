@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Database, Key, Shield, Table2, Search, Terminal, ChevronDown, ChevronUp, Activity, CheckCircle2, XCircle } from "lucide-react";
+import { Database, Key, Shield, Table2, Search, Terminal, ChevronDown, ChevronUp, Activity, CheckCircle2, XCircle, ChevronLeft, ChevronRight, ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "@/config/apiConfig";
 
@@ -13,6 +13,10 @@ export default function Dashboard() {
   const [logs, setLogs] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [expandedLog, setExpandedLog] = useState<number | null>(null);
+  
+  // Pagination for logs
+  const [logPage, setLogPage] = useState(1);
+  const logsPerPage = 5;
 
   useEffect(() => {
     async function loadData() {
@@ -36,10 +40,15 @@ export default function Dashboard() {
     loadData();
   }, []);
 
+  // Reset page when search changes
+  useEffect(() => {
+    setLogPage(1);
+  }, [search]);
+
   const features = [
-    { name: "Database Tables", stat: stats.tables, href: "/dashboard/editor", icon: Table2, desc: "Custom tables created" },
-    { name: "API Keys", stat: stats.keys, href: "/dashboard/keys", icon: Key, desc: "Active API tokens" },
-    { name: "RLS Policies", stat: stats.policies, href: "/dashboard/policies", icon: Shield, desc: "Security rules" },
+    { name: "Database Tables", stat: stats.tables, href: "/dashboard/editor", icon: Table2, desc: "Your custom SQL tables. The foundation of your data." },
+    { name: "API Keys", stat: stats.keys, href: "/dashboard/keys", icon: Key, desc: "Active Lobster Keys granting secure access to your REST API." },
+    { name: "RLS Policies", stat: stats.policies, href: "/dashboard/policies", icon: Shield, desc: "Security rules acting as bouncers to protect your rows." },
   ];
 
   const filteredLogs = logs.filter(log => {
@@ -53,6 +62,9 @@ export default function Dashboard() {
     );
   });
 
+  const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
+  const paginatedLogs = filteredLogs.slice((logPage - 1) * logsPerPage, logPage * logsPerPage);
+
   const getEventBadgeClass = (eventType: string) => {
     if (eventType.startsWith('AUTH_')) return 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20';
     if (eventType.startsWith('AGENT_')) return 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20';
@@ -65,9 +77,54 @@ export default function Dashboard() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Project Overview</h1>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Welcome to CaraBase. Manage your database, authentication, and rules.
+          Welcome to CaraBase. Your self-hosted SQLite backend is running perfectly.
         </p>
       </div>
+
+      {/* Guided Wizard for Non-Technical Users */}
+      <Card className="border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm overflow-hidden">
+        <div className="px-6 py-5 border-b border-blue-100 dark:border-blue-900/50">
+          <h2 className="text-lg font-bold text-blue-900 dark:text-blue-400 flex items-center gap-2">
+            <Sparkles className="h-5 w-5" />
+            Getting Started Guide
+          </h2>
+          <p className="text-sm text-blue-700 dark:text-blue-300/70 mt-1">
+            Follow these three simple steps to build and secure your first application backend.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-blue-100 dark:divide-blue-900/50">
+          <div className="p-6 flex flex-col h-full">
+            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-bold flex items-center justify-center mb-4 text-sm">1</div>
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Build the Foundation</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 flex-1">
+              Create your first database table. Tables are where your actual data lives (like a spreadsheet).
+            </p>
+            <Link to="/dashboard/editor" className="text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:gap-2 transition-all w-fit">
+              Create a Table <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="p-6 flex flex-col h-full">
+            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-bold flex items-center justify-center mb-4 text-sm">2</div>
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Lock it Down</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 flex-1">
+              Set up Row Level Security (RLS). This acts as a bouncer, ensuring users can only see the data they are allowed to see.
+            </p>
+            <Link to="/dashboard/policies" className="text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:gap-2 transition-all w-fit">
+              Secure your Data <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="p-6 flex flex-col h-full">
+            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-bold flex items-center justify-center mb-4 text-sm">3</div>
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-2">Connect your App</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 flex-1">
+              Generate a Lobster Key (API Key). You will use this key in your frontend app to talk to CaraBase securely.
+            </p>
+            <Link to="/dashboard/keys" className="text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:gap-2 transition-all w-fit">
+              Generate API Key <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </div>
+      </Card>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((item) => (
@@ -131,7 +188,7 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-                  {filteredLogs.map((log) => {
+                  {paginatedLogs.map((log) => {
                     const isExpanded = expandedLog === log.id;
                     return (
                       <React.Fragment key={log.id}>
@@ -208,21 +265,34 @@ export default function Dashboard() {
               </table>
             )}
           </div>
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="px-4 py-3 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30 flex items-center justify-between text-xs text-slate-500">
+              <div>
+                Showing <span className="font-medium text-slate-900 dark:text-white">{(logPage - 1) * logsPerPage + 1}</span> to <span className="font-medium text-slate-900 dark:text-white">{Math.min(logPage * logsPerPage, filteredLogs.length)}</span> of <span className="font-medium text-slate-900 dark:text-white">{filteredLogs.length}</span> results
+              </div>
+              <div className="flex gap-1">
+                <button 
+                  onClick={() => setLogPage(p => Math.max(1, p - 1))}
+                  disabled={logPage === 1}
+                  className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => setLogPage(p => Math.min(totalPages, p + 1))}
+                  disabled={logPage === totalPages}
+                  className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      <Card className="border-slate-200/60 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="px-6 py-8 md:px-8 md:py-10 bg-slate-900 dark:bg-slate-950 text-white rounded-t-xl">
-          <div className="flex items-center gap-3">
-              <Database className="h-6 w-6 text-blue-400" />
-              <h2 className="text-2xl font-semibold">Ready to build</h2>
-          </div>
-          <p className="my-4 text-slate-300 max-w-2xl leading-relaxed">
-            Your self-hosted SQLite instance is running perfectly. Create a table, generate an API key,
-            and start interacting with your REST API over <code className="text-blue-300 bg-blue-900/30 px-1.5 py-0.5 rounded font-mono text-sm">/rest/v1/...</code> instantly.
-          </p>
-        </div>
-      </Card>
     </div>
   );
 }

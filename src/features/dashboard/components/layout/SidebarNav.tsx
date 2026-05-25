@@ -30,7 +30,10 @@ export function SidebarNav({
 }: SidebarNavProps) {
   const location = useLocation();
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    'database-objects': true
+    'database': true,
+    'auth': true,
+    'storage': true,
+    'api': true
   });
 
   const toggleSection = (id: string) => {
@@ -107,34 +110,22 @@ export function SidebarNav({
       badge: null,
     },
     {
-      id: "editor",
-      href: "/dashboard/editor",
-      label: "Table Editor",
-      icon: Database,
-      active: "bg-teal-100 text-teal-900 dark:bg-teal-900/30 dark:text-teal-300 shadow-sm",
-      inactive: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
-      activeBadge: `${badgeBase} bg-teal-200 text-teal-900 dark:bg-teal-800 dark:text-teal-100`,
-      badge: 5, // Mock data for now
-    },
-    {
-      id: "api-builder",
-      href: "/dashboard/api-builder",
-      label: "API Builder",
-      icon: Code,
-      active: "bg-cyan-100 text-cyan-900 dark:bg-cyan-900/30 dark:text-cyan-300 shadow-sm",
-      inactive: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
-      activeBadge: `${badgeBase} bg-cyan-200 text-cyan-900 dark:bg-cyan-800 dark:text-cyan-100`,
-      badge: null,
-    },
-    {
-      id: "database-objects",
+      id: "database",
       href: "#",
-      label: "Database Objects",
+      label: "Database",
       icon: Database,
       active: "",
       inactive: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
       badge: null,
       children: [
+        {
+          id: "editor",
+          href: "/dashboard/editor",
+          label: "Table Editor",
+          icon: Table2,
+          active: "bg-teal-100 text-teal-900 dark:bg-teal-900/30 dark:text-teal-300 shadow-sm",
+          inactive: "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
+        },
         {
           id: "sql",
           href: "/dashboard/sql",
@@ -162,29 +153,36 @@ export function SidebarNav({
       ]
     },
     {
-      id: "keys",
-      href: "/dashboard/keys",
-      label: "API Keys",
-      icon: Key,
-      active: "bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-300 shadow-sm",
-      inactive: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
-      activeBadge: `${badgeBase} bg-amber-200 text-amber-900 dark:bg-amber-800 dark:text-amber-100`,
-      badge: 3,
-    },
-    {
-      id: "policies",
-      href: "/dashboard/policies",
-      label: "Policies (RLS)",
+      id: "auth",
+      href: "#",
+      label: "Auth & Security",
       icon: Shield,
-      active: "bg-red-100 text-red-900 dark:bg-red-900/30 dark:text-red-300 shadow-sm",
+      active: "",
       inactive: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
-      activeBadge: `${badgeBase} bg-red-200 text-red-900 dark:bg-red-800 dark:text-red-100`,
-      badge: 12,
+      badge: null,
+      children: [
+        {
+          id: "keys",
+          href: "/dashboard/keys",
+          label: "API Keys",
+          icon: Key,
+          active: "bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-300 shadow-sm",
+          inactive: "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
+        },
+        {
+          id: "policies",
+          href: "/dashboard/policies",
+          label: "Policies (RLS)",
+          icon: Shield,
+          active: "bg-red-100 text-red-900 dark:bg-red-900/30 dark:text-red-300 shadow-sm",
+          inactive: "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
+        }
+      ]
     },
     {
       id: "storage",
       href: "/dashboard/storage",
-      label: "Storage",
+      label: "Storage Ecosystem",
       icon: HardDrive,
       active: "bg-sky-100 text-sky-900 dark:bg-sky-900/30 dark:text-sky-300 shadow-sm",
       inactive: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
@@ -192,15 +190,33 @@ export function SidebarNav({
       badge: null,
     },
     {
-      id: "sdk",
-      href: "/dashboard/sdk",
-      label: "SDK & Network",
+      id: "api",
+      href: "#",
+      label: "API & Integrations",
       icon: Network,
-      active: "bg-indigo-100 text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-300 shadow-sm",
+      active: "",
       inactive: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
-      activeBadge: `${badgeBase} bg-indigo-200 text-indigo-900 dark:bg-indigo-800 dark:text-indigo-100`,
       badge: null,
+      children: [
+        {
+          id: "api-builder",
+          href: "/dashboard/api-builder",
+          label: "API Builder",
+          icon: Code,
+          active: "bg-cyan-100 text-cyan-900 dark:bg-cyan-900/30 dark:text-cyan-300 shadow-sm",
+          inactive: "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
+        },
+        {
+          id: "sdk",
+          href: "/dashboard/sdk",
+          label: "SDK & Network",
+          icon: Network,
+          active: "bg-indigo-100 text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-300 shadow-sm",
+          inactive: "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
+        }
+      ]
     },
+    }
   ];
 
   return (
