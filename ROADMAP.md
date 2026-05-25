@@ -221,4 +221,13 @@ Phase 2 → Access Control, Operations & Public Access
 
   > **Success Criteria:** Breadcrumbs correctly reflect the current navigation context. `⌘K` / `Ctrl+K` opens the command palette. The SQL Editor executes a query and renders results in a grid. Invalid SQL displays a formatted error. The sidebar collapse state is persisted across page reloads. No visual regressions on existing pages.
 
+- [ ] **Task 20: Guided Wizard & Visual Abstraction Layer (The Lobster Guides)**
+
+  **Description:** Abstract complex database operations (RLS, Schema creation, API generation) into guided, multi-step visual wizards to bridge the gap for beginner users. Instead of raw SQL inputs, the dashboard will offer "Lobster Guides". 
+  1. **Table Wizard:** "What kind of data are you storing?" (e.g., Posts, Profiles) -> Auto-generates standard schemas with UUIDs and timestamps.
+  2. **RLS Wizard:** "Who should see this data?" Visual toggles for (a) Public, (b) Authenticated Users Only, (c) Only the Creator. The wizard generates the underlying SQLite invisible-ink policies (`author_id = @user_id`) without the user writing a single line of SQL.
+  3. **Integration Wizard:** After table and RLS creation, the wizard outputs the exact `carabaseFetch()` or SDK React code required for the frontend, complete with the user's specific `ls-` Public Key already injected.
+
+  > **Success Criteria:** A beginner can create a secured table, apply an RLS policy, and copy a working React frontend code snippet entirely through visual wizard buttons without ever viewing or typing raw SQL or API headers.
+
 ---

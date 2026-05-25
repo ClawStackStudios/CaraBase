@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Copy, Plus, Trash2, KeyRound, ShieldAlert, Loader2, Key } from "lucide-react";
+import { Copy, Plus, Trash2, KeyRound, ShieldAlert, Loader2, Key, CheckCircle2 } from "lucide-react";
 import { apiFetch } from "@/config/apiConfig";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/context/ToastContext";
@@ -17,6 +17,7 @@ export default function ApiKeys() {
   const [newlyGenerated, setNewlyGenerated] = useState<{name:string, key:string, type:string} | null>(null);
   const [keyToRevoke, setKeyToRevoke] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -76,7 +77,9 @@ export default function ApiKeys() {
 
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text);
+    setIsCopied(true);
     toast.success("API key copied to clipboard!");
+    setTimeout(() => setIsCopied(false), 2000);
   }
 
   return (
@@ -126,8 +129,9 @@ export default function ApiKeys() {
               <CardContent>
                 <div className="flex items-center gap-2 bg-white dark:bg-slate-900 rounded-md border border-emerald-200 dark:border-emerald-900 p-2 overflow-hidden shadow-sm">
                    <code className="text-sm font-mono flex-1 px-2 text-slate-800 dark:text-slate-200 truncate">{newlyGenerated.key}</code>
-                   <Button onClick={() => copyToClipboard(newlyGenerated.key)} variant="outline" size="sm" className="shrink-0 bg-emerald-50 dark:bg-emerald-900 hover:bg-emerald-100 dark:hover:bg-emerald-800 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300">
-                     <Copy className="h-4 w-4 mr-2" /> Copy
+                   <Button onClick={() => copyToClipboard(newlyGenerated.key)} variant="outline" size="sm" className={`shrink-0 border transition-colors ${isCopied ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-emerald-50 dark:bg-emerald-900 hover:bg-emerald-100 dark:hover:bg-emerald-800 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'}`}>
+                     {isCopied ? <CheckCircle2 className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />} 
+                     {isCopied ? "Copied!" : "Copy"}
                    </Button>
                 </div>
                 <div className="mt-4 flex justify-end">

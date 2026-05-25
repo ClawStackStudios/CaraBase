@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Copy, Trash, UploadCloud, File, FileCode2, ImageIcon } from "lucide-react";
+import { Copy, Trash, UploadCloud, File, FileCode2, ImageIcon, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/config/apiConfig";
 import { useToast } from "@/context/ToastContext";
@@ -15,6 +15,7 @@ export default function Storage() {
   const [expiresInDays, setExpiresInDays] = useState<string>('');
   const [isGeneratingShare, setIsGeneratingShare] = useState(false);
   const [shares, setShares] = useState<any[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [confirmDeleteData, setConfirmDeleteData] = useState<{id: string, filename: string} | null>(null);
   const [confirmRevokeData, setConfirmRevokeData] = useState<{hash: string, original_name: string} | null>(null);
   const toast = useToast();
@@ -286,12 +287,14 @@ export default function Storage() {
                                      onClick={async () => {
                                         const baseUrl = publicBaseUrl || window.location.origin;
                                         await navigator.clipboard.writeText(`${baseUrl}/storage/v1/share/${share.share_hash}`);
+                                        setCopiedId(share.share_hash);
                                         toast.success("Copied to clipboard!");
+                                        setTimeout(() => setCopiedId(null), 2000);
                                      }}
-                                     className="p-1 text-slate-400 hover:text-emerald-500 dark:text-slate-500 dark:hover:text-emerald-400 transition-colors bg-transparent border-0 cursor-pointer"
-                                     title="Copy Link"
+                                     className={`p-1 transition-colors bg-transparent border-0 cursor-pointer ${copiedId === share.share_hash ? 'text-emerald-500' : 'text-slate-400 hover:text-emerald-500 dark:text-slate-500 dark:hover:text-emerald-400'}`}
+                                     title={copiedId === share.share_hash ? "Copied!" : "Copy Link"}
                                  >
-                                     <Copy className="h-4 w-4" />
+                                     {copiedId === share.share_hash ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                                  </button>
                                  <button
                                     onClick={() => setConfirmRevokeData({ hash: share.share_hash, original_name: share.original_name })}

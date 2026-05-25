@@ -15,6 +15,7 @@ import Triggers from "../pages/Triggers";
 import SqlEditor from "../pages/SqlEditor";
 import Indexes from "../pages/Indexes";
 import Backups from "../pages/Backups";
+import SetupWizard from "../pages/SetupWizard";
 import { CommandPalette } from "./ui/CommandPalette";
 
 export function AppLayout() {
@@ -22,6 +23,7 @@ export function AppLayout() {
     <DashboardShell>
       <Routes>
         <Route index element={<AppDashboard />} />
+        <Route path="wizard" element={<SetupWizard />} />
         <Route path="editor" element={<TableEditor />} />
         <Route path="api-builder" element={<ApiBuilder />} />
         <Route path="keys" element={<ApiKeys />} />

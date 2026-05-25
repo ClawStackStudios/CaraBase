@@ -1,33 +1,33 @@
 <?xml version="1.0"?>
 <Container version="2">
-  <Name>ClawChives</Name>
-  <Repository>ghcr.io/clawstackstudios/clawchives:main</Repository>
-  <Registry>https://github.com/ClawStackStudios/ClawChives/pkgs/container/clawchives</Registry>
+  <Name>CaraBase</Name>
+  <Repository>ghcr.io/clawstackstudios/carabase:main</Repository>
+  <Registry>https://github.com/ClawStackStudios/CaraBase/pkgs/container/carabase</Registry>
   <Network>bridge</Network>
   <MyIP/>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
-  <Support>https://github.com/ClawStackStudios/ClawChives/issues</Support>
-  <Project>https://github.com/ClawStackStudios/ClawChives</Project>
-  <Overview>&#x1F99E; ClawChives is a privacy-first, self-hostable pinchmark (bookmark) manager designed for the Human-Agent ecosystem. Reclaim your links from the cloud, secure them with ShellCryption©™, and collaborate with sovereign AI Lobsters to scuttle the web. Features include agent-specific LobsterKeys©™, reading mode via r.jina.ai, and high-fidelity branded exports.</Overview>
+  <Support>https://github.com/ClawStackStudios/CaraBase/issues</Support>
+  <Project>https://github.com/ClawStackStudios/CaraBase</Project>
+  <Overview>&#x1F99E; CaraBase is a sovereign, self-hostable SQLite Database-as-a-Service and backend API builder. Reclaim your data from massive cloud platforms with an ecosystem tailored for Human-Agent synergy. Features include instant REST APIs, transactional Row-Level Security (RLS), Agent LobsterKeys©™, and encrypted-at-rest SQLCipher capabilities.</Overview>
   <Category>Productivity: Network:Other</Category>
-  <WebUI>http://[IP]:[PORT:4545]/</WebUI>
-  <TemplateURL>https://raw.githubusercontent.com/ClawStackStudios/ClawChives/main/clawchives-unraid-template.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/ClawStackStudios/ClawChives/main/public/thumbnail-icon.png</Icon>
-  <ExtraParams>--health-cmd="wget -qO- http://localhost:4545/api/health" --health-interval=15s --health-timeout=10s --health-retries=5 --health-start-period=15s</ExtraParams>
+  <WebUI>http://[IP]:[PORT:3000]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/ClawStackStudios/CaraBase/main/carabase-unraid-template.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/ClawStackStudios/CaraBase/main/public/thumbnail-icon.png</Icon>
+  <ExtraParams>--health-cmd="wget -qO- http://localhost:3000/api/health" --health-interval=15s --health-timeout=10s --health-retries=5 --health-start-period=15s</ExtraParams>
   <PostArgs/>
   <CPUset>6,7</CPUset>
   <DateInstalled>1776531376</DateInstalled>
   <DonateText/>
   <DonateLink/>
   <Requires/>
-  <Config Name="Database Location" Target="/app/data" Default="/app/data" Mode="rw" Description="" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/clawchives</Config>
-  <Config Name="Web GUI" Target="4545" Default="4545" Mode="tcp" Description="The Default Port for the Web GUI" Type="Port" Display="always" Required="true" Mask="false">4545</Config>
-  <Config Name="DB Encryption Key" Target="DB_ENCRYPTION_KEY" Default="" Mode="" Description="Key to encrypt the database (Optional). Defaults to no encryption if none provided." Type="Variable" Display="always" Required="false" Mask="true"/>
-  <Config Name="SuperAdmin Access Token" Target="ADMIN_TOKEN" Default="" Mode="" Description="Security token for accessing the isolated /admin SuperAdmin panel. Requires high entropy (e.g., random 64+ character string). Leave empty to completely disable all /admin control plane UI and API routes." Type="Variable" Display="always" Required="false" Mask="true"/>
+  <Config Name="Database Location" Target="/app/data" Default="/app/data" Mode="rw" Description="The physical storage location on your server where the SQLite database file and file uploads are persisted." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/carabase</Config>
+  <Config Name="Web GUI" Target="3000" Default="3000" Mode="tcp" Description="The Default Port for the Web GUI and REST APIs." Type="Port" Display="always" Required="true" Mask="false">3000</Config>
+  <Config Name="DB Encryption Key" Target="DB_ENCRYPTION_KEY" Default="" Mode="" Description="STRICTLY REQUIRED in production. Provide a highly entropic key (e.g., openssl rand -hex 32) to encrypt your carabase.sqlite file at rest using SQLCipher. CaraBase will refuse to boot without this." Type="Variable" Display="always" Required="true" Mask="true"/>
+  <Config Name="SuperAdmin Access Token" Target="ADMIN_TOKEN" Default="" Mode="" Description="Security token for accessing the isolated /admin SuperAdmin panel. Requires high entropy. Leave empty to completely disable all /admin control plane UI and API routes." Type="Variable" Display="always" Required="false" Mask="true"/>
   <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Linux Group ID for file permissions" Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
   <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="Linux User ID for file permissions" Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
-  <Config Name="Trust Proxy" Target="TRUST_PROXY" Default="false" Mode="" Description="Set to 'true' if running behind a reverse proxy (Nginx, Traefik, etc.)" Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
-  <Config Name="Node Environment" Target="NODE_ENV" Default="production" Mode="" Description="Runtime mode for the application" Type="Variable" Display="advanced" Required="false" Mask="false">production</Config>
+  <Config Name="Trust Proxy" Target="TRUST_PROXY" Default="false" Mode="" Description="Set to 'true' if running behind a reverse proxy (Nginx, Traefik, Cloudflare Tunnel, etc.)" Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+  <Config Name="Node Environment" Target="NODE_ENV" Default="production" Mode="" Description="Runtime mode for the application" Type="Variable" Display="advanced" Required="true" Mask="false">production</Config>
   <TailscaleStateDir/>
 </Container>

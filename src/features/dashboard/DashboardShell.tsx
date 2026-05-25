@@ -37,6 +37,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const getPageTitle = () => {
     const path = location.pathname;
     if (path === "/dashboard") return "Dashboard";
+    if (path.startsWith("/dashboard/wizard")) return "Setup Wizard";
     if (path.startsWith("/dashboard/editor")) return "Table Editor";
     if (path.startsWith("/dashboard/api-builder")) return "API Builder";
     if (path.startsWith("/dashboard/keys")) return "API Keys";

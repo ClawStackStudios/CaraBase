@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LayoutDashboard, Database, Code, Key, Shield, HardDrive, Settings, User, Palette, LogOut, Globe, Network, ChevronDown, ChevronRight, Eye, Zap, Table2, Layers, Archive } from "lucide-react";
+import { LayoutDashboard, Database, Code, Key, Shield, HardDrive, Settings, User, Palette, LogOut, Globe, Network, ChevronDown, ChevronRight, Eye, Zap, Table2, Layers, Archive, Wand2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 export type SettingsTab = "profile" | "appearance" | "agents" | "import-export" | "storage-shares";
@@ -100,6 +100,15 @@ export function SidebarNav({
       label: "Dashboard",
       icon: LayoutDashboard,
       active: "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-300 shadow-sm",
+      inactive: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
+      badge: null,
+    },
+    {
+      id: "wizard",
+      href: "/dashboard/wizard",
+      label: "Setup Wizard",
+      icon: Wand2,
+      active: "bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-300 shadow-sm",
       inactive: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
       badge: null,
     },
