@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LayoutDashboard, Database, Code, Key, Shield, HardDrive, Settings, User, Palette, LogOut, Globe, Network, ChevronDown, ChevronRight, Eye, Zap } from "lucide-react";
+import { LayoutDashboard, Database, Code, Key, Shield, HardDrive, Settings, User, Palette, LogOut, Globe, Network, ChevronDown, ChevronRight, Eye, Zap, Table2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 export type SettingsTab = "profile" | "appearance" | "agents" | "import-export" | "storage-shares";

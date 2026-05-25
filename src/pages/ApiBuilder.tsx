@@ -627,7 +627,7 @@ export default function ApiBuilder() {
                   <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Dynamic Spec Schema</h3>
                   <div className="bg-slate-900 dark:bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono text-[10px] text-slate-350 leading-relaxed max-h-40 overflow-y-auto">
                     <pre className="whitespace-pre-wrap">
-                      {JSON.stringify(JSON.parse(selectedEndpoint.schema), null, 2)}
+                      {JSON.stringify(typeof selectedEndpoint.schema === 'string' ? JSON.parse(selectedEndpoint.schema) : selectedEndpoint.schema, null, 2)}
                     </pre>
                   </div>
                 </div>
