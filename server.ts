@@ -242,6 +242,19 @@ async function startServer() {
   });
 
 
+  systemApi.get('/indexes', (req, res) => {
+    try {
+      const indexes = db.prepare(`
+        SELECT name, tbl_name as tableName, sql 
+        FROM sqlite_schema 
+        WHERE type='index' AND sql IS NOT NULL AND tbl_name NOT LIKE '_carabase_%' AND tbl_name NOT LIKE 'sqlite_%' AND tbl_name NOT IN ('users', 'api_tokens', 'agent_keys', 'audit_logs')
+      `).all();
+      res.json(indexes);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   systemApi.get('/tables', (req, res) => {
     try {
       const tables = db.prepare(`

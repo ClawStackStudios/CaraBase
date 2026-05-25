@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LayoutDashboard, Database, Code, Key, Shield, HardDrive, Settings, User, Palette, LogOut, Globe, Network, ChevronDown, ChevronRight, Eye, Zap, Table2 } from "lucide-react";
+import { LayoutDashboard, Database, Code, Key, Shield, HardDrive, Settings, User, Palette, LogOut, Globe, Network, ChevronDown, ChevronRight, Eye, Zap, Table2, Layers, Archive } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 export type SettingsTab = "profile" | "appearance" | "agents" | "import-export" | "storage-shares";
@@ -64,12 +64,6 @@ export function SidebarNav({
         active: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shadow-sm",
       },
       {
-        id: "import-export" as SettingsTab,
-        label: "Database Actions",
-        icon: Database,
-        active: "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shadow-sm",
-      },
-      {
         id: "storage-shares" as SettingsTab,
         label: "Storage Shares",
         icon: Globe,
@@ -112,7 +106,7 @@ export function SidebarNav({
     {
       id: "database",
       href: "#",
-      label: "Database",
+      label: "Database Management",
       icon: Database,
       active: "",
       inactive: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
@@ -149,6 +143,41 @@ export function SidebarNav({
           icon: Zap,
           active: "bg-fuchsia-100 text-fuchsia-900 dark:bg-fuchsia-900/30 dark:text-fuchsia-300 shadow-sm",
           inactive: "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
+        },
+        {
+          id: "indexes",
+          href: "/dashboard/indexes",
+          label: "Indexes",
+          icon: Layers,
+          active: "bg-orange-100 text-orange-900 dark:bg-orange-900/30 dark:text-orange-300 shadow-sm",
+          inactive: "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
+        }
+      ]
+    },
+    {
+      id: "configuration",
+      href: "#",
+      label: "Configuration",
+      icon: Settings,
+      active: "",
+      inactive: "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
+      badge: null,
+      children: [
+        {
+          id: "policies",
+          href: "/dashboard/policies",
+          label: "Policies (RLS)",
+          icon: Shield,
+          active: "bg-red-100 text-red-900 dark:bg-red-900/30 dark:text-red-300 shadow-sm",
+          inactive: "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
+        },
+        {
+          id: "backups",
+          href: "/dashboard/backups",
+          label: "Backups",
+          icon: Archive,
+          active: "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/30 dark:text-emerald-300 shadow-sm",
+          inactive: "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
         }
       ]
     },
@@ -167,14 +196,6 @@ export function SidebarNav({
           label: "API Keys",
           icon: Key,
           active: "bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-300 shadow-sm",
-          inactive: "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
-        },
-        {
-          id: "policies",
-          href: "/dashboard/policies",
-          label: "Policies (RLS)",
-          icon: Shield,
-          active: "bg-red-100 text-red-900 dark:bg-red-900/30 dark:text-red-300 shadow-sm",
           inactive: "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
         }
       ]

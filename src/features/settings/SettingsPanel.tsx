@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { ProfileSettings } from "./components/ProfileSettings";
 import { AppearanceSettings } from "./components/AppearanceSettings";
 import { LobsterKeySettings } from "./components/LobsterKeySettings";
-import { DatabaseSettings } from "./components/DatabaseSettings";
 import { StorageSharesSettings } from "./components/StorageSharesSettings";
 import { Sidebar } from "../dashboard/components/layout/Sidebar";
 import { Header } from "../dashboard/components/layout/Header";
@@ -92,7 +91,6 @@ export function SettingsPanel() {
           {activeTab === "profile" && <ProfileSettings />}
           {activeTab === "appearance" && <AppearanceSettings />}
           {activeTab === "agents" && <LobsterKeySettings />}
-          {activeTab === "import-export" && <DatabaseSettings />}
           {activeTab === "storage-shares" && <StorageSharesSettings />}
         </div>
       </main>

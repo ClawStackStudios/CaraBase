@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Database, Download, Upload, AlertTriangle, Play, HardDrive, Clock, Loader2, Save, Trash } from "lucide-react";
+import { Database, Download, Upload, AlertTriangle, Play, HardDrive, Clock, Loader2, Save, Trash, Archive } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 import { apiFetch } from "@/config/apiConfig";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -11,7 +11,7 @@ interface BackupInfo {
   createdAt: string;
 }
 
-export function DatabaseSettings() {
+export default function Backups() {
   const [backups, setBackups] = useState<BackupInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isTriggering, setIsTriggering] = useState(false);
@@ -159,7 +159,19 @@ export function DatabaseSettings() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <Archive className="w-6 h-6 text-emerald-500" />
+            Database Backups
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Manage your scheduled SQLite database snapshots and disaster recovery.
+          </p>
+        </div>
+      </div>
+
       <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-emerald-500/30 dark:border-emerald-500/50 shadow-sm transition-colors">
         <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>

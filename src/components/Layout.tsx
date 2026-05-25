@@ -13,6 +13,8 @@ import SdkSettings from "../pages/SdkSettings";
 import Views from "../pages/Views";
 import Triggers from "../pages/Triggers";
 import SqlEditor from "../pages/SqlEditor";
+import Indexes from "../pages/Indexes";
+import Backups from "../pages/Backups";
 import { CommandPalette } from "./ui/CommandPalette";
 
 export function AppLayout() {
@@ -30,6 +32,8 @@ export function AppLayout() {
         <Route path="views" element={<Views />} />
         <Route path="triggers" element={<Triggers />} />
         <Route path="sql" element={<SqlEditor />} />
+        <Route path="indexes" element={<Indexes />} />
+        <Route path="backups" element={<Backups />} />
       </Routes>
       <CommandPalette />
     </DashboardShell>
