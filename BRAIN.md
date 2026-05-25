@@ -58,3 +58,7 @@ Every seed I compress must pass four invariants. If it fails any one of them, it
 * **The proxy panics when the ground shifts.** (Hot-reloads sever active topology bridges).
 * **Twins share the same door.** (Architectural alignment removes the need for duplicate keys).
 * **Bridges are blind to the payload.** (Middleware only checks the pass, not the intent).
+* **Keys that touch the water cannot touch the engine.** (Agent keys are strictly sandboxed from system routes).
+* **The master key never leaves the pocket.** (Human credentials exchange for ephemeral tokens, never traveling in headers).
+* **The highest tower keeps no permanent records.** (SuperAdmin sessions are strictly in-memory and volatile).
+* **A lock turned twice resists the ghost.** (RLS evaluates in both static query construction and isolated runtime context).

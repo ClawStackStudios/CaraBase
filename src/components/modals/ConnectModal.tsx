@@ -36,27 +36,19 @@ export function ConnectModal({ isOpen, onClose }: ConnectModalProps) {
 
   const getCurlSnippet = () => {
     const keyPlaceholder = authType === 'human' ? '[YOUR_HUMAN_KEY]' : '[YOUR_LOBSTER_KEY]';
-    return `curl -X POST '${baseUrl}/api/system/query' \\
+    return `curl -X GET '${baseUrl}/rest/v1/users?limit=5' \\
   -H "Authorization: Bearer ${keyPlaceholder}" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "query": "SELECT * FROM users LIMIT 1",
-    "method": "all"
-  }'`;
+  -H "Content-Type: application/json"`;
   };
 
   const getFetchSnippet = () => {
     const keyPlaceholder = authType === 'human' ? '[YOUR_HUMAN_KEY]' : '[YOUR_LOBSTER_KEY]';
-    return `const response = await fetch('${baseUrl}/api/system/query', {
-  method: 'POST',
+    return `const response = await fetch('${baseUrl}/rest/v1/users?limit=5', {
+  method: 'GET',
   headers: {
     'Authorization': 'Bearer ${keyPlaceholder}',
     'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    query: 'SELECT * FROM users LIMIT 1',
-    method: 'all'
-  })
+  }
 });
 const data = await response.json();`;
   };
