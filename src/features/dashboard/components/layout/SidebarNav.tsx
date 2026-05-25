@@ -216,7 +216,6 @@ export function SidebarNav({
         }
       ]
     },
-    }
   ];
 
   return (
