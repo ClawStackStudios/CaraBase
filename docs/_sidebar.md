@@ -9,6 +9,7 @@
 - Core Engine
   - [Authentication & API Keys](api-keys.md)
   - [Row-Level Security (RLS)](rls.md)
+  - [RLS Integration Guides](rls-integration-guides.md)
 
 - Features
   - [Custom Dynamic API Builder](api-builder.md)

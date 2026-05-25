@@ -31,6 +31,10 @@ function openDatabase(): Database.Database {
       return encrypted;
     }
   } else {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('[CaraBase Security] FATAL ERROR: DB_ENCRYPTION_KEY is required in production! Halting to prevent unencrypted data storage.');
+      process.exit(1);
+    }
     console.warn('[DB] WARNING: DB_ENCRYPTION_KEY is not set — database is unencrypted at rest.');
   }
 
@@ -53,6 +57,7 @@ function encryptExistingDatabase(dbPath: string, key: string) {
 const db = openDatabase();
 
 db.pragma('journal_mode = WAL');
+db.pragma('synchronous = NORMAL');
 db.pragma('foreign_keys = ON');
 
 // Register custom PostgreSQL/Supabase equivalent SQL functions

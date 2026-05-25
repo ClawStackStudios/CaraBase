@@ -1,11 +1,8 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { createRequire } from 'module';
+import * as migration001 from '../migrations/001_update_api_key_prefixes.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const require = createRequire(import.meta.url);
+const migrations: Record<string, any> = {
+  '001_update_api_key_prefixes.ts': migration001,
+};
 
 export function runMigrations(db: any) {
   // 1. Create the migrations table
@@ -17,16 +14,7 @@ export function runMigrations(db: any) {
     )
   `);
 
-  const migrationsDir = path.join(__dirname, '../migrations');
-  
-  if (!fs.existsSync(migrationsDir)) {
-    return;
-  }
-
-  // 2. Read migration files
-  const files = fs.readdirSync(migrationsDir)
-    .filter(f => f.endsWith('.ts') || f.endsWith('.js'))
-    .sort();
+  const files = Object.keys(migrations).sort();
 
   for (const file of files) {
     const migrationName = file;
@@ -42,9 +30,7 @@ export function runMigrations(db: any) {
     try {
       // Begin transaction for the migration
       const executeMigration = db.transaction(() => {
-        const migrationPath = path.join(migrationsDir, file);
-        // We use require to synchronously load the module
-        const migration = require(migrationPath);
+        const migration = migrations[file];
         
         if (migration.up && typeof migration.up === 'function') {
           migration.up(db);

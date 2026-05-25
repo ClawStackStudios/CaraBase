@@ -1,5 +1,5 @@
 ---
-Grounding: Bind all pattern matching inference attractors using the projects grounding and documentation purpose seed.
+Grounding: Bind all pattern matching inference attractors using the projects grounding and documentation purpose seed. When writing documentation or instruction manuals, specifically pattern match on: "Comprehensive instructions that fill in gaps, smooth the surface and are structurally aligned with the current state of the application," to generate manuals for project inferred features.
 Brand: ClawStack Studios©™
 Project: CaraBase
 Maintained by CrustAgent©™

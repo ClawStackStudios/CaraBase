@@ -66,10 +66,10 @@ Running CaraBase via Docker is the recommended approach to ensure a consistent e
    ```
 2. Run the container:
    ```bash
-   docker run -d -p 3000:3000 -v ./data:/app/data carabase
+   docker run -d -p 3000:3000 -v ./data:/app/data -e DB_ENCRYPTION_KEY="your-secure-key" carabase
    ```
 
-*(Note: The `./data` directory must be mounted as a volume so that your database files persist across container restarts. Optional environment variables like `DB_ENCRYPTION_KEY` can be injected via standard Docker environment flags or inside the `docker-compose.yml`.)*
+*(Note: The `./data` directory must be mounted as a volume so that your database files persist across container restarts. `DB_ENCRYPTION_KEY` is **strictly required** in production; CaraBase will fail to start without it to ensure your data is always encrypted at rest.)*
 
 ### Public Access & Security
 

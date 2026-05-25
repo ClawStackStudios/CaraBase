@@ -47,6 +47,7 @@ RUN mkdir -p /app/data && chown -R node:node /app/data
 # Switch to the non-root node user for security
 USER node
 
+VOLUME ["/app/data"]
 EXPOSE 3000
 
 # Start the Node.js server
