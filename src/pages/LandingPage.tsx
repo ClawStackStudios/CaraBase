@@ -89,8 +89,8 @@ export default function LandingPage() {
 
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-md shadow-emerald-500/20">
-                <span className="text-xl">🦞</span>
+              <div className="w-9 h-9 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-md shadow-emerald-500/20 overflow-hidden border border-emerald-400/50">
+                <img src="/assets/thumbnail.png" alt="CaraBase" className="w-full h-full object-cover" />
               </div>
               <BouncyBrand variant="subtle" className="text-2xl" />
             </div>
@@ -145,6 +145,15 @@ export default function LandingPage() {
           backgroundSize: '48px 48px',
         }}>
         <div className="max-w-5xl mx-auto text-center">
+
+          {/* Banner image */}
+          <div className="mb-10">
+            <img
+              src="/assets/icon.png"
+              alt="CaraBase"
+              className="w-full max-w-2xl mx-auto rounded-2xl shadow-2xl border-2 border-emerald-500 shadow-emerald-500/20"
+            />
+          </div>
 
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-8
                           bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400
@@ -345,7 +354,9 @@ export default function LandingPage() {
       {/* ── CTA ─────────────────────────────────────────────────────────────── */}
       <section className="py-24 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-center">
         <div className="max-w-3xl mx-auto">
-          <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center text-5xl mx-auto mb-8">🦞</div>
+          <div className="w-48 h-24 rounded-2xl flex items-center justify-center mx-auto mb-8 overflow-hidden border-2 border-emerald-500 shadow-xl shadow-emerald-500/20">
+            <img src="/assets/icon.png" alt="CaraBase" className="w-full h-full object-contain" />
+          </div>
           <h2 className="text-4xl font-black text-white mb-4">Ready to Scuttle the SaaS Trap?</h2>
           <p className="text-emerald-100 text-xl mb-10 max-w-xl mx-auto">
             Hatch your own Burrow. Own your data. Let your Lobsters Haul the rows.
@@ -367,7 +378,9 @@ export default function LandingPage() {
       <footer className="bg-slate-900 text-slate-400 py-12 px-4">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center text-base">🦞</div>
+            <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center overflow-hidden border border-emerald-400/50">
+              <img src="/assets/thumbnail.png" alt="CaraBase" className="w-full h-full object-cover" />
+            </div>
             <div className="flex items-end gap-2">
               <BouncyBrand variant="subtle" className="text-xl" />
               <span className="text-slate-600 text-xs mb-1">by ClawStack Studios</span>

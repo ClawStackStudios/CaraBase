@@ -151,8 +151,8 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
           {/* Header */}
           <div className="p-6 text-center pb-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200 dark:shadow-emerald-900/20">
-                <span className="text-3xl select-none">🦞</span>
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg mb-6 overflow-hidden border border-emerald-400/50">
+                <img src="/assets/thumbnail.png" alt="CaraBase" className="w-full h-full object-cover" />
               </div>
             </div>
             <BouncyBrand 

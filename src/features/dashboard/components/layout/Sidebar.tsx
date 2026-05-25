@@ -41,8 +41,8 @@ export function Sidebar({
           }}
           className={`flex items-center gap-2 ${isCollapsed ? 'mx-auto' : ''}`}
         >
-          <div className="w-8 h-8 shrink-0 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-md shadow-emerald-500/20">
-            <span className="text-lg">🦞</span>
+          <div className="w-8 h-8 shrink-0 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-md shadow-emerald-500/20 overflow-hidden border border-emerald-400/50">
+            <img src="/assets/thumbnail.png" alt="CaraBase" className="w-full h-full object-cover" />
           </div>
           {!isCollapsed && <BouncyBrand variant="subtle" className="text-xl" />}
         </Link>

@@ -24,10 +24,9 @@ class Spring {
   }
 }
 
-const spring = new Spring(400, 10, 1)
 const VARIANTS = { 
-  subtle: { y: -3, scale: 1.05 }, 
-  prominent: { y: -12, scale: 1.15 } 
+  subtle: { y: -3, scale: 1.05, damping: 30 }, 
+  prominent: { y: -12, scale: 1.15, damping: 12 } 
 }
 
 interface BouncyLetterProps {
@@ -44,11 +43,14 @@ const BouncyLetter: React.FC<BouncyLetterProps> = ({ letter, className, variant 
   const animateTo = (targetY: number, targetScale: number) => {
     if (animRef.current) cancelAnimationFrame(animRef.current)
     
+    const v = VARIANTS[variant]
+    const localSpring = new Spring(400, v.damping, 1)
+    
     const dt = 1 / 60
     const tick = () => {
       const state = stateRef.current
-      const yr = spring.step(state.cy, state.vy, targetY, dt)
-      const sr = spring.step(state.cs, state.vs, targetScale, dt)
+      const yr = localSpring.step(state.cy, state.vy, targetY, dt)
+      const sr = localSpring.step(state.cs, state.vs, targetScale, dt)
       
       state.cy = yr.current
       state.vy = yr.velocity
@@ -59,7 +61,7 @@ const BouncyLetter: React.FC<BouncyLetterProps> = ({ letter, className, variant 
         elRef.current.style.transform = `translateY(${state.cy}px) scale(${state.cs})`
       }
       
-      if (!spring.isSettled(state.cy, state.vy, targetY) || !spring.isSettled(state.cs, state.vs, targetScale)) {
+      if (!localSpring.isSettled(state.cy, state.vy, targetY) || !localSpring.isSettled(state.cs, state.vs, targetScale)) {
         animRef.current = requestAnimationFrame(tick)
       } else {
         animRef.current = 0

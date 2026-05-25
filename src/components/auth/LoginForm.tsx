@@ -144,9 +144,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onBack }) => {
       </button>
 
       <div className="flex flex-col items-center mt-12 mb-8">
-        <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg mb-4">
-          <span className="text-3xl">🦞</span>
-        </div>
+          <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 overflow-hidden border border-emerald-400/50">
+            <img src="/assets/thumbnail.png" alt="CaraBase" className="w-full h-full object-cover" />
+          </div>
         <div className="text-center mb-1 flex justify-center">
           <BouncyBrand variant="subtle" className="text-2xl justify-center tracking-tight" />
         </div>
