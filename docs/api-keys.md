@@ -47,3 +47,10 @@ CaraBase supports programmatic **Agent Delegation**. A human user can generate a
 - **Granular Permissions:** You can restrict an Agent Key to specific actions (e.g., `canRead: true`, `canWrite: false`).
 - **Cross-User Isolation:** IDOR protections prevent User A from listing, modifying, or revoking Agent Keys created by User B.
 
+### The Shell-Proxy Membrane (Agent Sandboxing)
+Because Agent Keys possess significant read/write privileges, they are strictly sandboxed at the routing layer. 
+
+> [!WARNING]
+> **Keys that touch the water cannot touch the engine.**
+> CaraBase enforces a `sandboxAgentKeys` middleware. If a request authenticated with an `lb-` key attempts to access an `/api/system/*` management route (such as schema migrations, backup triggers, or key revocation), the server will instantly reject the request with a `403 Forbidden`. Agent Keys are structurally barred from accessing administrative engine endpoints.
+

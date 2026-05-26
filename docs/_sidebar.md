@@ -1,20 +1,31 @@
-- Overview
+- **Overview**
   - [Home](/)
   - [Architecture & Philosophy](architecture.md)
 
-- Getting Started
+- **Getting Started**
   - [Installation & Hosting](installation.md)
   - [Cloudflare Tunnels](cloudflare-tunnel.md)
 
-- Core Engine
+- **Dashboard & UX**
+  - [SuperAdmin Operations](superadmin.md)
+  - [Advanced Dashboard Tools](dashboard.md)
+
+- **Database & Security**
   - [Authentication & API Keys](api-keys.md)
   - [Row-Level Security (RLS)](rls.md)
-  - [RLS Integration Guides](rls-integration-guides.md)
-
-- Features
   - [Custom Dynamic API Builder](api-builder.md)
+
+- **Storage & Realtime**
   - [Storage Engine & Membrane](storage.md)
   - [Realtime Event Streaming](realtime.md)
 
-- Administration
-  - [SuperAdmin Operations](superadmin.md)
+- **Client SDKs**
+  - [JavaScript / TypeScript](react-integration.md)
+  - [Android / Kotlin](android-sdk.md)
+
+- **Integration Guides**
+  - [RLS Integration Guides](rls-integration-guides.md)
+  - [Realtime Example App](realtime-example.md)
+
+- **Legal**
+  - [Terms of Service](tos.md)

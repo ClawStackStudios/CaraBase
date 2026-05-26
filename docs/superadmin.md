@@ -9,7 +9,7 @@ To access the SuperAdmin dashboard (hosted at `/admin`), your `.env` file must d
 ADMIN_TOKEN=your_secure_password
 ```
 
-### Stateless Volatile Sessions
+### The In-Memory Session Vault
 
 Unlike typical applications that persist session tokens or JWTs to the database, the SuperAdmin dashboard relies on **In-Memory Volatile Sessions**.
 
@@ -17,7 +17,9 @@ Unlike typical applications that persist session tokens or JWTs to the database,
 2. The server mints an in-memory session (stored in a Node.js `Map()`) with a strict 20-minute sliding Time-To-Live (TTL).
 3. The session ID is set as a secure, `httpOnly` cookie.
 
-Because no session identifiers are ever written to SQLite, shutting down or restarting the Node server instantly destroys all active SuperAdmin sessions across the entire system. This prevents persistent token theft.
+> [!IMPORTANT]
+> **Ephemeral by Design**
+> Because no session identifiers are ever written to SQLite, shutting down or restarting the Node server instantly destroys all active SuperAdmin sessions across the entire system. This prevents persistent token theft. A severed database cannot be reverse-engineered for admin access.
 
 ### Cryptographic Handshakes
 

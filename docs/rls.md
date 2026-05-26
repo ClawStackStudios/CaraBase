@@ -23,6 +23,10 @@ user_id = auth_uid()
 ```
 If this evaluates to `true`, the row is returned. If `false`, it is omitted.
 
+> [!TIP]
+> **No SQL Required (The Lobster Guides)**
+> While you can write raw SQL policies in the Table Editor, CaraBase provides a **Visual Setup Wizard** in the dashboard. By simply toggling checkboxes (e.g., "Public", "Only the Creator"), the dashboard will automatically generate the underlying invisible-ink SQLite policies (`author_id = @user_id`) without you needing to write a single line of SQL.
+
 ## Pre- and Post-Write Validation
 
 CaraBase enforces RLS differently depending on the operation to ensure complete security without race conditions.
