@@ -22,12 +22,18 @@ router.post('/register', authLimiter, validateBody(AuthSchemas.register), (req, 
   const { uuid, username, keyHash } = req.body;
 
   try {
-    const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
-    const assignedRole = userCount.count === 0 ? 'superadmin' : 'viewer';
+    const insertUser = db.transaction((uUuid: string, uUsername: string, uKeyHash: string) => {
+      const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
+      const assignedRole = userCount.count === 0 ? 'superadmin' : 'viewer';
 
-    db.prepare(
-      'INSERT INTO users (uuid, username, key_hash, role, created_at) VALUES (?, ?, ?, ?, ?)'
-    ).run(uuid, username, keyHash, assignedRole, new Date().toISOString());
+      db.prepare(
+        'INSERT INTO users (uuid, username, key_hash, role, created_at) VALUES (?, ?, ?, ?, ?)'
+      ).run(uUuid, uUsername, uKeyHash, assignedRole, new Date().toISOString());
+      
+      return assignedRole;
+    });
+
+    const role = insertUser.immediate(uuid, username, keyHash);
 
     audit.log('AUTH_REGISTER', {
       actor: uuid,

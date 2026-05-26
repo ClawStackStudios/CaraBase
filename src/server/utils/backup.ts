@@ -27,8 +27,11 @@ export async function triggerBackup(db: Database.Database): Promise<BackupInfo> 
   const destFile = path.join(BACKUP_DIR, filename);
 
   try {
-    // Perform the SQLite native backup
-    await db.backup(destFile);
+    // Perform the SQLite native backup using VACUUM INTO to preserve encryption PRAGMAs
+    if (fs.existsSync(destFile)) {
+       fs.unlinkSync(destFile); // VACUUM INTO fails if target exists
+    }
+    db.prepare(`VACUUM INTO ?`).run(destFile);
 
     // Enforce retention policy
     enforceRetentionPolicy();

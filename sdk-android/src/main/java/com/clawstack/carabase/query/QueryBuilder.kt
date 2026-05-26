@@ -17,7 +17,7 @@ import io.ktor.http.contentType
  * Implements "Security Around Invariants" by utilizing Ktor's 
  * native URL parameter encoding to prevent string injection attacks.
  */
-class QueryBuilder @PublishedApi internal constructor(
+class QueryBuilder internal constructor(
     @PublishedApi internal val client: CaraBaseClient,
     @PublishedApi internal val table: String
 ) {
