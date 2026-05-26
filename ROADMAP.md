@@ -242,7 +242,7 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 21: Native Kotlin REST & Auth Membrane**
+- [x] **Task 21: Native Kotlin REST & Auth Membrane**
 
   **Description:** Build the core networking layer using Ktor or Retrofit + Kotlin Coroutines. Implement a `CaraBaseClient` singleton that accepts the base URL and the `lb-` (Lobster Key). **Security Invariant:** The client must enforce an internal Interceptor that automatically attaches the `Authorization: Bearer <key>` header to every outbound `/rest/v1` request. The developer should never have to manually construct a header. 
   
@@ -250,7 +250,7 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 22: Hardware-Backed Encrypted Token Storage**
+- [x] **Task 22: Hardware-Backed Encrypted Token Storage**
 
   **Description:** When the SDK processes human user logins (exchanging `hu-` for `api-` tokens), the resulting ephemeral session token must be stored securely. Do NOT use plaintext `SharedPreferences`. Implement an `EncryptedSessionStorage` class utilizing the Android `EncryptedSharedPreferences` (part of AndroidX Security) backed by the Android Keystore system. 
   
@@ -258,7 +258,7 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 23: Fluent Type-Safe Query Builder**
+- [x] **Task 23: Fluent Type-Safe Query Builder**
 
   **Description:** Build the developer-facing querying API. Implement Kotlin builder patterns matching the `carabase-js` SDK syntax: `carabase.from("table").select("*").eq("column", "value")`. Use Kotlin generics and kotlinx.serialization to automatically map JSON responses into Kotlin data classes. **Security Invariant:** The query builder must strictly serialize URL parameters to prevent malformed query injection on the client side before it even hits the CaraBase server.
   
@@ -266,7 +266,7 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 24: Native Coroutine SSE Real-Time Manager**
+- [x] **Task 24: Native Coroutine SSE Real-Time Manager**
 
   **Description:** Implement `carabase.realtime.subscribe("table")`. Use Kotlin `Flow` to manage the Server-Sent Events (SSE) stream. The manager must run on a background `Dispatchers.IO` thread, automatically parse the `data:` payload from the CaraBase server, and emit Kotlin data classes. It must inherently handle connection drops and automatically attempt exponential backoff reconnection without the developer writing retry logic.
   
@@ -274,7 +274,7 @@ Phase 2 → Access Control, Operations & Public Access
 
 ---
 
-- [ ] **Task 25: Storage API & Multi-Part Uploader**
+- [x] **Task 25: Storage API & Multi-Part Uploader**
 
   **Description:** Implement `carabase.storage.upload(filename, byteArray)`. The SDK must handle the `multipart/form-data` chunking natively. It must also provide `carabase.storage.getPublicUrl(path)` which correctly appends the Cloudflare Tunnel URL if the server configuration dictates it, ensuring public assets resolve seamlessly in Android `ImageView` or Glide/Coil loaders.
   
