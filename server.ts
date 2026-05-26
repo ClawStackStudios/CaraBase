@@ -108,6 +108,38 @@ async function startServer() {
   const systemApi = express.Router();
   systemApi.use(requireAuth, sandboxAgentKeys);
 
+  systemApi.get('/telemetry', requireRole('superadmin'), (req, res) => {
+    try {
+      const dataDir = process.env.DATA_DIR || path.join(process.cwd(), 'data');
+      const mainDbPath = path.join(dataDir, 'carabase.sqlite');
+
+      let dbSize = 0;
+      if (fs.existsSync(mainDbPath)) dbSize = fs.statSync(mainDbPath).size;
+
+      const tableCount = db.prepare(`
+        SELECT COUNT(*) as count FROM sqlite_schema 
+        WHERE type='table' 
+        AND name NOT LIKE '_carabase_%' 
+        AND name NOT LIKE 'sqlite_%' 
+        AND name NOT IN ('users', 'api_tokens', 'agent_keys', 'audit_logs', 'system_settings')
+      `).get() as any;
+
+      const stats = {
+        totalUsers: (db.prepare('SELECT COUNT(*) as count FROM users').get() as any).count,
+        totalTables: tableCount.count,
+        totalPolicies: (db.prepare('SELECT COUNT(*) as count FROM _carabase_policies').get() as any).count,
+        totalEndpoints: (db.prepare('SELECT COUNT(*) as count FROM _carabase_custom_endpoints').get() as any).count,
+        dbSize,
+        uptime: process.uptime(),
+        lastAudit: (db.prepare('SELECT timestamp FROM audit_logs ORDER BY timestamp DESC LIMIT 1').get() as any)?.timestamp || null
+      };
+
+      res.json({ success: true, data: stats });
+    } catch (e: any) {
+      res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
   systemApi.get('/backups', requireRole('superadmin'), (req, res) => {
     try {
       const backups = getBackupsList();
