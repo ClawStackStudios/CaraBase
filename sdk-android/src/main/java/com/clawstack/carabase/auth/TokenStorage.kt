@@ -1,6 +1,7 @@
 package com.clawstack.carabase.auth
 
 import android.content.Context
+import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
@@ -13,8 +14,10 @@ import androidx.security.crypto.MasterKey
  */
 class TokenStorage(context: Context) {
 
-    private val PREFS_FILE = "carabase_auth_prefs"
-    private val KEY_TOKEN = "session_token"
+    companion object {
+        private const val PREFS_FILE = "carabase_auth_prefs"
+        private const val KEY_TOKEN = "session_token"
+    }
 
     private val masterKey = MasterKey.Builder(context)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -32,7 +35,9 @@ class TokenStorage(context: Context) {
      * Stores the current active token (either hu-, lb-, or api-).
      */
     fun saveToken(token: String) {
-        sharedPreferences.edit().putString(KEY_TOKEN, token).apply()
+        sharedPreferences.edit {
+            putString(KEY_TOKEN, token)
+        }
     }
 
     /**
@@ -46,6 +51,8 @@ class TokenStorage(context: Context) {
      * Clears the current active token (e.g., on logout).
      */
     fun clearToken() {
-        sharedPreferences.edit().remove(KEY_TOKEN).apply()
+        sharedPreferences.edit {
+            remove(KEY_TOKEN)
+        }
     }
 }
