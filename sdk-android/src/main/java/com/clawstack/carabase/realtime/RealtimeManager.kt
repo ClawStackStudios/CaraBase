@@ -20,7 +20,7 @@ import kotlinx.serialization.json.jsonObject
  * Handles background threading and automatic raw string parsing, so developers 
  * do not have to write manual thread or networking logic.
  */
-class RealtimeManager(private val client: CaraBaseClient) {
+class RealtimeManager internal constructor(private val client: CaraBaseClient) {
 
     private val jsonParser = Json { ignoreUnknownKeys = true }
 
