@@ -215,13 +215,13 @@ Phase 2 → Access Control, Operations & Public Access
 
   **Description:** With the new ShellProxy membrane, public assets can be hit by anyone with the link. To prevent abuse and provide visibility, we should add an `access_count` integer to the `_carabase_storage_shares` table that increments on every `GET /storage/v1/share/:hash`. Furthermore, we should implement IP-based or global rate-limiting specifically for the public membrane (e.g., max 100 requests per minute per share hash) to prevent DDoS attacks from taking down the CaraBase instance. The Storage Shares Settings panel would then display the total access count for each share, allowing admins to see which public assets are the most popular.
 
-- [ ] **Task 19: Dashboard Polish & Supabase UX Alignment**
+- [x] **Task 19: Dashboard Polish & Supabase UX Alignment**
 
   **Description:** Perform a comprehensive UI/UX pass to align the CaraBase dashboard more closely with the Supabase dashboard experience. Key improvements: (1) Add breadcrumb navigation showing the current database > table context. (2) Add a global keyboard shortcut system (`⌘K` / `Ctrl+K`) that opens a command palette (list of tables, pages, and actions). (3) Add a "SQL Editor" page (`src/pages/SqlEditor.tsx`) with a `<textarea>` code editor for writing and executing arbitrary SQL queries against the database (superadmin only), with results displayed in a data grid below. (4) Ensure the sidebar collapsibility is persistent across page reloads via `localStorage`.
 
   > **Success Criteria:** Breadcrumbs correctly reflect the current navigation context. `⌘K` / `Ctrl+K` opens the command palette. The SQL Editor executes a query and renders results in a grid. Invalid SQL displays a formatted error. The sidebar collapse state is persisted across page reloads. No visual regressions on existing pages.
 
-- [ ] **Task 20: Guided Wizard & Visual Abstraction Layer (The Lobster Guides)**
+- [x] **Task 20: Guided Wizard & Visual Abstraction Layer (The Lobster Guides)**
 
   **Description:** Abstract complex database operations (RLS, Schema creation, API generation) into guided, multi-step visual wizards to bridge the gap for beginner users. Instead of raw SQL inputs, the dashboard will offer "Lobster Guides". 
   1. **Table Wizard:** "What kind of data are you storing?" (e.g., Posts, Profiles) -> Auto-generates standard schemas with UUIDs and timestamps.
@@ -231,3 +231,51 @@ Phase 2 → Access Control, Operations & Public Access
   > **Success Criteria:** A beginner can create a secured table, apply an RLS policy, and copy a working React frontend code snippet entirely through visual wizard buttons without ever viewing or typing raw SQL or API headers.
 
 ---
+
+## Phase 4: Android SDK Native Ecosystem
+
+> **Phase Feature Set Overview:**
+> The expansion of CaraBase into a true cross-platform Backend-as-a-Service. This phase delivers `carabase-android`, a Kotlin-native SDK that abstracts the `/rest/v1` API, real-time SSE streams, and authentication into a fluent, type-safe library. 
+> 
+> **Core Grounding:** "Android SDK Native support for CaraBase"
+> **Core Invariant:** "Features around security, not security around features." Security must be the default, invisible membrane. Zero settings leakage. Tokens must be handled by the SDK internally using Android hardware-backed security, eliminating the developer's ability to accidentally leak credentials.
+
+---
+
+- [ ] **Task 21: Native Kotlin REST & Auth Membrane**
+
+  **Description:** Build the core networking layer using Ktor or Retrofit + Kotlin Coroutines. Implement a `CaraBaseClient` singleton that accepts the base URL and the `lb-` (Lobster Key). **Security Invariant:** The client must enforce an internal Interceptor that automatically attaches the `Authorization: Bearer <key>` header to every outbound `/rest/v1` request. The developer should never have to manually construct a header. 
+  
+  > **Success Criteria:** The SDK can initialize `CaraBase.init(URL, KEY)`. A raw internal `get()` call reaches the server and returns 200 OK. The API key is strictly scoped to the internal network interceptor and never exposed in public SDK properties (zero leakage).
+
+---
+
+- [ ] **Task 22: Hardware-Backed Encrypted Token Storage**
+
+  **Description:** When the SDK processes human user logins (exchanging `hu-` for `api-` tokens), the resulting ephemeral session token must be stored securely. Do NOT use plaintext `SharedPreferences`. Implement an `EncryptedSessionStorage` class utilizing the Android `EncryptedSharedPreferences` (part of AndroidX Security) backed by the Android Keystore system. 
+  
+  > **Success Criteria:** Tokens are automatically saved and retrieved during SDK operations. Extracting the app's XML data via ADB root reveals only AES-256-GCM encrypted ciphertext, ensuring the "security around invariants" principle holds natively on the device.
+
+---
+
+- [ ] **Task 23: Fluent Type-Safe Query Builder**
+
+  **Description:** Build the developer-facing querying API. Implement Kotlin builder patterns matching the `carabase-js` SDK syntax: `carabase.from("table").select("*").eq("column", "value")`. Use Kotlin generics and kotlinx.serialization to automatically map JSON responses into Kotlin data classes. **Security Invariant:** The query builder must strictly serialize URL parameters to prevent malformed query injection on the client side before it even hits the CaraBase server.
+  
+  > **Success Criteria:** A developer can execute `val users: List<User> = carabase.from("users").select().execute()` and receive fully parsed, type-safe Kotlin objects. The IDE provides autocomplete for builder methods.
+
+---
+
+- [ ] **Task 24: Native Coroutine SSE Real-Time Manager**
+
+  **Description:** Implement `carabase.realtime.subscribe("table")`. Use Kotlin `Flow` to manage the Server-Sent Events (SSE) stream. The manager must run on a background `Dispatchers.IO` thread, automatically parse the `data:` payload from the CaraBase server, and emit Kotlin data classes. It must inherently handle connection drops and automatically attempt exponential backoff reconnection without the developer writing retry logic.
+  
+  > **Success Criteria:** Subscribing to a table opens a persistent HTTP connection. Modifying the table via the dashboard triggers a Flow emission in the Android app instantly. Turning off WiFi and turning it back on results in the SDK automatically re-establishing the SSE stream without developer intervention.
+
+---
+
+- [ ] **Task 25: Storage API & Multi-Part Uploader**
+
+  **Description:** Implement `carabase.storage.upload(filename, byteArray)`. The SDK must handle the `multipart/form-data` chunking natively. It must also provide `carabase.storage.getPublicUrl(path)` which correctly appends the Cloudflare Tunnel URL if the server configuration dictates it, ensuring public assets resolve seamlessly in Android `ImageView` or Glide/Coil loaders.
+  
+  > **Success Criteria:** A developer can pass an Android `Uri` or `ByteArray` to the SDK and it successfully POSTs to `/storage/v1/upload`. The returned public URL loads correctly in a native Android UI component.

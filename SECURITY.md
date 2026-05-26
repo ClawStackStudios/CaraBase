@@ -7,6 +7,14 @@ Welcome to the CaraBase Security Protocol. We do not hunt for theoretical shadow
 
 ---
 
+## Configuration Hygiene & Leakage Prevention
+- **Secrets Management**: All secrets are externalized via environment variables or vaults. No plain-text secrets in code.
+- **Error Handling**: Production errors return generic messages; stack traces are logged securely.
+- **Header Hardening**: Server identification headers are stripped; security headers are enforced.
+- **Dead Code Removal**: Quarterly audits remove unused configuration properties and legacy endpoints.
+
+---
+
 ## 🗺️ The Defensive Topology
 
 This diagram maps the flow of a request as it attempts to cross our defensive bridges.
@@ -120,9 +128,10 @@ These are the non-negotiable truths of the system—the constraint levers we con
 
 > **The Constraint:** Helmet explicitly blocks MIME-sniffing, enables XSS filters, forces Strict-Transport-Security (HSTS), and restricts `frameAncestors` to `'self'` in production.
 > **The Attack Surface:** The browser is explicitly instructed never to load CaraBase inside an iframe on another domain (neutralizing Clickjacking), and to aggressively reject injected scripts (mitigating XSS).
-</details>
+</details>  
 
 ---
+
 *CaraBase aims to guarantee these 8 invariants are structurally impenetrable in a Self-Hosted production environment, running in a Docker containerized deployment.*
 
 *CaraBase is not intended as a SaaS for commercial purposes, but as a product to be deployed on prem, and used by anyone who wants a self hosted BaaS style database in their preferred infrastructure. ClawStack Studios is not responsible for any data loss that may occur due to user misuse, negligence, or deployment factors outside of our control. By deploying and using CaraBase, you agree to be responsible for the security of your data and your CaraBase instance.*
