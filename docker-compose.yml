@@ -5,13 +5,13 @@ services:
     build: .
     container_name: carabase
     ports:
-      - "3000:3000"
+      - "5353:5353"
     volumes:
       - ./data:/app/data
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - PORT=3000
+      - PORT=5353
       # - DB_ENCRYPTION_KEY=your_encryption_key_here
       # - TOKEN_TTL_DEFAULT=1d
       # - CLOUDFLARE_TUNNEL_URL=https://carabase.yourdomain.com

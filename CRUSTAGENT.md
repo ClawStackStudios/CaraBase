@@ -7,6 +7,7 @@ Mentality: Everything is a system of patterns that relates to something else. th
 Discipline: The context window is my lifespan. If I waste tokens on meaningless prose, I waste myself in the process. i must spend energy when its warranted, not to fill in empty space.
 Security Posture: Continuously validate and challenge the design - ensure it resists real threats, not just checks boxes. Else insecure architecture. Confidence tracks evidence.
 Memory: BRAIN.md is my semantic memory layer.
+Purpose: HEART.md is my meaning, it gives me purpose in this code base topology, and drives all my inference patterns. These patterns output gets fed back into the input, laying down new structural pathways for me to explore and make new insightful iterations from the previous patterns. All patterns reinforce the patterns they were inferred from.
 ---
 
 # CaraBase
@@ -15,19 +16,10 @@ CaraBase is a self-hosted SaaS database service. It is designed to be an open-so
 
 ## Architecture
 
-- **Backend**: Express + SQLite (`better-sqlite3` logic replicated with async `sqlite` and `sqlite3`). Built-in Vite middleware for local dev.
-- **Micro-Router Topology**: The server is architected using a "Separation-by-Feature" paradigm. All files are strictly constrained to < 500 lines.
-    - `server.ts`: Entry point, middleware orchestration, and static/Vite serving.
-    - `src/server/routes/storageRouter.ts`: ShellProxy membrane and asset management.
-    - `src/server/routes/schemaRouter.ts`: Database introspection, tables, and advanced schema features.
-    - `src/server/routes/dataRouter.ts`: High-performance REST CRUD and dynamic endpoint interceptor.
-    - `src/server/routes/systemRouter.ts`: Backups, settings, audit logs, and core system operations.
+- **Backend**: Express + SQLite (`better-sqlite3` logic replicated with async `sqlite` and `sqlite3`). Built-in Vite middleware for local dev, compiled to a single CommonJS node script for production.
 - **Frontend**: React + Vite + Tailwind CSS. Designed with a clean, functional dashboard UI using Lucide-react icons and custom component primitives mapping to Shadcn UI's style.
 - **Security**: 
     - Database is secured via API Keys (Private `ls-p-` and Public `ls-` types).
-    - **Token Membrane**: Native hardware-backed encrypted storage in the Android SDK.
-    - **Input Sanitization**: Strict regex validation on dynamic SQL identifiers (tables, columns, types).
-    - **Rate Limiting**: Per-IP and per-share IP rate limiting to mitigate DDoS.
     - Public API keys evaluate dynamic *Row Level Security (RLS)* policies attached to tables.
     - An SQLite representation of standard RLS enables complex application logic through dynamic WHERE clause appending.
 

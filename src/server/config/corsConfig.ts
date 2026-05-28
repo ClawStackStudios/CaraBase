@@ -48,15 +48,16 @@ export function getCorsConfig(): CorsOptions {
           if (allowedOrigins.includes(origin)) return callback(null, true);
 
           console.warn(`[CORS] ⚠️ Rejected origin in production: ${origin}`);
-          return callback(new Error("CORS: Origin not allowed in production"));
+          return callback(null, false);
         } else {
           // In Dev: Allow configured origins or reject
           if (allowedOrigins.includes(origin)) return callback(null, true);
           console.warn(`[CORS] ⚠️ Rejected origin in development: ${origin}`);
-          return callback(new Error("CORS: Origin not allowed"));
+          return callback(null, false);
         }
       } catch (err) {
-        callback(new Error(`CORS: Invalid origin format: ${origin}`));
+        console.warn(`[CORS] ⚠️ Invalid origin format: ${origin}`);
+        callback(null, false);
       }
     },
     credentials: true,

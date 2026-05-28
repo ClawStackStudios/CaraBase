@@ -33,7 +33,7 @@ FROM node:22-bookworm-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=5353
 
 # Copy production node_modules from the prod-deps stage
 COPY --from=prod-deps /app/node_modules ./node_modules
@@ -48,7 +48,7 @@ RUN mkdir -p /app/data && chown -R node:node /app/data
 USER node
 
 VOLUME ["/app/data"]
-EXPOSE 3000
+EXPOSE 5353
 
 # Start the Node.js server
 CMD ["npm", "start"]

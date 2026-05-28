@@ -1566,7 +1566,7 @@ async function startServer() {
 
   const HOST = process.env.HOST ?? (isProduction ? '0.0.0.0' : '127.0.0.1');
 
-  const server = app.listen(PORT, HOST, () => {
+  const server = app.listen(PORT, () => {
     console.log(`\n[Database] Checking migrations...`);
     console.log(`[Database] Migrations complete.`);
     console.log(`\n🔑 System auth and REST routes ready.`);

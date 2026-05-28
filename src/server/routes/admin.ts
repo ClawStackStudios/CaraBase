@@ -165,6 +165,17 @@ router.delete('/users/:uuid', requireAdmin, (req, res) => {
 });
 
 /**
+ * GET /api/admin/stats
+ * Low-level system performance metrics (Memory, Uptime).
+ */
+router.get('/stats', requireAdmin, (_req, res) => {
+  res.json({
+    memory: process.memoryUsage(),
+    uptime: Math.floor(process.uptime())
+  });
+});
+
+/**
  * GET /api/admin/system
  * System health and stats — CaraBase-specific metrics.
  */
