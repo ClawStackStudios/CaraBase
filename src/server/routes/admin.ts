@@ -53,7 +53,7 @@ router.post('/auth', (req, res) => {
       details: { method: 'token' }
     });
 
-    return res.json({ success: true });
+    return res.json({ success: true, token: sessionToken });
   }
 
   audit.log('ADMIN_LOGIN', {

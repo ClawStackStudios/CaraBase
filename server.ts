@@ -67,6 +67,14 @@ async function startServer() {
   app.use(express.json());
   app.use(cookieParser());
 
+  // Request Logger for debugging connection issues
+  app.use((req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      console.log(`[API Request] ${req.method} ${req.path}`);
+    }
+    next();
+  });
+
   // Ensure directories exist
   const dataDir = path.join(process.cwd(), 'data');
   const storageDir = path.join(dataDir, 'storage');
