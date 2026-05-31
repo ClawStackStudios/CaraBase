@@ -135,7 +135,7 @@ router.post('/token', authLimiter, validateBody(AuthSchemas.token), (req, res) =
         type: 'human',
         createdAt: new Date().toISOString(),
         expiresAt,
-        user: { uuid: user.uuid, username: user.username }
+        user: { uuid: user.uuid, username: user.username, role: user.role }
       }
     });
     return;
@@ -258,7 +258,7 @@ router.post('/lookup', authLimiter, (req, res) => {
       return;
     }
 
-    res.json({ uuid: user.uuid, username: user.username });
+    res.json({ uuid: user.uuid, username: user.username, role: user.role });
   } catch (err: any) {
     console.error('[ERROR] /api/auth/lookup:', err.message);
     res.status(500).json({ error: 'Internal server error' });

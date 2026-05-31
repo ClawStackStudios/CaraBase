@@ -88,8 +88,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onBack }) => {
           throw new Error(errorData.error || 'Login failed')
         }
 
-        const { token } = await response.json()
-        login(identity.username, identity.uuid, token, 'human')
+        const { token, data } = await response.json()
+        login(identity.username, identity.uuid, token, 'human', data.user.role)
         setTimeout(() => onSuccess(), 0)
       } else {
         const trimmedPastedKey = pastedKey.trim()
@@ -123,8 +123,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onBack }) => {
           throw new Error(errorData.error || 'Authentication failed')
         }
 
-        const { token } = await tokenResponse.json()
-        login(username, uuid, token, 'human')
+        const { token, data } = await tokenResponse.json()
+        login(username, uuid, token, 'human', data.user.role)
         setTimeout(() => onSuccess(), 0)
       }
     } catch (err: any) {

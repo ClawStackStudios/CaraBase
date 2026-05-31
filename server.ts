@@ -335,6 +335,25 @@ async function startServer() {
     }
   });
 
+  systemApi.delete('/tables/:name', requireRole('admin'), (req, res) => {
+    const safeIdent = (str: string) => str.replace(/[^a-zA-Z0-9_]/g, '');
+    const safeTable = safeIdent(req.params.name);
+    
+    if (!safeTable) return res.status(400).json({ error: 'Invalid table name' });
+    
+    // Prevent dropping core system tables
+    if (safeTable.startsWith('_carabase_') || safeTable === 'users' || safeTable === 'agent_keys' || safeTable === 'api_tokens' || safeTable === 'audit_logs' || safeTable === 'system_settings') {
+      return res.status(403).json({ error: 'Cannot drop core system tables' });
+    }
+
+    try {
+      db.exec(`DROP TABLE IF EXISTS ${safeTable}`);
+      res.json({ success: true, message: `Table ${safeTable} dropped successfully` });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   systemApi.get('/tables/:name/columns', (req, res) => {
     const safeTable = req.params.name.replace(/[^a-zA-Z0-9_]/g, '');
     try {

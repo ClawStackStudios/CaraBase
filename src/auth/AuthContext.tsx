@@ -7,7 +7,8 @@ export interface AuthContextType {
   userUuid: string | null
   keyType: 'human' | 'agent' | null
   apiToken: string | null
-  login: (username: string, uuid: string, token: string, keyType: 'human' | 'agent') => void
+  role: 'viewer' | 'admin' | 'superadmin' | null
+  login: (username: string, uuid: string, token: string, keyType: 'human' | 'agent', role?: 'viewer' | 'admin' | 'superadmin') => void
   logout: () => void
 }
 
@@ -29,20 +30,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [apiToken, setApiToken] = useState<string | null>(() => {
     return safeGetItem('cb_api_token')
   })
+  const [role, setRole] = useState<'viewer' | 'admin' | 'superadmin' | null>(() => {
+    return safeGetItem('cb_user_role') as ('viewer' | 'admin' | 'superadmin' | null) || null
+  })
 
   // Keep an empty useEffect if needed, but not required for init now.
   useEffect(() => {}, [])
 
-  const login = (username: string, uuid: string, token: string, keyType: 'human' | 'agent') => {
+  const login = (username: string, uuid: string, token: string, keyType: 'human' | 'agent', userRole?: 'viewer' | 'admin' | 'superadmin') => {
+    const finalRole = userRole || 'viewer'
     safeSetItem('cb_api_token', token)
     safeSetItem('cb_username', username)
     safeSetItem('cb_user_uuid', uuid)
     safeSetItem('cb_key_type', keyType)
+    safeSetItem('cb_user_role', finalRole)
 
     setApiToken(token)
     setUsername(username)
     setUserUuid(uuid)
     setKeyType(keyType)
+    setRole(finalRole)
     setIsAuthenticated(true)
   }
 
@@ -51,11 +58,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     safeRemoveItem('cb_username')
     safeRemoveItem('cb_user_uuid')
     safeRemoveItem('cb_key_type')
+    safeRemoveItem('cb_user_role')
 
     setApiToken(null)
     setUsername(null)
     setUserUuid(null)
     setKeyType(null)
+    setRole(null)
     setIsAuthenticated(false)
   }
 
@@ -66,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       userUuid,
       keyType,
       apiToken,
+      role,
       login,
       logout
     }}>

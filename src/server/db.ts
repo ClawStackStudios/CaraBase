@@ -2,6 +2,7 @@ import Database from 'better-sqlite3-multiple-ciphers';
 import path from 'path';
 import fs from 'fs';
 import { AsyncLocalStorage } from 'async_hooks';
+import crypto from 'crypto';
 
 export const rlsContext = new AsyncLocalStorage<{ userUuid: string | null; username: string | null }>();
 
@@ -237,6 +238,30 @@ try {
 } catch (e: any) {
   console.error('[CaraBase DB] Fatal error running migrations:', e.message);
   process.exit(1);
+}
+
+// Auto-inject the SuperLobster user from ADMIN_TOKEN
+if (process.env.ADMIN_TOKEN) {
+  try {
+    const adminHash = crypto.createHash('sha256').update(process.env.ADMIN_TOKEN).digest('hex');
+    const adminUuid = '00000000-0000-4000-8000-superlobster'; 
+    
+    // Attempt to upsert the SuperLobster user. 
+    // We use INSERT OR IGNORE and then UPDATE to avoid strict ON CONFLICT syntax errors on multiple unique constraints.
+    db.prepare(`
+      INSERT OR IGNORE INTO users (uuid, username, key_hash, role, created_at) 
+      VALUES (?, 'superlobster', ?, 'superadmin', CURRENT_TIMESTAMP)
+    `).run(adminUuid, adminHash);
+
+    db.prepare(`
+      UPDATE users 
+      SET key_hash = ?, role = 'superadmin' 
+      WHERE username = 'superlobster'
+    `).run(adminHash);
+
+  } catch (err: any) {
+    console.error('[CaraBase DB] Failed to auto-inject SuperLobster user:', err.message);
+  }
 }
 
 export default db;
