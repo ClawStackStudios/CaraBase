@@ -54,3 +54,45 @@ Every major systemic event in CaraBase is immutably logged into the `audit_logs`
 - RLS Policy Modification
 
 These logs can be searched, filtered, and expanded directly within the SuperAdmin dashboard for total system observability.
+
+---
+
+## The Dual-Dashboard Architecture & SuperLobster Identity
+
+CaraBase is fundamentally designed as a Backend-as-a-Service (BaaS). To support this horizontally scalable model, CaraBase enforces a strict Role-Based Access Control (RBAC) topology across **two distinct dashboard interfaces**:
+
+#### The `superadmin` Role (The SuperLobster)
+To manage the database schema, write APIs, and handle backups, you must log into the Main Dashboard as the **SuperLobster**. 
+
+The SuperLobster is an omnipotent identity automatically injected into the CaraBase database on boot. When the server starts, it reads the `ADMIN_TOKEN` from your `.env` file, hashes it, and maps it to a permanent `superlobster` user with `superadmin` privileges.
+
+**To access the Main Dashboard as SuperLobster:**
+1. Navigate to the specialized `/admin-login` route instead of `/login`.
+2. Enter your raw `ADMIN_TOKEN` string.
+3. The system will cryptographically verify the token, issue a session, and grant you full access to all structural tools (SQL Editor, Table Editor, Backups, API Builder, etc.).
+
+**To access the SuperAdmin Operations Dashboard as SuperLobster:**
+1. Navigate to the specialized `/admin` route instead of `/login`.
+2. Enter your raw `ADMIN_TOKEN` string.
+3. The system will cryptographically verify the token, issue a session, and grant you full access to all the tools you need to manage your app (system health, process management, user audits, and security metrics).
+
+#### The SuperAdmin Operations Dashboard (`/admin`)
+This is the original, isolated dashboard discussed above. It is used strictly for meta-level observability: system health, process management, user audits, and security metrics. It does not provide direct access to mutate data or schema. Authentication is handled ephemerally via in-memory sessions. 
+
+#### The SuperAdmin Login Page (`/admin-login`)
+This is the login page for the main dashboard when logged in as the SuperLobster. It is used to access the main dashboard and to log out of the main dashboard as the SuperLobster.
+
+This is a separate login page from the /login page, which is used to log in as a standard user. The key used for the admin login page is the ADMIN_TOKEN from the .env file. In a production environment, the login page should be secured with https and ADMIN_TOKEN should be a strong, random string. 
+The admin login page is not visible to standard users, and options in the main dashboard for SuperLobster are not visible to standard users.
+
+---
+
+### 2. The Main BaaS Dashboard (`/dashboard`)
+This is the primary workspace where schemas are built, policies are defined, and data is managed. Because CaraBase supports multi-tenant applications, standard users can generate ClawKeys and log into this dashboard to manage their own specific slices of data (bound by Row Level Security). 
+
+To prevent standard users from modifying the database schema or viewing systemic settings, the Main Dashboard enforces strict RBAC:
+
+#### The `viewer` Role (Standard Users)
+When a normal human user creates a ClawKey and logs into the main dashboard, they are assigned the `viewer` role. Their UI is heavily restricted to prevent structural modifications:
+- **Allowed:** They can only access the **Dashboard** overview, the **Setup Wizard**, their **Policies** (to manage their own RLS conditions), and the **Storage Ecosystem** (for managing file buckets/shares).
+- **Restricted:** They cannot see the Table Editor, SQL Editor, Triggers, Views, Indexes, API Builder, Keys, or Backups. If they attempt to forge API requests to these endpoints, the backend will reject them with a `403 Forbidden` error.
