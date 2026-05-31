@@ -11,6 +11,7 @@ import { AuthProvider } from './auth/AuthContext';
 import LandingPage from './pages/LandingPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import LoginForm from './components/auth/LoginForm';
+import SuperLobsterLogin from './components/auth/SuperLobsterLogin';
 import SetupWizard from './components/auth/SetupWizard';
 import { useAuth } from './hooks/useAuth';
 import { ThemeProvider } from './context/ThemeContext';
@@ -57,6 +58,11 @@ function AppRoutes() {
       <Route path="/login" element={
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 transition-colors duration-300">
           <LoginForm onSuccess={() => navigate('/dashboard')} onBack={() => navigate('/')} />
+        </div>
+      } />
+      <Route path="/admin-login" element={
+        <div className="min-h-screen bg-[#0f1419] flex flex-col items-center justify-center p-4 transition-colors duration-300">
+          <SuperLobsterLogin onSuccess={() => navigate('/dashboard')} onBack={() => navigate('/')} />
         </div>
       } />
       <Route path="/setup" element={

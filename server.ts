@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
@@ -44,11 +45,11 @@ async function startServer() {
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://static.cloudflareinsights.com"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
         imgSrc: ["'self'", 'data:', 'https:'],
-        connectSrc: ["'self'", 'wss:', 'ws:', "https://cloudflareinsights.com"],
+        connectSrc: ["'self'", 'wss:', 'ws:'],
         frameAncestors: isProduction ? ["'self'"] : ["'self'", "*"],
         upgradeInsecureRequests: process.env.ENFORCE_HTTPS === 'true' ? [] : null,
       },
@@ -65,6 +66,14 @@ async function startServer() {
   app.use(cors(getCorsConfig()));
   app.use(express.json());
   app.use(cookieParser());
+
+  // Request Logger for debugging connection issues
+  app.use((req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      console.log(`[API Request] ${req.method} ${req.path}`);
+    }
+    next();
+  });
 
   // Ensure directories exist
   const dataDir = path.join(process.cwd(), 'data');
@@ -106,6 +115,38 @@ async function startServer() {
   // --- System API: Internal dashboard management ---
   const systemApi = express.Router();
   systemApi.use(requireAuth, sandboxAgentKeys);
+
+  systemApi.get('/telemetry', requireRole('superadmin'), (req, res) => {
+    try {
+      const dataDir = process.env.DATA_DIR || path.join(process.cwd(), 'data');
+      const mainDbPath = path.join(dataDir, 'carabase.sqlite');
+
+      let dbSize = 0;
+      if (fs.existsSync(mainDbPath)) dbSize = fs.statSync(mainDbPath).size;
+
+      const tableCount = db.prepare(`
+        SELECT COUNT(*) as count FROM sqlite_schema 
+        WHERE type='table' 
+        AND name NOT LIKE '_carabase_%' 
+        AND name NOT LIKE 'sqlite_%' 
+        AND name NOT IN ('users', 'api_tokens', 'agent_keys', 'audit_logs', 'system_settings')
+      `).get() as any;
+
+      const stats = {
+        totalUsers: (db.prepare('SELECT COUNT(*) as count FROM users').get() as any).count,
+        totalTables: tableCount.count,
+        totalPolicies: (db.prepare('SELECT COUNT(*) as count FROM _carabase_policies').get() as any).count,
+        totalEndpoints: (db.prepare('SELECT COUNT(*) as count FROM _carabase_custom_endpoints').get() as any).count,
+        dbSize,
+        uptime: process.uptime(),
+        lastAudit: (db.prepare('SELECT timestamp FROM audit_logs ORDER BY timestamp DESC LIMIT 1').get() as any)?.timestamp || null
+      };
+
+      res.json({ success: true, data: stats });
+    } catch (e: any) {
+      res.status(500).json({ success: false, error: e.message });
+    }
+  });
 
   systemApi.get('/backups', requireRole('superadmin'), (req, res) => {
     try {
@@ -289,6 +330,25 @@ async function startServer() {
     try {
       db.exec(`CREATE TABLE ${safeTable} (${colsDef})`);
       res.json({ success: true, table: safeTable });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  systemApi.delete('/tables/:name', requireRole('admin'), (req, res) => {
+    const safeIdent = (str: string) => str.replace(/[^a-zA-Z0-9_]/g, '');
+    const safeTable = safeIdent(req.params.name);
+    
+    if (!safeTable) return res.status(400).json({ error: 'Invalid table name' });
+    
+    // Prevent dropping core system tables
+    if (safeTable.startsWith('_carabase_') || safeTable === 'users' || safeTable === 'agent_keys' || safeTable === 'api_tokens' || safeTable === 'audit_logs' || safeTable === 'system_settings') {
+      return res.status(403).json({ error: 'Cannot drop core system tables' });
+    }
+
+    try {
+      db.exec(`DROP TABLE IF EXISTS ${safeTable}`);
+      res.json({ success: true, message: `Table ${safeTable} dropped successfully` });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
     }
@@ -569,90 +629,52 @@ async function startServer() {
   });
 
   const authenticateDataApi = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    let apiKey = (req.headers['apikey'] as string) || (req.query.apikey as string);
-    let sessionToken: string | undefined;
-
+    let legacyKey = (req.headers['apikey'] as string) || (req.query.apikey as string);
     const authHeader = req.headers.authorization;
+
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.substring(7).trim();
       if (token.startsWith('ls-p-') || token.startsWith('ls-') || token.startsWith('pk_')) {
-        apiKey = token;
-      } else {
-        sessionToken = token;
+        legacyKey = token;
       }
     }
 
-    try {
-      if (sessionToken) {
-        if (sessionToken.startsWith('api-')) {
-          const hashedToken = crypto.createHash('sha256').update(sessionToken).digest('hex');
-          const tokenRow = db.prepare('SELECT * FROM api_tokens WHERE token_hash = ? AND revoked_at IS NULL').get(hashedToken) as any;
-          if (tokenRow) {
-            const isExpired = new Date(tokenRow.expires_at) < new Date();
-            if (!isExpired) {
-              if (tokenRow.owner_type === 'human') {
-                (req as any).userUuid = tokenRow.owner_key;
-                const userRow = db.prepare('SELECT username FROM users WHERE uuid = ?').get(tokenRow.owner_key) as any;
-                if (userRow) {
-                  (req as any).username = userRow.username;
-                }
-                if (!apiKey) {
-                  (req as any).apiKey = { type: 'session' };
-                }
-              } else if (tokenRow.owner_type === 'agent') {
-                const agentRow = db.prepare('SELECT user_uuid, name FROM agent_keys WHERE api_key_hash = ? AND is_active = 1').get(tokenRow.owner_key) as any;
-                if (agentRow) {
-                  (req as any).userUuid = agentRow.user_uuid;
-                  (req as any).username = `agent:${agentRow.name}`;
-                }
-                if (!apiKey) {
-                  (req as any).apiKey = { type: 'session' };
-                }
-              }
-            }
-          }
-        } else if (sessionToken.startsWith('hu-')) {
-          const keyHash = crypto.createHash('sha256').update(sessionToken).digest('hex');
-          const userRow = db.prepare('SELECT uuid, username FROM users WHERE key_hash = ?').get(keyHash) as any;
-          if (userRow) {
-            (req as any).userUuid = userRow.uuid;
-            (req as any).username = userRow.username;
-            if (!apiKey) {
-               (req as any).apiKey = { type: 'session' };
-            }
-          }
-        } else if (sessionToken.startsWith('lb-')) {
-          const keyHash = crypto.createHash('sha256').update(sessionToken).digest('hex');
-          const agentRow = db.prepare('SELECT user_uuid, name, expiration_date FROM agent_keys WHERE api_key_hash = ? AND is_active = 1').get(keyHash) as any;
-          if (agentRow) {
-            const isExpired = agentRow.expiration_date && new Date(agentRow.expiration_date) < new Date();
-            if (!isExpired) {
-              (req as any).userUuid = agentRow.user_uuid;
-              (req as any).username = `agent:${agentRow.name}`;
-              if (!apiKey) {
-                 (req as any).apiKey = { type: 'session' };
-              }
-            }
-          }
-        }
-      }
-
-      if (apiKey) {
-        const apiKeyRow = db.prepare('SELECT * FROM _carabase_api_keys WHERE key = ?').get(apiKey) as any;
+    if (legacyKey) {
+      // Legacy _carabase_api_keys auth
+      try {
+        const apiKeyRow = db.prepare('SELECT * FROM _carabase_api_keys WHERE key = ?').get(legacyKey) as any;
         if (!apiKeyRow) {
-           return res.status(401).json({ error: 'Invalid API Key' });
+           return res.status(401).json({ error: 'Invalid Legacy API Key' });
         }
         (req as any).apiKey = apiKeyRow;
+        return next();
+      } catch (e: any) {
+        return res.status(500).json({ error: 'Authentication Error: ' + e.message });
       }
-
-      if (!(req as any).apiKey) {
-          return res.status(401).json({ error: 'Missing API Key or Valid Dashboard Session' });
-      }
-
-      next();
-    } catch (e: any) {
-      res.status(500).json({ error: 'Authentication Error: ' + e.message });
     }
+
+    // Modern ClawChives Auth (hu-, lb-, api-)
+    requireAuth(req, res, () => {
+      // After requireAuth succeeds, map AuthRequest properties to the format externalApi expects
+      const authReq = req as AuthRequest;
+      (req as any).userUuid = authReq.userUuid;
+      (req as any).username = authReq.username;
+      
+      // We synthesize an apiKey object so applyRls can check for bypasses
+      let isPrivate = false;
+      if (authReq.role === 'superadmin' || authReq.role === 'admin' || authReq.agentPermissions?.level === 'full') {
+         isPrivate = true;
+      }
+      
+      (req as any).apiKey = { 
+        type: isPrivate ? 'private' : 'public',
+        _isModern: true,
+        role: authReq.role,
+        permissions: authReq.agentPermissions
+      };
+      
+      next();
+    });
   };
 
   const validateTargetTable = (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -733,7 +755,7 @@ async function startServer() {
       next();
     } catch (e: any) {
       console.error('[Public API Guard] Error:', e);
-      next(); // Fail open if db error so we don't brick the app, or fail closed? Fail open is safer.
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
   };
 
@@ -1534,7 +1556,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.get('*all', (req, res) => {
       if (req.path.startsWith('/api') || req.path.startsWith('/storage') || req.path.startsWith('/rest')) {
         return res.status(404).json({ error: 'Not Found' });
       }
@@ -1571,7 +1593,7 @@ async function startServer() {
 
   const HOST = process.env.HOST ?? (isProduction ? '0.0.0.0' : '127.0.0.1');
 
-  const server = app.listen(PORT, HOST, () => {
+  const server = app.listen(PORT, () => {
     console.log(`\n[Database] Checking migrations...`);
     console.log(`[Database] Migrations complete.`);
     console.log(`\n🔑 System auth and REST routes ready.`);

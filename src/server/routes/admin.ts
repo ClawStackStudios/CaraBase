@@ -10,6 +10,7 @@
 import { Router } from 'express';
 import db from '../db.js';
 import { requireAdmin, isAdminSessionValid, createAdminSession, destroyAdminSession } from '../middleware/requireAdmin.js';
+import { adminAuthLimiter } from '../middleware/adminLimiter.js';
 import { timingSafeCompare, hashKey } from '../utils/crypto.js';
 import { createAuditLogger } from '../utils/auditLogger.js';
 import crypto from 'crypto';
@@ -24,7 +25,7 @@ const audit = createAuditLogger(db);
  * Client SHA-256 hashes the ADMIN_TOKEN, sends the hash.
  * Server hashes its own ADMIN_TOKEN and compares using timing-safe comparison.
  */
-router.post('/auth', (req, res) => {
+router.post('/auth', adminAuthLimiter, (req, res) => {
   const { token } = req.body;
   if (!token || typeof token !== 'string') {
     return res.status(400).json({ success: false, error: 'Token required' });
@@ -37,7 +38,7 @@ router.post('/auth', (req, res) => {
 
   const expectedHash = crypto.createHash('sha256').update(expectedToken).digest('hex');
   if (timingSafeCompare(token, expectedHash)) {
-    const sessionToken = createAdminSession();
+    const sessionToken = createAdminSession(req);
     res.cookie('cb_admin_session', sessionToken, {
       httpOnly: true,
       secure: process.env.ENFORCE_HTTPS === 'true',
@@ -53,7 +54,7 @@ router.post('/auth', (req, res) => {
       details: { method: 'token' }
     });
 
-    return res.json({ success: true });
+    return res.json({ success: true, token: sessionToken });
   }
 
   audit.log('ADMIN_LOGIN', {
@@ -73,7 +74,7 @@ router.post('/auth', (req, res) => {
  */
 router.get('/verify', (req, res) => {
   const sessionToken = req.cookies?.cb_admin_session || req.headers['x-admin-session'];
-  const isValid = isAdminSessionValid(sessionToken as string | undefined);
+  const isValid = isAdminSessionValid(req, sessionToken as string | undefined);
   res.json({ success: isValid });
 });
 
@@ -165,6 +166,17 @@ router.delete('/users/:uuid', requireAdmin, (req, res) => {
 });
 
 /**
+ * GET /api/admin/stats
+ * Low-level system performance metrics (Memory, Uptime).
+ */
+router.get('/stats', requireAdmin, (_req, res) => {
+  res.json({
+    memory: process.memoryUsage(),
+    uptime: Math.floor(process.uptime())
+  });
+});
+
+/**
  * GET /api/admin/system
  * System health and stats — CaraBase-specific metrics.
  */
@@ -190,7 +202,7 @@ router.get('/system', requireAdmin, (_req, res) => {
     totalPolicies: (db.prepare('SELECT COUNT(*) as count FROM _carabase_policies').get() as any).count,
     totalEndpoints: (db.prepare('SELECT COUNT(*) as count FROM _carabase_custom_endpoints').get() as any).count,
     dbSize,
-    uptime: process.uptime(),
+    uptime: Math.floor(process.uptime()),
     lastAudit: (db.prepare('SELECT timestamp FROM audit_logs ORDER BY timestamp DESC LIMIT 1').get() as any)?.timestamp || null
   };
 

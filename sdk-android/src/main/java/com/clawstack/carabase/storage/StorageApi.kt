@@ -14,7 +14,7 @@ import io.ktor.http.HttpHeaders
  * 
  * Handles file uploads via multipart/form-data to the CaraBase storage engine.
  */
-class StorageApi(
+class StorageApi internal constructor(
     private val client: CaraBaseClient,
     private val baseUrl: String
 ) {

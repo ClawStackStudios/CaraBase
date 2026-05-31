@@ -40,18 +40,6 @@ router.post(
     const authReq = req as AuthRequest;
     const { name, description, permissions, expirationType, rateLimit } = req.body;
 
-    const dup = db.prepare(
-      'SELECT id FROM agent_keys WHERE name = ? AND is_active = 1 AND user_uuid = ?'
-    ).get(name, authReq.userUuid);
-
-    if (dup) {
-      res.status(409).json({
-        success: false,
-        error: `An active agent key named "${name}" already exists`
-      });
-      return;
-    }
-
     let expDate = null;
     if (expirationType && expirationType !== 'never') {
       expDate = calculateExpiry(expirationType);
@@ -75,15 +63,38 @@ router.post(
       last_used: null
     };
 
-    db.prepare(
-      `INSERT INTO agent_keys (
-        id, user_uuid, name, description, api_key_hash, permissions,
-        expiration_type, expiration_date, rate_limit, is_active, created_at, last_used
-      ) VALUES (
-        @id, @user_uuid, @name, @description, @api_key_hash, @permissions,
-        @expiration_type, @expiration_date, @rate_limit, @is_active, @created_at, @last_used
-      )`
-    ).run(keyData);
+    const insertKey = db.transaction(() => {
+      const dup = db.prepare(
+        'SELECT id FROM agent_keys WHERE name = ? AND is_active = 1 AND user_uuid = ?'
+      ).get(name, authReq.userUuid);
+
+      if (dup) {
+        throw new Error('DUPLICATE_NAME');
+      }
+
+      db.prepare(
+        `INSERT INTO agent_keys (
+          id, user_uuid, name, description, api_key_hash, permissions,
+          expiration_type, expiration_date, rate_limit, is_active, created_at, last_used
+        ) VALUES (
+          @id, @user_uuid, @name, @description, @api_key_hash, @permissions,
+          @expiration_type, @expiration_date, @rate_limit, @is_active, @created_at, @last_used
+        )`
+      ).run(keyData);
+    });
+
+    try {
+      insertKey.immediate();
+    } catch (err: any) {
+      if (err.message === 'DUPLICATE_NAME') {
+        res.status(409).json({
+          success: false,
+          error: `An active agent key named "${name}" already exists`
+        });
+        return;
+      }
+      throw err;
+    }
 
     audit.log('AGENT_KEY_CREATED', {
       actor: authReq.userUuid,

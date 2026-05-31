@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { apiFetch } from "@/config/apiConfig";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { ConfirmDialogInput } from "@/components/ui/confirm-dialog-input";
 import { useToast } from "@/context/ToastContext";
 
 export default function TableEditor() {
@@ -100,6 +101,11 @@ export default function TableEditor() {
   const [indexToDelete, setIndexToDelete] = useState<string | null>(null);
   const [isDropIndexConfirmOpen, setIsDropIndexConfirmOpen] = useState(false);
   const [isDroppingIndex, setIsDroppingIndex] = useState(false);
+
+  // Confirm Dialog State (Table Drop)
+  const [tableToDelete, setTableToDelete] = useState<string | null>(null);
+  const [isDropTableConfirmOpen, setIsDropTableConfirmOpen] = useState(false);
+  const [isDroppingTable, setIsDroppingTable] = useState(false);
 
   useEffect(() => {
     fetchTables();
@@ -410,6 +416,33 @@ export default function TableEditor() {
     }
   }
 
+  // Table Drop Operations
+  function triggerDropTable(tableName: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    setTableToDelete(tableName);
+    setIsDropTableConfirmOpen(true);
+  }
+
+  async function confirmDropTable() {
+    if (!tableToDelete) return;
+    setIsDroppingTable(true);
+    setIsDropTableConfirmOpen(false);
+
+    try {
+      const res = await apiFetch(`/api/system/tables/${tableToDelete}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(await res.text());
+      toast.success(`Table "${tableToDelete}" dropped successfully.`);
+      if (selectedTable === tableToDelete) setSelectedTable(null);
+      setTableToDelete(null);
+      fetchTables();
+    } catch (err) {
+      console.error(err);
+      toast.error('Drop table failed: ' + (err as Error).message);
+    } finally {
+      setIsDroppingTable(false);
+    }
+  }
+
   // Row Delete Operations
   function triggerDeleteRow(row: any, e: React.MouseEvent) {
     e.stopPropagation();
@@ -616,7 +649,7 @@ export default function TableEditor() {
           <p className="text-sm text-slate-500 dark:text-slate-400">Manipulate schemas, search user data, and operate table records.</p>
         </div>
         {!isCreating && (
-          <Button onClick={() => setIsCreating(true)} className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-0 transition-all shadow-sm">
+          <Button onClick={() => setIsCreating(true)} className="gap-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white border-0 transition-all shadow-sm">
             <Plus className="h-4 w-4" /> New Table
           </Button>
         )}
@@ -748,7 +781,7 @@ export default function TableEditor() {
                 </Button>
               </div>
               <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-850">
-                <Button onClick={handleCreateTable} disabled={isSubmittingTable} className="bg-emerald-650 hover:bg-emerald-700 text-white">
+                <Button onClick={handleCreateTable} disabled={isSubmittingTable} className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white">
                   {isSubmittingTable ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                   Create Table
                 </Button>
@@ -779,14 +812,22 @@ export default function TableEditor() {
           </div>
           <div className="p-2 space-y-1 overflow-y-auto flex-1">
             {filteredTables.map(t => (
-              <button
-                key={t.name}
-                onClick={() => setSelectedTable(t.name)}
-                className={`w-full text-left px-3 py-2.5 text-sm rounded-md flex items-center gap-2 transition-colors border-0 cursor-pointer ${selectedTable === t.name ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-450 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40'}`}
-              >
-                <Table2 className="h-4 w-4 opacity-70" />
-                {t.name}
-              </button>
+              <div key={t.name} className={`group w-full flex items-center justify-between px-2 py-1 text-sm rounded-md transition-colors ${selectedTable === t.name ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-450 font-semibold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40'}`}>
+                <button
+                  onClick={() => setSelectedTable(t.name)}
+                  className="flex-1 text-left flex items-center gap-2 border-0 bg-transparent cursor-pointer text-inherit font-inherit py-1.5"
+                >
+                  <Table2 className="h-4 w-4 opacity-70 shrink-0" />
+                  <span className="truncate">{t.name}</span>
+                </button>
+                <button
+                  onClick={(e) => triggerDropTable(t.name, e)}
+                  className="bg-transparent border-0 cursor-pointer p-1.5 text-slate-400 hover:text-red-550 hover:bg-red-50 dark:hover:bg-red-950/30 rounded opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                  title="Drop Table"
+                >
+                  <Trash className="h-3.5 w-3.5" />
+                </button>
+              </div>
             ))}
             {filteredTables.length === 0 && !loading && (
               <p className="text-sm text-slate-500 dark:text-slate-450 p-4 text-center">No tables match search.</p>
@@ -842,7 +883,7 @@ export default function TableEditor() {
                          </button>
                        )}
                      </div>
-                     <Button onClick={openInsertDrawer} className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 transition-all text-xs py-1 h-[32px]">
+                     <Button onClick={openInsertDrawer} className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white border-0 transition-all text-xs py-1 h-[32px]">
                        Insert Row
                      </Button>
                    </div>
@@ -1091,12 +1132,12 @@ export default function TableEditor() {
                                 id="coladd-notnull"
                                 checked={colToAdd.notNull}
                                 onChange={(e) => setColToAdd(prev => ({ ...prev, notNull: e.target.checked }))}
-                                className="h-4.5 w-4.5 rounded text-emerald-650 focus:ring-emerald-500 bg-white dark:bg-slate-950"
+                                className="h-4.5 w-4.5 rounded text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-slate-950"
                               />
                               <label htmlFor="coladd-notnull" className="text-xs font-semibold text-slate-700 dark:text-slate-350 select-none">NOT NULL</label>
                             </div>
                             
-                            <Button type="submit" disabled={isSubmittingColumn} className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 py-1.5 px-4 h-9 shadow-xs text-xs font-semibold">
+                            <Button type="submit" disabled={isSubmittingColumn} className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white border-0 py-1.5 px-4 h-9 shadow-xs text-xs font-semibold">
                               {isSubmittingColumn ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : null} Add Column
                             </Button>
                           </div>
@@ -1170,10 +1211,10 @@ export default function TableEditor() {
                             </div>
                             <div className="flex items-center h-9 justify-between md:justify-start gap-4 col-span-2">
                               <div className="flex items-center gap-1.5 mr-2">
-                                <input type="checkbox" id="idx-unique" checked={indexForm.unique} onChange={e => setIndexForm(prev => ({...prev, unique: e.target.checked}))} className="h-4.5 w-4.5 rounded text-emerald-650 focus:ring-emerald-500 bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700" />
+                                <input type="checkbox" id="idx-unique" checked={indexForm.unique} onChange={e => setIndexForm(prev => ({...prev, unique: e.target.checked}))} className="h-4.5 w-4.5 rounded text-emerald-600 focus:ring-emerald-500 bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700" />
                                 <label htmlFor="idx-unique" className="text-xs font-semibold text-slate-700 dark:text-slate-350 select-none">UNIQUE</label>
                               </div>
-                              <Button type="submit" disabled={isSubmittingIndex} className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 py-1.5 px-4 h-9 shadow-xs text-xs font-semibold whitespace-nowrap">
+                              <Button type="submit" disabled={isSubmittingIndex} className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white border-0 py-1.5 px-4 h-9 shadow-xs text-xs font-semibold whitespace-nowrap">
                                 {isSubmittingIndex ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : null} Create Index
                               </Button>
                             </div>
@@ -1245,15 +1286,25 @@ export default function TableEditor() {
                             </div>
                             <div>
                                <label className="text-xs font-semibold mb-1 block text-slate-600 dark:text-slate-350">On Delete</label>
-                               <select className="flex h-9 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-1 text-sm shadow-sm focus:ring-emerald-500 focus:border-emerald-555" value={fkForm.onDelete} onChange={e => setFkForm(prev => ({...prev, onDelete: e.target.value}))}>
+                               <select className="flex h-9 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-1 text-sm shadow-sm focus:ring-emerald-500 focus:border-emerald-500" value={fkForm.onDelete} onChange={e => setFkForm(prev => ({...prev, onDelete: e.target.value}))}>
                                  <option value="RESTRICT">RESTRICT</option>
                                  <option value="CASCADE">CASCADE</option>
                                  <option value="SET NULL">SET NULL</option>
                                </select>
                             </div>
-                            <div className="flex justify-end">
-                              <Button type="submit" disabled={isSubmittingFK} className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 py-1.5 px-4 h-9 shadow-xs text-xs font-semibold w-full">
-                                {isSubmittingFK ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : null} Add FK
+                            <div>
+                               <label className="text-xs font-semibold mb-1 block text-slate-600 dark:text-slate-350">On Update</label>
+                               <select className="flex h-9 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-1 text-sm shadow-sm focus:ring-emerald-500 focus:border-emerald-555" value={fkForm.onUpdate} onChange={e => setFkForm(prev => ({...prev, onUpdate: e.target.value}))}>
+                                 <option value="RESTRICT">RESTRICT</option>
+                                 <option value="CASCADE">CASCADE</option>
+                                 <option value="SET NULL">SET NULL</option>
+                                 <option value="SET DEFAULT">SET DEFAULT</option>
+                                 <option value="NO ACTION">NO ACTION</option>
+                               </select>
+                            </div>
+                            <div className="col-span-1 md:col-span-5 flex justify-end mt-2">
+                              <Button type="submit" disabled={isSubmittingFK} className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white border-0 py-1.5 px-4 h-9 shadow-xs text-xs font-semibold w-full">
+                                {isSubmittingFK ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : null} Add Foreign Key
                               </Button>
                             </div>
                          </div>
@@ -1397,7 +1448,7 @@ export default function TableEditor() {
                 <Button 
                   type="submit" 
                   disabled={drawerSubmitting || Object.values(jsonErrors).some(err => err !== "")}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white border-0 py-2 shadow-sm font-semibold transition-all"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white border-0 py-2 shadow-sm font-semibold transition-all"
                 >
                   {drawerSubmitting ? "Saving..." : drawerMode === "insert" ? "Insert Record" : "Save Changes"}
                 </Button>
@@ -1414,6 +1465,21 @@ export default function TableEditor() {
           </div>
         </div>
       )}
+
+      {/* Table Drop confirmation dialog */}
+      <ConfirmDialogInput
+        isOpen={isDropTableConfirmOpen}
+        title="Confirm Table Deletion"
+        description={`Are you absolutely sure you want to drop the entire table "${tableToDelete}"? This action executes a DROP TABLE statement, deleting all schema and rows permanently.`}
+        expectedInput={tableToDelete || ""}
+        confirmText="Yes, Drop Table"
+        cancelText="Cancel"
+        onConfirm={confirmDropTable}
+        onCancel={() => {
+          setIsDropTableConfirmOpen(false);
+          setTableToDelete(null);
+        }}
+      />
 
       {/* Row Deletion confirmation dialog */}
       <ConfirmDialog

@@ -2,6 +2,7 @@ import Database from 'better-sqlite3-multiple-ciphers';
 import path from 'path';
 import fs from 'fs';
 import { AsyncLocalStorage } from 'async_hooks';
+import crypto from 'crypto';
 
 export const rlsContext = new AsyncLocalStorage<{ userUuid: string | null; username: string | null }>();
 
@@ -13,6 +14,7 @@ if (!fs.existsSync(dataDir)) {
 
 const dbPath = path.join(dataDir, 'carabase.sqlite'); // keep filename from app
 const encryptionKey = process.env.DB_ENCRYPTION_KEY;
+console.log('[DB Debug] DB_ENCRYPTION_KEY exists:', !!encryptionKey);
 
 function openDatabase(): Database.Database {
   const db = new Database(dbPath);
@@ -22,13 +24,30 @@ function openDatabase(): Database.Database {
 
     try {
       db.pragma('user_version');
-    } catch (e) {
-      console.log('[DB] Detected unencrypted database — migrating to encrypted...');
+      console.log('[DB] user_version check succeeded.');
+    } catch (e: any) {
       db.close();
-      encryptExistingDatabase(dbPath, encryptionKey);
-      const encrypted = new Database(dbPath);
-      encrypted.pragma(`key = '${encryptionKey}'`);
-      return encrypted;
+      
+      // Perform strict binary invariant check
+      const fd = fs.openSync(dbPath, 'r');
+      const header = Buffer.alloc(16);
+      fs.readSync(fd, header, 0, 16, 0);
+      fs.closeSync(fd);
+      
+      const isPlaintext = header.toString('utf8') === 'SQLite format 3\x00';
+      
+      if (isPlaintext) {
+        console.log('[DB] Detected unencrypted database with valid plaintext header — migrating to encrypted...');
+        encryptExistingDatabase(dbPath, encryptionKey);
+        const encrypted = new Database(dbPath);
+        encrypted.pragma(`key = '${encryptionKey}'`);
+        return encrypted;
+      } else {
+        console.error('[CaraBase Security] FATAL ERROR: Database encryption key mismatch or corrupted volume!');
+        console.error('[CaraBase Security] The provided DB_ENCRYPTION_KEY could not decrypt the existing database, and the volume is NOT plaintext.');
+        console.error(`[CaraBase Security] Underlying SQLite Error: ${e.message}`);
+        process.exit(1);
+      }
     }
   } else {
     if (process.env.NODE_ENV === 'production') {
@@ -42,16 +61,10 @@ function openDatabase(): Database.Database {
 }
 
 function encryptExistingDatabase(dbPath: string, key: string) {
-  const tempPath = dbPath + '.tmp';
   const plain = new Database(dbPath);
-  plain.exec(`
-    ATTACH DATABASE '${tempPath}' AS encrypted KEY '${key}';
-    SELECT sqlcipher_export('encrypted');
-    DETACH DATABASE encrypted;
-  `);
+  plain.pragma(`rekey = '${key}'`);
   plain.close();
-  fs.renameSync(tempPath, dbPath);
-  console.log('[DB] Database encrypted successfully.');
+  console.log('[DB] Database encrypted successfully in-place.');
 }
 
 const db = openDatabase();
@@ -225,6 +238,30 @@ try {
 } catch (e: any) {
   console.error('[CaraBase DB] Fatal error running migrations:', e.message);
   process.exit(1);
+}
+
+// Auto-inject the SuperLobster user from ADMIN_TOKEN
+if (process.env.ADMIN_TOKEN) {
+  try {
+    const adminHash = crypto.createHash('sha256').update(process.env.ADMIN_TOKEN).digest('hex');
+    const adminUuid = '00000000-0000-4000-8000-superlobster'; 
+    
+    // Attempt to upsert the SuperLobster user. 
+    // We use INSERT OR IGNORE and then UPDATE to avoid strict ON CONFLICT syntax errors on multiple unique constraints.
+    db.prepare(`
+      INSERT OR IGNORE INTO users (uuid, username, key_hash, role, created_at) 
+      VALUES (?, 'superlobster', ?, 'superadmin', CURRENT_TIMESTAMP)
+    `).run(adminUuid, adminHash);
+
+    db.prepare(`
+      UPDATE users 
+      SET key_hash = ?, role = 'superadmin' 
+      WHERE username = 'superlobster'
+    `).run(adminHash);
+
+  } catch (err: any) {
+    console.error('[CaraBase DB] Failed to auto-inject SuperLobster user:', err.message);
+  }
 }
 
 export default db;

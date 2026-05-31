@@ -1,6 +1,10 @@
 # Advanced Dashboard Tools
 
-CaraBase is designed not just as a silent backend, but as a robust visual interface for the Orchestrated Reef Scuttler. The SuperAdmin Dashboard is equipped with enterprise-grade tooling to ensure you can build, query, and migrate your database without leaving the browser.
+CaraBase is designed not just as a silent backend, but as a robust visual interface for the Orchestrated Reef Scuttler. The Main BaaS Dashboard (`/dashboard`) is equipped with enterprise-grade tooling to ensure you can build, query, and migrate your database without leaving the browser. 
+
+> [!NOTE]
+> **Role-Based Access Control (RBAC)**
+> The tools outlined in this document are strictly gated by the user's role. Standard `viewer` users will not see these tools. To access advanced features like the SQL Editor and Table Editor, you must log in via the `/admin-login` portal using the SuperLobster identity.
 
 ## 1. Global Command Palette (`⌘K`)
 
@@ -24,7 +28,7 @@ Located at `/sql`, the **SQL Editor** is a dedicated sandbox for the SuperAdmin:
 
 > [!WARNING]
 > **SuperAdmin Isolation**
-> The SQL Editor executes directly against the system database connection. It completely bypasses Row-Level Security (RLS) constraints. As such, the `/api/system/sql` endpoint is strictly guarded by the `requireAdmin` middleware. Agent Keys (`lb-`) and API Tokens (`api-`) will instantly trigger a `403 Forbidden` if they attempt to access it.
+> The SQL Editor executes directly against the system database connection. It completely bypasses Row-Level Security (RLS) constraints. As such, the `/api/system/sql` endpoint is strictly guarded by the `requireRole('superadmin')` backend middleware. The UI hides this entirely from `viewer` and `admin` roles.
 
 ## 3. The "Lobster Guides" (Visual Wizards)
 

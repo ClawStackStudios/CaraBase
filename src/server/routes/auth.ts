@@ -22,12 +22,18 @@ router.post('/register', authLimiter, validateBody(AuthSchemas.register), (req, 
   const { uuid, username, keyHash } = req.body;
 
   try {
-    const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
-    const assignedRole = userCount.count === 0 ? 'superadmin' : 'viewer';
+    const insertUser = db.transaction((uUuid: string, uUsername: string, uKeyHash: string) => {
+      const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
+      const assignedRole = userCount.count === 0 ? 'superadmin' : 'viewer';
 
-    db.prepare(
-      'INSERT INTO users (uuid, username, key_hash, role, created_at) VALUES (?, ?, ?, ?, ?)'
-    ).run(uuid, username, keyHash, assignedRole, new Date().toISOString());
+      db.prepare(
+        'INSERT INTO users (uuid, username, key_hash, role, created_at) VALUES (?, ?, ?, ?, ?)'
+      ).run(uUuid, uUsername, uKeyHash, assignedRole, new Date().toISOString());
+      
+      return assignedRole;
+    });
+
+    const role = insertUser.immediate(uuid, username, keyHash);
 
     audit.log('AUTH_REGISTER', {
       actor: uuid,
@@ -129,7 +135,7 @@ router.post('/token', authLimiter, validateBody(AuthSchemas.token), (req, res) =
         type: 'human',
         createdAt: new Date().toISOString(),
         expiresAt,
-        user: { uuid: user.uuid, username: user.username }
+        user: { uuid: user.uuid, username: user.username, role: user.role }
       }
     });
     return;
@@ -252,7 +258,7 @@ router.post('/lookup', authLimiter, (req, res) => {
       return;
     }
 
-    res.json({ uuid: user.uuid, username: user.username });
+    res.json({ uuid: user.uuid, username: user.username, role: user.role });
   } catch (err: any) {
     console.error('[ERROR] /api/auth/lookup:', err.message);
     res.status(500).json({ error: 'Internal server error' });

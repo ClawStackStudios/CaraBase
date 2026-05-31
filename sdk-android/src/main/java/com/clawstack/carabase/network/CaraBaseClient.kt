@@ -17,11 +17,12 @@ import kotlinx.serialization.json.Json
  * that the active API Key is automatically pulled from TokenStorage
  * and injected into every request natively.
  */
-internal class CaraBaseClient(
+class CaraBaseClient internal constructor(
     private val baseUrl: String,
     private val tokenStorage: TokenStorage
 ) {
-    val httpClient = HttpClient(CIO) {
+    @PublishedApi
+    internal val httpClient = HttpClient(CIO) {
         // Automatically inject JSON serialization
         install(ContentNegotiation) {
             json(Json {

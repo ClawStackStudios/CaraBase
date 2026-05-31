@@ -6,7 +6,8 @@
   - [Installation & Hosting](installation.md)
   - [Cloudflare Tunnels](cloudflare-tunnel.md)
 
-- **Dashboard & UX**
+- **Dashboard & Access**
+  - [Administrator Setup & RBAC](admin-setup.md)
   - [SuperAdmin Operations](superadmin.md)
   - [Advanced Dashboard Tools](dashboard.md)
 

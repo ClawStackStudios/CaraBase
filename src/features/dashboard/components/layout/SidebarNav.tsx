@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { LayoutDashboard, Database, Code, Key, Shield, HardDrive, Settings, User, Palette, LogOut, Globe, Network, ChevronDown, ChevronRight, Eye, Zap, Table2, Layers, Archive, Wand2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../../../../hooks/useAuth";
 
 export type SettingsTab = "profile" | "appearance" | "agents" | "import-export" | "storage-shares";
 
@@ -29,6 +30,7 @@ export function SidebarNav({
   isCollapsed,
 }: SidebarNavProps) {
   const location = useLocation();
+  const { role } = useAuth();
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     'database': true,
     'auth': true,
@@ -248,9 +250,57 @@ export function SidebarNav({
     },
   ];
 
+  // Filter navigation items based on the user's role (RBAC)
+  const filteredNavItems = navItems.filter((item) => {
+    if (role === "superadmin") return true; // Superadmin sees everything
+    
+    // Viewer restrictions
+    if (role === "viewer" || !role) {
+      // Viewers ONLY see Dashboard, Setup Wizard, Configuration (Policies only), Storage Ecosystem
+      if (item.id === "dashboard" || item.id === "wizard" || item.id === "storage") return true;
+      if (item.id === "configuration") return true; // Will filter children next
+      return false;
+    }
+
+    // Admin restrictions
+    if (role === "admin") {
+      // Admins see everything EXCEPT backups and SQL editor (which require superadmin)
+      return true;
+    }
+
+    return true;
+  }).map(item => {
+    // Filter children arrays
+    if (item.children) {
+      const filteredChildren = item.children.filter(child => {
+        if (role === "superadmin") return true;
+        
+        if (role === "viewer" || !role) {
+          // Viewers only see policies under configuration
+          if (child.id === "policies") return true;
+          return false;
+        }
+
+        if (role === "admin") {
+          // Admins do not see backups or sql editor
+          if (child.id === "backups" || child.id === "sql") return false;
+          return true;
+        }
+
+        return true;
+      });
+
+      // If all children were filtered out (and it's not a root node meant to be empty), hide the parent
+      if (filteredChildren.length === 0) return null;
+      
+      return { ...item, children: filteredChildren };
+    }
+    return item;
+  }).filter(Boolean) as typeof navItems;
+
   return (
     <nav className="space-y-1.5">
-      {navItems.map((item) => {
+      {filteredNavItems.map((item) => {
         if (item.children) {
           const isExpanded = expandedSections[item.id];
           return (

@@ -17,14 +17,14 @@ import io.ktor.http.contentType
  * Implements "Security Around Invariants" by utilizing Ktor's 
  * native URL parameter encoding to prevent string injection attacks.
  */
-class QueryBuilder(
-    private val client: CaraBaseClient,
-    private val table: String
+class QueryBuilder internal constructor(
+    @PublishedApi internal val client: CaraBaseClient,
+    @PublishedApi internal val table: String
 ) {
-    private var selectColumns = "*"
-    private val filters = mutableMapOf<String, String>()
-    private var limit: Int? = null
-    private var offset: Int? = null
+    @PublishedApi internal var selectColumns = "*"
+    @PublishedApi internal val filters = mutableMapOf<String, String>()
+    @PublishedApi internal var limit: Int? = null
+    @PublishedApi internal var offset: Int? = null
 
     /**
      * Specify columns to retrieve.
