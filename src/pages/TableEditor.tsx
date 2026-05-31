@@ -1294,7 +1294,7 @@ export default function TableEditor() {
                             </div>
                             <div>
                                <label className="text-xs font-semibold mb-1 block text-slate-600 dark:text-slate-350">On Update</label>
-                               <select className="flex h-9 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-1 text-sm shadow-sm focus:ring-emerald-500 focus:border-emerald-500" value={fkForm.onUpdate} onChange={e => setFkForm(prev => ({...prev, onUpdate: e.target.value}))}>
+                               <select className="flex h-9 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 px-3 py-1 text-sm shadow-sm focus:ring-emerald-500 focus:border-emerald-555" value={fkForm.onUpdate} onChange={e => setFkForm(prev => ({...prev, onUpdate: e.target.value}))}>
                                  <option value="RESTRICT">RESTRICT</option>
                                  <option value="CASCADE">CASCADE</option>
                                  <option value="SET NULL">SET NULL</option>
