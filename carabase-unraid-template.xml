@@ -11,10 +11,10 @@
   <Project>https://github.com/ClawStackStudios/CaraBase</Project>
   <Overview>&#x1F99E; CaraBase is a sovereign, self-hostable SQLite Database-as-a-Service and backend API builder. Reclaim your data from massive cloud platforms with an ecosystem tailored for Human-Agent synergy. Features include instant REST APIs, transactional Row-Level Security (RLS), Agent LobsterKeys©™, and encrypted-at-rest SQLCipher capabilities.</Overview>
   <Category>Productivity: Network:Other</Category>
-  <WebUI>http://[IP]:[PORT:3000]/</WebUI>
+  <WebUI>http://[IP]:[PORT:5353]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/ClawStackStudios/CaraBase/main/carabase-unraid-template.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/ClawStackStudios/CaraBase/main/public/thumbnail-icon.png</Icon>
-  <ExtraParams>--health-cmd="wget -qO- http://localhost:3000/api/health" --health-interval=15s --health-timeout=10s --health-retries=5 --health-start-period=15s</ExtraParams>
+  <ExtraParams>--health-cmd="wget -qO- http://localhost:5353/api/health" --health-interval=15s --health-timeout=10s --health-retries=5 --health-start-period=15s</ExtraParams>
   <PostArgs/>
   <CPUset>6,7</CPUset>
   <DateInstalled>1776531376</DateInstalled>
@@ -22,7 +22,7 @@
   <DonateLink/>
   <Requires/>
   <Config Name="Database Location" Target="/app/data" Default="/app/data" Mode="rw" Description="The physical storage location on your server where the SQLite database file and file uploads are persisted." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/carabase</Config>
-  <Config Name="Web GUI" Target="3000" Default="3000" Mode="tcp" Description="The Default Port for the Web GUI and REST APIs." Type="Port" Display="always" Required="true" Mask="false">3000</Config>
+  <Config Name="Web GUI" Target="5353" Default="5353" Mode="tcp" Description="The Default Port for the Web GUI and REST APIs." Type="Port" Display="always" Required="true" Mask="false">5353</Config>
   <Config Name="DB Encryption Key" Target="DB_ENCRYPTION_KEY" Default="" Mode="" Description="STRICTLY REQUIRED in production. Provide a highly entropic key (e.g., openssl rand -hex 32) to encrypt your carabase.sqlite file at rest using SQLCipher. CaraBase will refuse to boot without this." Type="Variable" Display="always" Required="true" Mask="true"/>
   <Config Name="SuperAdmin Access Token" Target="ADMIN_TOKEN" Default="" Mode="" Description="Security token for accessing the isolated /admin SuperAdmin panel. Requires high entropy. Leave empty to completely disable all /admin control plane UI and API routes." Type="Variable" Display="always" Required="false" Mask="true"/>
   <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Linux Group ID for file permissions" Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>

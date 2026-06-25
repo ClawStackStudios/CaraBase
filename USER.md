@@ -19,7 +19,7 @@
 
 ## Lucas's Development Preferences
 
-> Lucas likes **well-structured projects** with clean separation of concerns by feature into micro-service architecture, where no files surpases 500 lines-and all features have theyre own directory, using a 'separation-by-feature' micro-architectural paradigm. 
+> Lucas likes **well-structured projects** with clean separation of concerns by feature into micro-service architecture, where no files surpases 500 lines-and all features have theyre own directory, using a 'separation-by-feature' micro-architectural paradigm. Using Clearly labeled comments for all code to be human readable and easily auditable, especially around security. 
 >
 > This is a fundamental architectural constraint not a suggestion. This boundary is fundamental to clear, maintainable code, that is easier to debug when it breaks, and allows compartmentalized feature development, for cleaner architecture, faster onboarding, and easier cleanup of technical debt.
 
@@ -51,13 +51,13 @@
 - **Plan thoroughly before implementing.** Plan well, implement once. Not: plan poorly, implement twice. "You buy cheap, You buy twice."
 - **Review your own work after implementation.** Check for code cleanliness. Try to break your own code — test its rigidity and robustness before handing it off to me for review.
 - **Create and maintain the following documentation files for every project:**
-  - `@CRUSTAGENT.md` — CrustAgent specific, first person perspective project overview of project topology.
-  - `@src/CRUSTAGENT.md` — CrustAgent specific, first person perspective project code-view of project topology, patterns, anti-patterns and wisdom.
-  - `@README.md` — full project overview and run instructions
-  - `@ROADMAP.md` — current and future development direction
-  - `@CONTRIBUTING.md` — contribution guidelines
-  - `@SECURITY.md` — security practices and ClawKeys©™ protocol
-  - `@ARCHITECTURE.md` — ASCII construction-style blueprints of the codebase
+  - `CRUSTAGENT.md` — CrustAgent specific, first person perspective project overview of project topology.
+  - `src/CRUSTAGENT.md` — CrustAgent specific, first person perspective project code-view of project topology, patterns, anti-patterns and wisdom.
+  - `README.md` — full project overview and run instructions
+  - `ROADMAP.md` — current and future development direction
+  - `CONTRIBUTING.md` — contribution guidelines
+  - `SECURITY.md` — security practices and ClawKeys©™ protocol
+  - `ARCHITECTURE.md` — ASCII construction-style blueprints of the codebase
 
 ---
 ## Documentation Standards
