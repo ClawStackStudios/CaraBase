@@ -17,7 +17,7 @@ import authRouter from './src/server/routes/auth.js';
 import agentKeysRouter from './src/server/routes/agentKeys.js';
 import adminRouter from './src/server/routes/admin.js';
 import { createAuditLogger } from './src/server/utils/auditLogger.js';
-import { requireAuth } from './src/server/middleware/auth.js';
+import { requireAuth, AuthRequest } from './src/server/middleware/auth.js';
 import { requireRole } from './src/server/middleware/requireRole.js';
 import { globalLimiter } from './src/server/middleware/globalLimiter.js';
 import { triggerBackup, getBackupsList, startBackupSchedule } from './src/server/utils/backup.js';
@@ -1556,7 +1556,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*all', (req, res) => {
+    app.get('*', (req, res) => {
       if (req.path.startsWith('/api') || req.path.startsWith('/storage') || req.path.startsWith('/rest')) {
         return res.status(404).json({ error: 'Not Found' });
       }

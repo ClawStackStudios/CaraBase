@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wand2, Database, Shield, Code, ArrowRight, CheckCircle2, Loader2, BookOpen, PenTool, Copy } from "lucide-react";
+import { Wand2, Database, Shield, ShieldAlert, Code, ArrowRight, CheckCircle2, Loader2, BookOpen, PenTool, Copy } from "lucide-react";
+import { Link } from "react-router-dom";
 import { apiFetch } from "@/config/apiConfig";
 import { useToast } from "@/context/ToastContext";
 
@@ -45,7 +46,13 @@ export default function SetupWizard() {
   const [publicApiKey, setPublicApiKey] = useState<string>("YOUR_PUBLIC_KEY");
   const [integrationTab, setIntegrationTab] = useState<'env' | 'client' | 'server' | 'middleware'>('env');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [rbacBlocked, setRbacBlocked] = useState(false);
   const toast = useToast();
+
+  // Detect RBAC denials emitted by the requireRole middleware so we can guide
+  // the operator to the correct portal instead of showing a bare "Forbidden".
+  const isRbacDenial = (message: string) =>
+    message.includes("Requires 'superadmin'") || message.includes("Requires 'admin'");
 
   const copyToClipboard = (id: string, text: string) => {
     navigator.clipboard.writeText(text);
@@ -89,7 +96,15 @@ export default function SetupWizard() {
       setStep(2);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to build tables: " + (err as Error).message);
+      const message = (err as Error).message || "";
+      if (isRbacDenial(message)) {
+        // Table building is superadmin-gated by design — surface the remedy,
+        // not just the failure.
+        setRbacBlocked(true);
+        toast.error("SuperLobster privileges required. Log in via /admin-login with your ADMIN_TOKEN.");
+      } else {
+        toast.error("Failed to build tables: " + message);
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -128,7 +143,13 @@ export default function SetupWizard() {
       setStep(3);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to apply security: " + (err as Error).message);
+      const message = (err as Error).message || "";
+      if (isRbacDenial(message)) {
+        setRbacBlocked(true);
+        toast.error("SuperLobster privileges required. Log in via /admin-login with your ADMIN_TOKEN.");
+      } else {
+        toast.error("Failed to apply security: " + message);
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -159,6 +180,23 @@ export default function SetupWizard() {
           </React.Fragment>
         ))}
       </div>
+
+      {/* RBAC Guidance Banner — shown when a role gate rejects the wizard */}
+      {rbacBlocked && (
+        <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl">
+          <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <h3 className="text-sm font-bold text-amber-800 dark:text-amber-300">SuperLobster privileges required</h3>
+            <p className="text-xs text-amber-700 dark:text-amber-400 mt-1 leading-relaxed">
+              Infrastructure operations are gated to the <code className="font-mono">superadmin</code> role.
+              Your current identity holds a standard role. Log in through the SuperLobster portal with your instance ADMIN_TOKEN to continue.
+            </p>
+            <Link to="/admin-login" className="inline-flex items-center gap-1 mt-3 text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-500 underline underline-offset-4 transition-colors">
+              Go to SuperLobster Login <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* STEP 1: TABLE SCHEMA */}
       {step === 1 && (

@@ -144,10 +144,30 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     return;
   }
 
-  // Fetch user info
-  const userRow = db.prepare('SELECT role, username FROM users WHERE uuid = ?').get(finalUserUuid) as { role: 'superadmin' | 'admin' | 'viewer', username: string };
-  const userRole = userRow?.role || 'viewer'; // Default to viewer if not found (e.g., legacy db without role)
-  const username = userRow?.username || null;
+  // Fetch user info.
+  // SECURITY: A token that resolves to a user UUID which no longer exists
+  // (e.g., stale browser session against a wiped/restored database) is an
+  // authentication failure — NOT a low-privilege session. We reject with 401
+  // instead of silently downgrading to 'viewer'.
+  const userRow = db.prepare('SELECT role, username FROM users WHERE uuid = ?').get(finalUserUuid) as { role: 'superadmin' | 'admin' | 'viewer', username: string } | undefined;
+
+  if (!userRow) {
+    audit.log('AUTH_FAILURE', {
+      actor: finalUserUuid,
+      actor_type: actualKeyType,
+      action: 'validate_token',
+      outcome: 'failure',
+      resource: 'user',
+      details: { reason: 'Identity no longer exists' },
+      ip_address: req.ip,
+      user_agent: req.headers['user-agent'] || ''
+    });
+    res.status(401).json({ success: false, error: 'Identity no longer exists. Please log in again.' });
+    return;
+  }
+
+  const userRole = userRow.role;
+  const username = userRow.username;
 
   const authReq = req as AuthRequest;
   authReq.apiKey = key;

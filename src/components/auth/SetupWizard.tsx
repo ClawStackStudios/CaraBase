@@ -132,8 +132,10 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
         throw new Error(errorData.error || 'Token exchange failed')
       }
 
-      const { token } = await tokenResponse.json()
-      login(username, generatedUUID, token, 'human')
+      const { token, data } = await tokenResponse.json()
+      // Persist the server-assigned role so the UI reflects real privileges
+      // (first-run users may be superadmin; everyone else is viewer).
+      login(username, generatedUUID, token, 'human', data?.user?.role)
 
       setStep('success')
       setTimeout(() => onComplete(), 2000)

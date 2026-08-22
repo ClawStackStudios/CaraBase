@@ -13,6 +13,22 @@ CaraBase is an open-source, full-stack, SQLite-backed Database-as-a-Service, mea
 - **Secure File Storage & Membrane Shares**: Upload and manage physical files. Create secure, expiring public links via cryptographic `share_hash` with dual-serve capabilities (HTML preview or raw binary).
 - **SuperAdmin Dashboard**: Built-in environment-gated admin portal (`/admin`) for comprehensive system monitoring, uptime tracking, and sovereign metadata auditing.
 
+## First Run: The Three Doors
+
+CaraBase has three entry routes. Picking the right one saves you an hour of confusion:
+
+| Route | Who it's for | What you need |
+| :--- | :--- | :--- |
+| `/setup` | Hatching a new human identity (ClawKey©™) | Nothing — generates your key file |
+| `/login` | Returning ClawKey©™ users | Your `.json` identity file or pasted `hu-` key |
+| `/admin-login` | **The SuperLobster** (instance owner) | The raw `ADMIN_TOKEN` environment variable |
+| `/admin` | Operations portal (observability only) | `ADMIN_TOKEN` (cookie session, 20-min TTL) |
+
+> [!IMPORTANT]
+> **Schema building requires the SuperLobster.** When `ADMIN_TOKEN` is set (recommended in production), a permanent `superlobster` user with the `superadmin` role is injected at boot. This means identities hatched via `/setup` are assigned the `viewer` role — by design. To build tables, edit schemas, or run the Setup Wizard's infrastructure steps, log in through **`/admin-login`** with your raw `ADMIN_TOKEN`.
+>
+> If `ADMIN_TOKEN` is left empty, no superlobster exists and the *first* identity hatched becomes `superadmin`.
+
 ## Installation / Run Instructions
 
 We enforce a modern build and run pipeline to handle the React Vite Frontend bundled with an Express backend using `esbuild`.

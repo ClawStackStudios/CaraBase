@@ -46,7 +46,9 @@ router.post('/register', authLimiter, validateBody(AuthSchemas.register), (req, 
       user_agent: req.headers['user-agent'] as string
     });
 
-    res.status(201).json({ success: true, message: 'User registered successfully' });
+    // Return the assigned role so clients can reflect real privileges
+    // immediately (first user on an empty table becomes superadmin).
+    res.status(201).json({ success: true, message: 'User registered successfully', role });
   } catch (err: any) {
     if (err.message && err.message.toLowerCase().includes('unique constraint')) {
       res.status(409).json({

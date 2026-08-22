@@ -22,3 +22,6 @@ docker-compose.dev.yml
 
 # CrustAgent©™
 .crustagent/
+
+# Cline
+.clinerules/
