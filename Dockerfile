@@ -35,8 +35,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=5353
 
-# Install shadow utilities (groupadd, useradd) for PUID/PGID support
-RUN apt-get update && apt-get install -y --no-install-recommends shadow \
+# Install user/group management utilities for PUID/PGID support
+RUN apt-get update && apt-get install -y --no-install-recommends passwd \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy production node_modules from the prod-deps stage
