@@ -35,20 +35,25 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=5353
 
+# Install shadow utilities (groupadd, useradd) for PUID/PGID support
+RUN apt-get update && apt-get install -y --no-install-recommends shadow \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy production node_modules from the prod-deps stage
 COPY --from=prod-deps /app/node_modules ./node_modules
 # Copy built assets and package config from the builder stage
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./package.json
 
-# Create the data directory for SQLite and adjust permissions
-RUN mkdir -p /app/data && chown -R node:node /app/data
+# Copy and configure entrypoint
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Switch to the non-root node user for security
-USER node
+# Create the data directory (ownership is handled dynamically by entrypoint)
+RUN mkdir -p /app/data
 
 VOLUME ["/app/data"]
 EXPOSE 5353
 
-# Start the Node.js server
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["npm", "start"]
