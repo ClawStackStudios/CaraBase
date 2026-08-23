@@ -38,13 +38,37 @@ const CUSTOM_SCHEMA = `
 CREATE TABLE IF NOT EXISTS custom_table (id TEXT PRIMARY KEY, name TEXT NOT NULL, user_uuid TEXT NOT NULL, created_at TEXT NOT NULL);
 `;
 
+// Zero-dependency REST client snippet shown in the Setup Wizard.
+// Uses the public API key via the `apikey` header — no SDK install required.
+// (The bundled TypeScript SDK in /sdk is opt-in; see README for build-from-source.)
+const CARABASE_CLIENT_SNIPPET = `// carabase/client.js — zero-dependency CaraBase client
+const CARABASE_URL = import.meta.env.VITE_CARABASE_URL;
+const CARABASE_KEY = import.meta.env.VITE_CARABASE_PUBLIC_KEY;
+
+export async function carabaseFetch(table, options = {}) {
+  const res = await fetch(\`\${CARABASE_URL}/rest/v1/\${table}\`, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', apikey: CARABASE_KEY, ...options.headers },
+  });
+  if (!res.ok) throw new Error(\`CaraBase \${res.status}: \${await res.text()}\`);
+  return res.json();
+}
+
+// Read rows
+const rows = await carabaseFetch('your_table');
+
+// Insert a row
+await carabaseFetch('your_table', {
+  method: 'POST',
+  body: JSON.stringify({ title: 'Hello CaraBase' }),
+});`;
+
 export default function SetupWizard() {
   const [step, setStep] = useState(1);
   const [selectedSchema, setSelectedSchema] = useState<string | null>(null);
   const [selectedRLS, setSelectedRLS] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [publicApiKey, setPublicApiKey] = useState<string>("YOUR_PUBLIC_KEY");
-  const [integrationTab, setIntegrationTab] = useState<'env' | 'client' | 'server' | 'middleware'>('env');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [rbacBlocked, setRbacBlocked] = useState(false);
   const toast = useToast();
@@ -303,18 +327,18 @@ export default function SetupWizard() {
                 <div className="absolute top-7 bottom-[-2rem] w-px bg-slate-200 dark:bg-slate-800" />
               </div>
               <div className="w-full">
-                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Install packages</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Run this command to install the required CaraBase dependencies.</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Point your app at CaraBase</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Add these environment variables to your project.</p>
                 
                 <div className="relative group bg-slate-900 rounded-xl overflow-hidden border border-slate-800">
                   <pre className="p-4 pr-20 text-sm font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap">
-                    npm install carabase-sdk
+                    {`VITE_CARABASE_URL=${window.location.origin}\nVITE_CARABASE_PUBLIC_KEY=${publicApiKey}`}
                   </pre>
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     className={`absolute right-2 top-2 h-8 text-xs transition-colors ${copiedId === 'install' ? 'text-emerald-400' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
-                    onClick={() => copyToClipboard('install', 'npm install carabase-sdk')}
+                    onClick={() => copyToClipboard('install', `VITE_CARABASE_URL=${window.location.origin}\nVITE_CARABASE_PUBLIC_KEY=${publicApiKey}`)}
                   >
                     {copiedId === 'install' ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   </Button>
@@ -329,78 +353,23 @@ export default function SetupWizard() {
                 <div className="absolute top-7 bottom-[-2rem] w-px bg-slate-200 dark:bg-slate-800" />
               </div>
               <div className="w-full">
-                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Add files</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Add env variables, and create your CaraBase client helpers.</p>
-                
-                <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-800">
-                  <div className="flex flex-wrap items-center bg-slate-950/50 border-b border-slate-800 px-2 pt-2">
-                    {[
-                      { id: 'env', label: '.env.local' },
-                      { id: 'client', label: 'carabase/client.ts' },
-                      { id: 'server', label: 'carabase/server.ts' },
-                      { id: 'middleware', label: 'carabase/middleware.ts' },
-                    ].map(tab => (
-                      <button
-                        key={tab.id}
-                        onClick={() => setIntegrationTab(tab.id as any)}
-                        className={`px-4 py-2 text-xs font-mono border-b-2 transition-colors ${integrationTab === tab.id ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-slate-400 hover:text-slate-300'}`}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="relative group">
-                    <pre className="p-4 pr-20 text-sm font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap min-h-[200px]">
-                      {integrationTab === 'env' && `VITE_CARABASE_URL=${window.location.origin}\nVITE_CARABASE_PUBLIC_KEY=${publicApiKey}`}
-                      {integrationTab === 'client' && `import { createClient } from 'carabase-sdk';\n\nexport const carabase = createClient({\n  url: process.env.VITE_CARABASE_URL,\n  publicKey: process.env.VITE_CARABASE_PUBLIC_KEY\n});`}
-                      {integrationTab === 'server' && `import { createServerClient } from 'carabase-sdk/server';\nimport { cookies } from 'next/headers';\n\nexport const createClient = () => {\n  const cookieStore = cookies();\n  return createServerClient({\n    url: process.env.VITE_CARABASE_URL,\n    publicKey: process.env.VITE_CARABASE_PUBLIC_KEY,\n    cookies: cookieStore\n  });\n};`}
-                      {integrationTab === 'middleware' && `import { createMiddlewareClient } from 'carabase-sdk/middleware';\nimport { NextResponse } from 'next/server';\nimport type { NextRequest } from 'next/server';\n\nexport async function middleware(req: NextRequest) {\n  const res = NextResponse.next();\n  const carabase = createMiddlewareClient({ req, res });\n  await carabase.auth.getSession();\n  return res;\n}`}
-                    </pre>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className={`absolute right-2 top-2 h-8 text-xs transition-colors ${copiedId === 'file' ? 'text-emerald-400' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
-                      onClick={() => {
-                        let textToCopy = '';
-                        if (integrationTab === 'env') textToCopy = `VITE_CARABASE_URL=${window.location.origin}\nVITE_CARABASE_PUBLIC_KEY=${publicApiKey}`;
-                        if (integrationTab === 'client') textToCopy = `import { createClient } from 'carabase-sdk';\n\nexport const carabase = createClient({\n  url: process.env.VITE_CARABASE_URL,\n  publicKey: process.env.VITE_CARABASE_PUBLIC_KEY\n});`;
-                        if (integrationTab === 'server') textToCopy = `import { createServerClient } from 'carabase-sdk/server';\nimport { cookies } from 'next/headers';\n\nexport const createClient = () => {\n  const cookieStore = cookies();\n  return createServerClient({\n    url: process.env.VITE_CARABASE_URL,\n    publicKey: process.env.VITE_CARABASE_PUBLIC_KEY,\n    cookies: cookieStore\n  });\n};`;
-                        if (integrationTab === 'middleware') textToCopy = `import { createMiddlewareClient } from 'carabase-sdk/middleware';\nimport { NextResponse } from 'next/server';\nimport type { NextRequest } from 'next/server';\n\nexport async function middleware(req: NextRequest) {\n  const res = NextResponse.next();\n  const carabase = createMiddlewareClient({ req, res });\n  await carabase.auth.getSession();\n  return res;\n}`;
-                        copyToClipboard('file', textToCopy);
-                      }}
-                    >
-                      {copiedId === 'file' ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 3. Install Agent Skills */}
-            <div className="flex items-start gap-6 pb-8">
-              <div className="relative shrink-0 w-6 flex items-start justify-center pt-1">
-                <div className="w-6 h-6 border-2 border-slate-200 dark:border-slate-700 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono text-xs flex items-center justify-center z-10 relative">3</div>
-              </div>
-              <div className="w-full">
-                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Install Agent Skills (Optional)</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Agent Skills give AI coding tools ready-made instructions for working with CaraBase more accurately.</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Query your data</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">A tiny zero-dependency client helper — works immediately, no SDK install required.</p>
                 
                 <div className="relative group bg-slate-900 rounded-xl overflow-hidden border border-slate-800">
-                  <pre className="p-4 pr-20 text-sm font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap">
-                    npx skills add carabase/agent-skills
-                  </pre>
+                  <pre className="p-4 pr-20 text-sm font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap min-h-[200px]">{CARABASE_CLIENT_SNIPPET}</pre>
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className={`absolute right-2 top-2 h-8 text-xs transition-colors ${copiedId === 'skills' ? 'text-emerald-400' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
-                    onClick={() => copyToClipboard('skills', 'npx skills add carabase/agent-skills')}
+                    className={`absolute right-2 top-2 h-8 text-xs transition-colors ${copiedId === 'file' ? 'text-emerald-400' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
+                    onClick={() => copyToClipboard('file', CARABASE_CLIENT_SNIPPET)}
                   >
-                    {copiedId === 'skills' ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    {copiedId === 'file' ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   </Button>
                 </div>
               </div>
             </div>
+
           </div>
 
           <div className="flex justify-end pt-6 border-t border-slate-200 dark:border-slate-800">

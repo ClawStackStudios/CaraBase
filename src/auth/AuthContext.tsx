@@ -10,6 +10,8 @@ export interface AuthContextType {
   role: 'viewer' | 'admin' | 'superadmin' | null
   login: (username: string, uuid: string, token: string, keyType: 'human' | 'agent', role?: 'viewer' | 'admin' | 'superadmin') => void
   logout: () => void
+  /** Build Authorization headers from the current session token (empty object when logged out). */
+  getAuthHeaders: () => Record<string, string>
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null)
@@ -68,6 +70,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false)
   }
 
+  // Centralized token → header helper so every page attaches credentials identically.
+  const getAuthHeaders = (): Record<string, string> => {
+    return apiToken ? { 'Authorization': `Bearer ${apiToken}` } : {}
+  }
+
   return (
     <AuthContext.Provider value={{
       isAuthenticated,
@@ -77,7 +84,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       apiToken,
       role,
       login,
-      logout
+      logout,
+      getAuthHeaders
     }}>
       {children}
     </AuthContext.Provider>

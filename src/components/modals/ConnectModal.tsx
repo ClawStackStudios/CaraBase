@@ -8,14 +8,32 @@ interface ConnectModalProps {
   onClose: () => void;
 }
 
+// Zero-dependency REST client snippet for the Framework path.
+// Uses the public API key via the `apikey` header — no SDK install required.
+const carabaseClientSnippet = (baseUrl: string) => `// carabase/client.js — zero-dependency CaraBase client
+const CARABASE_URL = '${baseUrl}';
+const CARABASE_KEY = '[YOUR_LOBSTER_KEY]';
+
+export async function carabaseFetch(table, options = {}) {
+  const res = await fetch(\`\${CARABASE_URL}/rest/v1/\${table}\`, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', apikey: CARABASE_KEY, ...options.headers },
+  });
+  if (!res.ok) throw new Error(\`CaraBase \${res.status}: \${await res.text()}\`);
+  return res.json();
+}
+
+// Read rows
+const rows = await carabaseFetch('users');`;
+
 export function ConnectModal({ isOpen, onClose }: ConnectModalProps) {
   const [activeMethod, setActiveMethod] = useState<'framework' | 'direct'>('framework');
-  const [integrationTab, setIntegrationTab] = useState<'env' | 'client' | 'server' | 'middleware'>('env');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [authType, setAuthType] = useState<'human' | 'lobster'>('lobster');
   const toast = useToast();
 
   const baseUrl = window.location.origin;
+  const clientSnippet = carabaseClientSnippet(baseUrl);
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -87,7 +105,7 @@ const data = await response.json();`;
                 <Box className={`w-8 h-8 ${activeMethod === 'framework' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`} />
                 <div className="text-center">
                   <p className="font-semibold text-slate-900 dark:text-slate-100">Framework</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Use a client library</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">JavaScript / TypeScript app</p>
                 </div>
               </button>
               
@@ -111,12 +129,13 @@ const data = await response.json();`;
                   <div className="flex items-start gap-4">
                     <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">1</div>
                     <div className="w-full">
-                      <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Install Packages</h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 mb-4">Add the CaraBase SDK to your project.</p>
+                      <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Point your app at CaraBase</h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 mb-4">Add these environment variables to your project.</p>
                       <div className="relative group bg-slate-900 rounded-xl border border-slate-800">
-                        <pre className="p-4 pr-16 text-sm font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap">npm install carabase-sdk</pre>
+                        <pre className="p-4 pr-16 text-sm font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap">{`VITE_CARABASE_URL=${baseUrl}
+VITE_CARABASE_PUBLIC_KEY=[YOUR_LOBSTER_KEY]`}</pre>
                         <button 
-                          onClick={() => copyToClipboard('install', 'npm install carabase-sdk')}
+                          onClick={() => copyToClipboard('install', `VITE_CARABASE_URL=${baseUrl}\nVITE_CARABASE_PUBLIC_KEY=[YOUR_LOBSTER_KEY]`)}
                           className="absolute right-2 top-2 p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
                         >
                           {copiedId === 'install' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
@@ -128,48 +147,17 @@ const data = await response.json();`;
                   <div className="flex items-start gap-4">
                     <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">2</div>
                     <div className="w-full">
-                      <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Initialize Client</h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 mb-4">Set up your environment and database connections.</p>
+                      <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Query your data</h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 mb-4">A tiny zero-dependency client helper — works immediately, no SDK install required.</p>
                       
-                      <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-800">
-                        <div className="flex flex-wrap items-center bg-slate-950/50 border-b border-slate-800 px-2 pt-2">
-                          {[
-                            { id: 'env', label: '.env.local' },
-                            { id: 'client', label: 'carabase/client.ts' },
-                            { id: 'server', label: 'carabase/server.ts' },
-                            { id: 'middleware', label: 'carabase/middleware.ts' },
-                          ].map(tab => (
-                            <button
-                              key={tab.id}
-                              onClick={() => setIntegrationTab(tab.id as any)}
-                              className={`px-4 py-2 text-xs font-mono border-b-2 transition-colors ${integrationTab === tab.id ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-slate-400 hover:text-slate-300'}`}
-                            >
-                              {tab.label}
-                            </button>
-                          ))}
-                        </div>
-
-                        <div className="relative group">
-                          <pre className="p-4 pr-16 text-sm font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap min-h-[160px]">
-                            {integrationTab === 'env' && `VITE_CARABASE_URL=${baseUrl}\nVITE_CARABASE_PUBLIC_KEY=[YOUR_LOBSTER_KEY]`}
-                            {integrationTab === 'client' && `import { createClient } from 'carabase-sdk';\n\nexport const carabase = createClient({\n  url: process.env.VITE_CARABASE_URL,\n  publicKey: process.env.VITE_CARABASE_PUBLIC_KEY\n});`}
-                            {integrationTab === 'server' && `import { createServerClient } from 'carabase-sdk/server';\nimport { cookies } from 'next/headers';\n\nexport const createClient = () => {\n  const cookieStore = cookies();\n  return createServerClient({\n    url: process.env.VITE_CARABASE_URL,\n    publicKey: process.env.VITE_CARABASE_PUBLIC_KEY,\n    cookies: cookieStore\n  });\n};`}
-                            {integrationTab === 'middleware' && `import { createMiddlewareClient } from 'carabase-sdk/middleware';\nimport { NextResponse } from 'next/server';\nimport type { NextRequest } from 'next/server';\n\nexport async function middleware(req: NextRequest) {\n  const res = NextResponse.next();\n  const carabase = createMiddlewareClient({ req, res });\n  await carabase.auth.getSession();\n  return res;\n}`}
-                          </pre>
-                          <button 
-                            className="absolute right-2 top-2 p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-                            onClick={() => {
-                              let textToCopy = '';
-                              if (integrationTab === 'env') textToCopy = `VITE_CARABASE_URL=${baseUrl}\nVITE_CARABASE_PUBLIC_KEY=[YOUR_LOBSTER_KEY]`;
-                              if (integrationTab === 'client') textToCopy = `import { createClient } from 'carabase-sdk';\n\nexport const carabase = createClient({\n  url: process.env.VITE_CARABASE_URL,\n  publicKey: process.env.VITE_CARABASE_PUBLIC_KEY\n});`;
-                              if (integrationTab === 'server') textToCopy = `import { createServerClient } from 'carabase-sdk/server';\nimport { cookies } from 'next/headers';\n\nexport const createClient = () => {\n  const cookieStore = cookies();\n  return createServerClient({\n    url: process.env.VITE_CARABASE_URL,\n    publicKey: process.env.VITE_CARABASE_PUBLIC_KEY,\n    cookies: cookieStore\n  });\n};`;
-                              if (integrationTab === 'middleware') textToCopy = `import { createMiddlewareClient } from 'carabase-sdk/middleware';\nimport { NextResponse } from 'next/server';\nimport type { NextRequest } from 'next/server';\n\nexport async function middleware(req: NextRequest) {\n  const res = NextResponse.next();\n  const carabase = createMiddlewareClient({ req, res });\n  await carabase.auth.getSession();\n  return res;\n}`;
-                              copyToClipboard('file', textToCopy);
-                            }}
-                          >
-                            {copiedId === 'file' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                          </button>
-                        </div>
+                      <div className="relative group bg-slate-900 rounded-xl overflow-hidden border border-slate-800">
+                        <pre className="p-4 pr-16 text-sm font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap min-h-[160px]">{clientSnippet}</pre>
+                        <button 
+                          className="absolute right-2 top-2 p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                          onClick={() => copyToClipboard('file', clientSnippet)}
+                        >
+                          {copiedId === 'file' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                        </button>
                       </div>
                       
                       <div className="mt-3 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">

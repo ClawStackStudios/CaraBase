@@ -1,0 +1,33 @@
+# Dependabot — automated dependency bump PRs.
+# These arrive as normal PRs, so the CI workflow (lint + E2E + docker build)
+# validates every bump before it can be merged.
+
+version: 2
+updates:
+  # Root application dependencies
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Bundled TypeScript SDK
+  - package-ecosystem: npm
+    directory: "/sdk"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+
+  # Docker base images (node:22-bookworm etc.)
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
