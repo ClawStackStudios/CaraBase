@@ -1,5 +1,5 @@
 # Stage 1: Builder (Compiles frontend, backend, and native modules)
-FROM node:22-bookworm AS builder
+FROM node:26-bookworm AS builder
 WORKDIR /app
 
 # Install native compilation toolchain for better-sqlite3
@@ -17,7 +17,7 @@ RUN npm run build
 
 
 # Stage 2: Production Dependencies Only
-FROM node:22-bookworm AS prod-deps
+FROM node:26-bookworm AS prod-deps
 WORKDIR /app
 
 # Install native compilation toolchain
@@ -29,7 +29,7 @@ RUN npm ci --omit=dev
 
 
 # Stage 3: Runner (Minimal production image)
-FROM node:22-bookworm-slim AS runner
+FROM node:26-bookworm-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
