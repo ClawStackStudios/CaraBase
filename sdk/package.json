@@ -30,6 +30,6 @@
   "license": "MIT",
   "devDependencies": {
     "tsup": "^8.0.2",
-    "typescript": "^5.4.5"
+    "typescript": "^7.0.2"
   }
 }
