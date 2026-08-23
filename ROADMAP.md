@@ -1,6 +1,6 @@
 ---
-roadmap_version: 2.0.0
-last_updated: 2026-05-23
+roadmap_version: 2.1.0
+last_updated: 2026-08-22
 current_position: "Phase 2: Access Control, Operations & Public Access — Task 08: Global Toast & UI Feedback System"
 statistics:
   description: "CaraBase is a LAN-first, self-hosted SQLite database platform — a robust, personal alternative to Supabase. Its goal is to provide the core features everyone actually uses (Auth, RLS, Storage, Real-time, and REST APIs) in a single Docker container, backed by a clean dashboard UI."
@@ -229,6 +229,12 @@ Phase 2 → Access Control, Operations & Public Access
   3. **Integration Wizard:** After table and RLS creation, the wizard outputs the exact `carabaseFetch()` or SDK React code required for the frontend, complete with the user's specific `ls-` Public Key already injected.
 
   > **Success Criteria:** A beginner can create a secured table, apply an RLS policy, and copy a working React frontend code snippet entirely through visual wizard buttons without ever viewing or typing raw SQL or API headers.
+
+- [ ] **Task 26: SDK Discoverability Surface**
+
+  **Description:** CaraBase ships two bundled client SDKs (`sdk/` TypeScript, `sdk-android/` Kotlin) that are invisible to dashboard users today. Add a UI element so operators and app developers know these exist and how to reach them. Concretely: (1) add an "SDKs" entry point in the Connect Modal as a third connection-method card (or a footer link) linking to `docs/android-sdk.md` and the `sdk/` build-from-source guide; (2) surface a dismissible info banner or dashboard card highlighting native Android support for ClawChives & PinchPad schemas or any custom application; (3) ensure both entry points deep-link to the relevant docs pages rather than duplicating content.
+
+  > **Success Criteria:** A user opening the Connect Modal can discover the Android SDK without leaving the UI. The discoverability element links to `docs/android-sdk.md` and the README SDK section. No duplication of SDK documentation inside the dashboard itself.
 
 ---
 

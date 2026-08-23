@@ -1,0 +1,135 @@
+name: CI
+
+# Validates every PR (including agent-generated ones) before merge into main,
+# and re-validates main itself. Three parallel gates:
+#   1. lint-and-build — typecheck + full production bundle build
+#   2. e2e            — boots the REAL production bundle (encrypted, NODE_ENV=production)
+#                       and runs the full E2E suite against it
+#   3. docker-build   — validates the Dockerfile builds (no push; publish happens
+#                       in docker-build.yml after merge)
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Superseded runs on the same PR/branch auto-cancel (agent pushes 5 commits → 1 run)
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-build:
+    name: Lint & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run lint
+
+      - name: Build production bundle
+        run: npm run build
+
+  e2e:
+    name: E2E Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build bundled TypeScript SDK
+        # The E2E suite imports ../sdk/dist — build it from source first.
+        working-directory: sdk
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Boot production server (throwaway encrypted DB)
+        run: |
+          DB_KEY=$(openssl rand -hex 32)
+          echo "CI_DB_KEY=$DB_KEY" >> "$GITHUB_ENV"
+          NODE_ENV=production PORT=5353 \
+            DB_ENCRYPTION_KEY="$DB_KEY" \
+            ADMIN_TOKEN="" \
+            node dist/server.cjs > server.log 2>&1 &
+          echo $! > server.pid
+
+          # Poll health — generous window for cold start + SQLCipher init
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5353/api/health > /dev/null; then
+              echo "Server healthy after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Server failed to become healthy"
+          cat server.log
+          exit 1
+
+      - name: Run E2E suite
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee e2e-output.log
+          exit ${PIPESTATUS[0]}
+
+      - name: Stop server
+        if: always()
+        run: |
+          if [ -f server.pid ]; then kill "$(cat server.pid)" 2>/dev/null || true; fi
+          pkill -9 -f "dist/server.cjs" 2>/dev/null || true
+
+      - name: Upload test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-failure-logs
+          path: |
+            e2e-output.log
+            server.log
+          retention-days: 7
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image (validation only — no push)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

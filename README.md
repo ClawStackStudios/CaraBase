@@ -29,6 +29,48 @@ CaraBase has three entry routes. Picking the right one saves you an hour of conf
 >
 > If `ADMIN_TOKEN` is left empty, no superlobster exists and the *first* identity hatched becomes `superadmin`.
 
+## Bundled SDKs
+
+CaraBase ships optional client SDKs **inside this repository**. Neither is published to npm — build them locally from source if you want a richer client experience than raw `fetch`.
+
+### TypeScript / JavaScript SDK (`sdk/`)
+
+A lightweight, Supabase-style client: chainable queries, storage uploads, and realtime SSE subscriptions.
+
+**Build from source:**
+
+```bash
+cd sdk
+npm install
+npm run build   # outputs dist/ (ESM + CJS + types)
+```
+
+**Use it in your app** (import from the built output or copy the source):
+
+```ts
+import { createClient } from './sdk/dist/index.mjs';
+
+const carabase = createClient('http://your-instance:5353', 'ls-your-public-key');
+
+// Chainable queries
+const admins = await carabase.from('users').select('*').eq('role', 'admin');
+
+// Realtime subscriptions (SSE)
+carabase.realtime.subscribe('users', (event) => console.log('mutation:', event));
+
+// Storage
+await carabase.storage.upload(file);
+```
+
+> [!NOTE]
+> The SDK is intentionally kept repo-local for now. Publishing to npm is a future option once the API surface stabilizes — until then, treat `sdk/` as vendored source.
+
+### Android SDK (`sdk-android/`, Kotlin)
+
+A native Kotlin client with hardware-backed token security (Android Keystore + `EncryptedSharedPreferences`), fluent type-safe queries via Ktor, coroutine-based SSE realtime streams, and multipart storage uploads. It is fully self-contained — no npm/Node dependency — and works against any CaraBase instance out of the box, whether you're building ClawChives, PinchPad, or a custom application.
+
+See **[docs/android-sdk.md](./docs/android-sdk.md)** for the complete integration guide.
+
 ## Installation / Run Instructions
 
 We enforce a modern build and run pipeline to handle the React Vite Frontend bundled with an Express backend using `esbuild`.

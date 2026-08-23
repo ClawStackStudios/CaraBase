@@ -55,9 +55,14 @@ async function runTests() {
     assert(res.status === 201, "Human User registered successfully");
 
     // Force elevate user1 to superadmin via direct DB access 
-    // This ensures tests pass even if the DB already had users from manual dev
+    // This ensures tests pass even if the DB already had users from manual dev.
+    // CI_DB_KEY: when CI boots the server with SQLCipher encryption, the suite
+    // needs the same key to open the database directly.
     const Database = require('better-sqlite3-multiple-ciphers');
     const db = new Database('./data/carabase.sqlite');
+    if (process.env.CI_DB_KEY) {
+      db.pragma(`key = '${process.env.CI_DB_KEY}'`);
+    }
     db.prepare("UPDATE users SET role = 'superadmin' WHERE uuid = ?").run(user1Uuid);
     db.prepare("UPDATE system_settings SET value = '10000' WHERE key = 'rate_limit_per_minute'").run();
     db.close();
@@ -350,16 +355,44 @@ async function runTests() {
     body: JSON.stringify({ table_name: rlsTable, action: 'DELETE', definition: "owner_uuid = auth_uid()" })
   });
 
+  // Register a standard viewer identity so the dynamic-function policies are
+  // exercised by a NON-privileged session. A superadmin token bypasses RLS
+  // entirely via the private-key path, which would make these checks vacuous,
+  // and a legacy apikey header resolves as anonymous (auth_uid() = NULL).
+  // NOTE: named rls* to avoid collision with the Phase 11 isolation-test user.
+  const rlsUserUuid = crypto.randomUUID();
+  const rlsUserName = 'rls_viewer_' + Date.now();
+  const rlsUserSecret = crypto.randomBytes(32).toString('hex');
+  const rlsUserHash = crypto.createHash('sha256').update("hu-" + rlsUserSecret).digest('hex');
+  let rlsToken = null;
+
+  try {
+    const regRes = await fetch(`${BASE_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uuid: rlsUserUuid, username: rlsUserName, keyHash: rlsUserHash })
+    });
+    assert(regRes.status === 201, "RLS viewer identity registered");
+
+    const tokRes = await fetch(`${BASE_URL}/api/auth/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'human', uuid: rlsUserUuid, keyHash: rlsUserHash })
+    });
+    const tokBody = await tokRes.json();
+    rlsToken = tokBody.token;
+    assert(!!rlsToken && tokBody?.data?.user?.role === 'viewer', "RLS viewer session token issued with viewer role");
+  } catch(e) { assert(false, "Failed to set up RLS viewer identity"); }
+
   // Verify valid insert matching auth_uid() session payload
   try {
      const resInsert = await fetch(`${BASE_URL}/rest/v1/${rlsTable}`, {
        method: 'POST',
        headers: { 
-         'apikey': externalPublicKey,
-         'Authorization': `Bearer ${token1}`,
+         'Authorization': `Bearer ${rlsToken}`,
          'Content-Type': 'application/json' 
        },
-       body: JSON.stringify({ task: 'Verify dynamic auth_uid logic', owner_uuid: user1Uuid })
+       body: JSON.stringify({ task: 'Verify dynamic auth_uid logic', owner_uuid: rlsUserUuid })
      });
      assert(resInsert.status === 200, "Dynamic auth_uid() and auth_role() resolved successfully on valid RLS INSERT");
   } catch(e) { assert(false, "Failed dynamic auth_uid insert test"); }
@@ -369,8 +402,7 @@ async function runTests() {
      const resInsertFail = await fetch(`${BASE_URL}/rest/v1/${rlsTable}`, {
        method: 'POST',
        headers: { 
-         'apikey': externalPublicKey,
-         'Authorization': `Bearer ${token1}`,
+         'Authorization': `Bearer ${rlsToken}`,
          'Content-Type': 'application/json' 
        },
        body: JSON.stringify({ task: 'Spoof user uuid record', owner_uuid: 'hacked-uuid-target' })
@@ -381,11 +413,10 @@ async function runTests() {
   // Verify UPDATE WITH CHECK constraints
   try {
      // Try to transfer row ownership to another user (violates check policy on UPDATE)
-     const resUpdateFail = await fetch(`${BASE_URL}/rest/v1/${rlsTable}?owner_uuid=eq.${user1Uuid}`, {
+     const resUpdateFail = await fetch(`${BASE_URL}/rest/v1/${rlsTable}?owner_uuid=eq.${rlsUserUuid}`, {
        method: 'PATCH',
        headers: { 
-         'apikey': externalPublicKey,
-         'Authorization': `Bearer ${token1}`,
+         'Authorization': `Bearer ${rlsToken}`,
          'Content-Type': 'application/json' 
        },
        body: JSON.stringify({ owner_uuid: 'stolen-uuid' })
@@ -395,11 +426,10 @@ async function runTests() {
 
   // Verify DELETE filter scopes
   try {
-     const resDelete = await fetch(`${BASE_URL}/rest/v1/${rlsTable}?owner_uuid=eq.${user1Uuid}`, {
+     const resDelete = await fetch(`${BASE_URL}/rest/v1/${rlsTable}?owner_uuid=eq.${rlsUserUuid}`, {
        method: 'DELETE',
        headers: { 
-         'apikey': externalPublicKey,
-         'Authorization': `Bearer ${token1}`
+         'Authorization': `Bearer ${rlsToken}`
        }
      });
      assert(resDelete.status === 200, "RLS DELETE successfully deletes matching user owned rows inside standard transaction");
