@@ -13,7 +13,18 @@ import { triggerBackup, getBackupsList } from '../utils/backup.js';
 const router = express.Router();
 router.use(requireAuth);
 
-const upload = multer({ dest: 'data/storage' });
+const upload = multer({
+  dest: 'data/storage',
+  limits: { fileSize: process.env.MAX_UPLOAD_SIZE_MB ? parseInt(process.env.MAX_UPLOAD_SIZE_MB, 10) * 1024 * 1024 : 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const dangerousExts = ['.exe', '.dll', '.sh', '.bat', '.cmd', '.elf', '.bin'];
+    if (dangerousExts.includes(ext)) {
+      return cb(new Error('Dangerous file type rejected.'));
+    }
+    cb(null, true);
+  }
+});
 
 // --- Keys ---
 router.get('/keys', requireRole('admin'), (req, res) => {
