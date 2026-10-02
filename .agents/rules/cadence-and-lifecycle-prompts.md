@@ -26,11 +26,12 @@ The agent acts as an active cartographer of the project's development lifecycle.
 - **Agent Action**: Ask the user:
   > *"Version is bumped to `vX.Y.Z.W (Build N)`. Are we moving towards a release to Google Play (pushing the git tag to trigger the GitHub Actions cloud build), or continuing local development on more features first?"*
 
-### 4. Non-Blocking Memory Persistence
-- If the user indicates *"No, we're still adding / reviewing"*, the agent:
-  1. Respects the user's focus and does not push or nag.
-  2. Records the in-flight context in `.agents/memory-bank/activeContext.md`.
-  3. Automatically re-evaluates the cadence at the next natural task completion point when a series of uncommitted changes accumulates.
+### 4. Non-Blocking Memory Persistence & Fleet Batching
+- If the user indicates *"No, we're still adding / reviewing"*, or is in the middle of multi-round autonomous delegations (e.g. running Round 2 of Jules tasks before a live app walkthrough), the agent:
+  1. Respects the developer's focus and does not push or nag.
+  2. Holds the release version bump gate during intermediate fleet rounds.
+  3. Records the in-flight context in `.agents/brain/activeContext.md` (e.g., active remote session IDs, task titles).
+  4. Automatically re-surfaces the version bump and release movement gates only after all fleet rounds are merged and the developer completes their live app walkthrough.
 
 ---
 

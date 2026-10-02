@@ -227,7 +227,30 @@ Capture and record the returned Session ID and URL immediately from the CLI outp
    - Analyze Jules's input and produce a clear, grounded copy-paste prompt.
    - Provide the direct URL (`https://jules.google.com/session/<SESSION_ID>`).
 
-### Step 4: Morning Audit & Sequential PR Reconciliation
-1. Inspect completed patches using `jules remote pull --session <SESSION_ID>`.
-2. Merge pull requests sequentially in order of architectural dependency (e.g., core route decomposition first, followed by feature and utility PRs).
-3. Run local verification gates (`npm run lint`, `npm run build`, `npm test`) on each merged state to confirm end-to-end structural integrity.
+### Step 4: Fleet Audit & 3-Phase Reconciliation
+
+When a fleet lands with multiple pull requests, never merge them arbitrarily. Follow the 3-phase dependency hierarchy:
+
+```mermaid
+flowchart LR
+    P1["Phase 1: Zero-Overlap Modules\n(Client SDKs, standalone scripts)"] --> P2["Phase 2: Core Backend Hardening\n(DB pragmas, SSE atomicity, storage membranes)"]
+    P2 --> P3["Phase 3: Frontend Architecture\n(UI lifecycle fixes, component refactors)"]
+```
+
+1. **Phase 1: Zero-Overlap Modules**:
+   - Merge standalone packages (e.g. `sdk/`) and operational scripts (e.g. `backup.ts`) first.
+   - These touch zero core backend or UI files, establishing an immediate, clean green baseline.
+2. **Phase 2: Core Backend Hardening & Data Membranes**:
+   - Merge database configuration (`busy_timeout`), event bus atomicity (deferred post-commit SSE), and middleware limits (`multer` 50MB limits, magic-byte guards).
+   - Verify server routes still compile before touching frontend code.
+3. **Phase 3: Frontend Architecture & Competing Refactor Resolution**:
+   - Merge frontend lifecycle fixes (e.g. `NaN` guards, unmount timer cleanup).
+   - **Competing Refactor Protocol**: If multiple sessions refactored the same monolith (e.g. two alternative decompositions of `TableEditor.tsx`):
+     - Compare component hierarchy, hook isolation, and line count against the project's granularity ceiling (~250-line target, 500-line hard ceiling).
+     - Merge the superior architecture.
+     - Port any independent fixes landed by competing or adjacent PRs (e.g. `AbortController` cancellation).
+     - Explicitly close superseded PRs with a comment explaining the architectural rationale to maintain **zero open PR debt**.
+4. **CI & Verification Ratification**:
+   - Run `npm run lint` and `npm run build` locally.
+   - Monitor remote GitHub Actions check suites on `main` until CI and Docker workflows pass 100% green.
+   - Verify that `gh pr list --state open` reports **0 open PRs**.
