@@ -315,12 +315,13 @@ router.post('/:table', validateTargetTable, (req, res) => {
                     throw new Error('RLS_VIOLATION');
                 }
 
-                realtimeEmitter.emit(`table_change_${table}`, {
-                    action: 'INSERT',
-                    data: { id: lastId, ...data }
-                });
                 return lastId;
             })();
+
+            realtimeEmitter.emit(`table_change_${table}`, {
+                action: 'INSERT',
+                data: { id: lastId, ...data }
+            });
 
             res.json({ success: true, id: lastId });
         });
@@ -362,7 +363,7 @@ router.patch('/:table', validateTargetTable, (req, res) => {
                 throw new Error('RLS_VIOLATION');
             }
 
-            const changes = db.transaction(() => {
+            const { changes, emittedEvents } = db.transaction(() => {
                 const targetRows = db.prepare(`SELECT rowid AS carabase_rowid, * FROM ${table} WHERE (${whereClause}) AND (${rlsSelectFilter}) AND (${rlsUpdateFilter})`).all(...filterValues) as any[];
 
                 if (targetRows.length === 0) {
@@ -378,15 +379,17 @@ router.patch('/:table', validateTargetTable, (req, res) => {
                     }
                 }
 
-                for (const row of targetRows) {
-                    realtimeEmitter.emit(`table_change_${table}`, {
-                        action: 'UPDATE',
-                        data: { ...row, ...data }
-                    });
-                }
+                const emittedEvents = targetRows.map(row => ({
+                    action: 'UPDATE',
+                    data: { ...row, ...data }
+                }));
 
-                return result.changes;
+                return { changes: result.changes, emittedEvents };
             })();
+
+            for (const event of emittedEvents) {
+                realtimeEmitter.emit(`table_change_${table}`, event);
+            }
 
             res.json({ success: true, changes });
         });
@@ -419,7 +422,7 @@ router.delete('/:table', validateTargetTable, (req, res) => {
                 throw new Error('RLS_VIOLATION');
             }
 
-            const changes = db.transaction(() => {
+            const { changes, emittedEvents } = db.transaction(() => {
                 const targetRows = db.prepare(`SELECT rowid AS carabase_rowid, * FROM ${table} WHERE (${whereClause}) AND (${rlsSelectFilter}) AND (${rlsDeleteFilter})`).all(...filterValues) as any[];
 
                 if (targetRows.length === 0) {
@@ -428,15 +431,17 @@ router.delete('/:table', validateTargetTable, (req, res) => {
 
                 const result = db.prepare(`DELETE FROM ${table} WHERE (${whereClause}) AND (${rlsSelectFilter}) AND (${rlsDeleteFilter})`).run(...filterValues);
 
-                for (const row of targetRows) {
-                    realtimeEmitter.emit(`table_change_${table}`, {
-                        action: 'DELETE',
-                        data: row
-                    });
-                }
+                const emittedEvents = targetRows.map(row => ({
+                    action: 'DELETE',
+                    data: row
+                }));
 
-                return result.changes;
+                return { changes: result.changes, emittedEvents };
             })();
+
+            for (const event of emittedEvents) {
+                realtimeEmitter.emit(`table_change_${table}`, event);
+            }
 
             res.json({ success: true, changes });
         });
