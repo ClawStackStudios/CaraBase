@@ -59,3 +59,10 @@ I created `.jules/tasks/jules-task-plan.md` defining structured tasks for:
 
 I also planted surgical `// TODO:` comments in `server.ts`, `src/pages/TableEditor.tsx`, `src/pages/ApiBuilder.tsx`, and `src/server/middleware/auth.ts` for Jules's proactivity scanner to sniff out.
 I verified type checking (`npm run lint` passed with 0 errors) and committed the changes.
+
+Lucas requested updating `.agents/skills/jules-cli/SKILL.md` with the complete operational knowledge we discovered:
+- Replaced non-existent `jules task create` syntax with verified CLI commands (`jules new`, `jules remote list`, `jules remote pull`, `jules teleport`).
+- Documented the PTY width workaround (cols >= 250) to prevent 19-digit session ID truncation with ellipses.
+- Added deep documentation on Jules's proactive `// TODO:` scanning mechanism and our strategy for planting inline TODO targets.
+- Documented session follow-up via the Web UI (`https://jules.google.com/task/<ID>`) and git hallucination defenses.
+Committed the enriched skill file cleanly.
