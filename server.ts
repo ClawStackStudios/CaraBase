@@ -92,7 +92,18 @@ async function startServer() {
   });
   // TODO(security): Enforce strict upload file size limit and validate MIME types / magic-bytes in Multer to prevent unconstrained storage exhaustion
   // Constraints: Set limits: { fileSize: 50 * 1024 * 1024 } (50MB) and configure fileFilter validating MIME types and magic bytes on all upload instances.
-  const upload = multer({ storage: storageOptions });
+  const upload = multer({
+  storage: storageOptions,
+  limits: { fileSize: process.env.MAX_UPLOAD_SIZE_MB ? parseInt(process.env.MAX_UPLOAD_SIZE_MB, 10) * 1024 * 1024 : 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const dangerousExts = ['.exe', '.dll', '.sh', '.bat', '.cmd', '.elf', '.bin'];
+    if (dangerousExts.includes(ext)) {
+      return cb(new Error('Dangerous file type rejected.'));
+    }
+    cb(null, true);
+  }
+});
 
   // --- Core API Routes ---
   app.get('/api/health', (req, res) => res.json({ 
@@ -1237,11 +1248,29 @@ async function startServer() {
   // Constraints: Synchronously or asynchronously unlink req.file.path in catch block if DB insert fails; ensure no unhandled exceptions during cleanup.
   storageApi.post('/upload', upload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+    // Magic bytes check
+    const buffer = Buffer.alloc(4);
+    const fd = fs.openSync(req.file.path, 'r');
+    fs.readSync(fd, buffer, 0, 4, 0);
+    fs.closeSync(fd);
+
+    const hex = buffer.toString('hex').toUpperCase();
+    const dangerousSignatures = ['4D5A', '7F454C46', '2321']; // MZ, ELF, #!
+
+    if (dangerousSignatures.some(sig => hex.startsWith(sig))) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: 'File type rejected' });
+    }
+
     const id = uuidv4();
     try {
       db.prepare('INSERT INTO _carabase_storage (id, original_name, filename, mime_type, size) VALUES (?, ?, ?, ?, ?)').run(id, req.file.originalname, req.file.filename, req.file.mimetype, req.file.size);
       res.json({ success: true, id, filename: req.file.filename });
     } catch (e: any) {
+      if (req.file && fs.existsSync(req.file.path)) {
+        try { fs.unlinkSync(req.file.path); } catch (err) {}
+      }
       res.status(500).json({ error: e.message });
     }
   });
@@ -1375,11 +1404,29 @@ async function startServer() {
 
   systemApi.post('/storage/upload', requireRole('admin'), upload.single('file'), (req, res) => {
       if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-      const id = uuidv4();
+
+    // Magic bytes check
+    const buffer = Buffer.alloc(4);
+    const fd = fs.openSync(req.file.path, 'r');
+    fs.readSync(fd, buffer, 0, 4, 0);
+    fs.closeSync(fd);
+
+    const hex = buffer.toString('hex').toUpperCase();
+    const dangerousSignatures = ['4D5A', '7F454C46', '2321']; // MZ, ELF, #!
+
+    if (dangerousSignatures.some(sig => hex.startsWith(sig))) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: 'File type rejected' });
+    }
+
+    const id = uuidv4();
       try {
         db.prepare('INSERT INTO _carabase_storage (id, original_name, filename, mime_type, size) VALUES (?, ?, ?, ?, ?)').run(id, req.file.originalname, req.file.filename, req.file.mimetype, req.file.size);
         res.json({ success: true, id, filename: req.file.filename });
       } catch (e: any) {
+        if (req.file && fs.existsSync(req.file.path)) {
+          try { fs.unlinkSync(req.file.path); } catch (err) {}
+        }
         res.status(500).json({ error: e.message });
       }
   });

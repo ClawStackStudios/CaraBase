@@ -19,7 +19,18 @@ const storageOptions = multer.diskStorage({
     cb(null, uuidv4() + ext);
   }
 });
-const upload = multer({ storage: storageOptions });
+const upload = multer({
+  storage: storageOptions,
+  limits: { fileSize: process.env.MAX_UPLOAD_SIZE_MB ? parseInt(process.env.MAX_UPLOAD_SIZE_MB, 10) * 1024 * 1024 : 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const dangerousExts = ['.exe', '.dll', '.sh', '.bat', '.cmd', '.elf', '.bin'];
+    if (dangerousExts.includes(ext)) {
+      return cb(new Error('Dangerous file type rejected.'));
+    }
+    cb(null, true);
+  }
+});
 
 const router = express.Router();
 
@@ -129,11 +140,29 @@ router.get('/v1/share/:share_hash', (req, res) => {
 // --- Data API Storage (SDK/Public) ---
 router.post('/v1/upload', publicApiGuard, authenticateDataApi, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+  // Magic bytes check
+  const buffer = Buffer.alloc(4);
+  const fd = fs.openSync(req.file.path, 'r');
+  fs.readSync(fd, buffer, 0, 4, 0);
+  fs.closeSync(fd);
+
+  const hex = buffer.toString('hex').toUpperCase();
+  const dangerousSignatures = ['4D5A', '7F454C46', '2321']; // MZ, ELF, #!
+
+  if (dangerousSignatures.some(sig => hex.startsWith(sig))) {
+    fs.unlinkSync(req.file.path);
+    return res.status(400).json({ error: 'File type rejected' });
+  }
+
   const id = uuidv4();
   try {
     db.prepare('INSERT INTO _carabase_storage (id, original_name, filename, mime_type, size) VALUES (?, ?, ?, ?, ?)').run(id, req.file.originalname, req.file.filename, req.file.mimetype, req.file.size);
     res.json({ success: true, id, filename: req.file.filename });
   } catch (e: any) {
+    if (req.file && fs.existsSync(req.file.path)) {
+      try { fs.unlinkSync(req.file.path); } catch (err) {}
+    }
     res.status(500).json({ error: e.message });
   }
 });
@@ -153,11 +182,29 @@ systemRouter.get('/', requireRole('admin'), (req, res) => {
 
 systemRouter.post('/upload', requireRole('admin'), upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+  // Magic bytes check
+  const buffer = Buffer.alloc(4);
+  const fd = fs.openSync(req.file.path, 'r');
+  fs.readSync(fd, buffer, 0, 4, 0);
+  fs.closeSync(fd);
+
+  const hex = buffer.toString('hex').toUpperCase();
+  const dangerousSignatures = ['4D5A', '7F454C46', '2321']; // MZ, ELF, #!
+
+  if (dangerousSignatures.some(sig => hex.startsWith(sig))) {
+    fs.unlinkSync(req.file.path);
+    return res.status(400).json({ error: 'File type rejected' });
+  }
+
   const id = uuidv4();
   try {
     db.prepare('INSERT INTO _carabase_storage (id, original_name, filename, mime_type, size) VALUES (?, ?, ?, ?, ?)').run(id, req.file.originalname, req.file.filename, req.file.mimetype, req.file.size);
     res.json({ success: true, id, filename: req.file.filename });
   } catch (e: any) {
+    if (req.file && fs.existsSync(req.file.path)) {
+      try { fs.unlinkSync(req.file.path); } catch (err) {}
+    }
     res.status(500).json({ error: e.message });
   }
 });
