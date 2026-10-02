@@ -1,22 +1,22 @@
 # Active Context
 
 ## Current Focus
-- Session Goal: Consolidate and verify pending Pull Requests (PR #16 Node 26 Docker & PR #19 dependencies) with full Docker container smoke testing.
-- Immediate Task: Present the 100% green CI results of consolidated PR #20 to Lucas and request confirmation to merge into `main`.
+- Session Goal: Leverage Google Jules's Proactive Suggestions engine by auditing the codebase with specialized sub-agents and planting structured `// TODO(...)` comments across backend, frontend, SDK, and storage.
+- Immediate Task: Proactive TODOs planted across 12 files and pushed to `main`; monitoring Jules background scanner to ingest tasks.
 
 ## Active Decisions (Sliding 10)
-1. **[2026-10-01] Local Verification Gates**: Merged `origin/resolve-all-prs-17983432046683792243`, cleaned stray scripts, and verified lint (0 errors), build (clean dist), and tests (107/107 assertions passed).
-2. **[2026-10-01] Origin Push**: Pushed verified `main` (`85f5be8`) to `origin/main` with explicit user confirmation.
-3. **[2026-10-01] PR #18 Auto-Merge**: GitHub recognized `f635c42` as merged into `main`, successfully transitioning PR #18 to Merged/Closed.
-4. **[2026-10-01] Open PR Audit via `gh` CLI**: Discovered 7 open PRs (#19, #16, #13, #12, #11, #10, #9) using `/config/.local/bin/gh pr list`.
-5. **[2026-10-01] Sentinel Advisory Restored**: Extracted `.jules/sentinel.md` security writeup from PR #13 and committed it locally to retain Sentinel's documentation.
-6. **[2026-10-01] Superseded PRs Closed**: Closed PR #13 (resolved) and PRs #9-#12 (superseded) with explanatory comments via `gh pr close`.
-7. **[2026-10-01] PR #19 Local Verification**: Tested merge of PR #19 locally with `npm run lint` (0 errors), `npm run build`, dev server boot with `tsx 4.23.15`, and E2E suite (107/107 passed).
-8. **[2026-10-01] CI Docker Smoke Test Added**: Added Buildx local export (`load: true`, `tags: carabase:test`) and live container boot polling `/api/health` to `ci.yml`.
-9. **[2026-10-01] Consolidated PR #20 Created**: Branch `chore/consolidate-prs-16-19` merged PR #16 (Node 26) and PR #19 (dependencies) and pushed to GitHub.
-10. **[2026-10-01] PR #20 100% Green CI**: All 3 gates passed on GitHub Actions (Docker Build & live smoke test 2m1s, E2E Suite 31s, Lint & Build 25s).
+1. **[2026-10-01] PR #20 CI 100% Green**: Verified consolidated PR #20 on GitHub Actions with automated container boot smoke testing (2m1s).
+2. **[2026-10-01] PR #20 Merge & Auto-Resolution**: Merged PR #20 via `gh pr merge 20 --merge`, automatically transitioning PR #16 and PR #19 to Merged; 0 open PRs remain.
+3. **[2026-10-01] Governance Tracking**: Staged and committed 18 repository governance rules, skills, and PR templates under `.agents/`.
+4. **[2026-10-01] Multi-Subagent Codebase Crawl**: Dispatched 3 research subagents across Backend/Security, Frontend/Architecture, and SDK/Reliability domains.
+5. **[2026-10-01] WAL Journal Corruption Identified**: Flagged `server.ts` backup import missing `-wal`/`-shm` cleanup, risking silent corruption upon reboot.
+6. **[2026-10-01] Phantom SSE Emission Identified**: Flagged `realtimeEmitter.emit` running inside SQLite transaction before commit.
+7. **[2026-10-01] CommandPalette NaN Trap Identified**: Flagged division by zero in arrow navigation when filtered results are empty.
+8. **[2026-10-01] Proactive TODOs Planted**: Planted 12 structured `// TODO(category): description \n// Constraints: ...` comments across `server.ts`, `db.ts`, `TableEditor.tsx`, `LobsterKeyWizard.tsx`, `CommandPalette.tsx`, `ToastContext.tsx`, `Backups.tsx`, `Dashboard.tsx`, `Storage.tsx`, `QueryBuilder.ts`, and `RealtimeClient.ts`.
+9. **[2026-10-01] Jules Task Plan Expanded**: Expanded `.jules/tasks/jules-task-plan.md` with Tasks 4-7 covering WAL corruption, phantom SSE, frontend stability, and SDK resilience.
+10. **[2026-10-01] Verification Gates Passed**: Validated `npm run lint` (0 errors) and `npm run build` (clean Vite/server bundle); pushed clean `main` (`aeda31b`) to `origin`.
 
 ## Next Steps
-1. Request Lucas's confirmation to merge PR #20 into `main`.
-2. Close superseded PR #16 and PR #19.
-3. Pull `main` locally, stage agent rules, and proceed with `server.ts` decomposition.
+1. Guide Lucas on verifying Jules's "Suggested Tasks" pane in the Jules Web UI.
+2. Select Task 1 (`server.ts` decomposition) or any suggested task for autonomous execution by Jules.
+3. Track incoming patches from Jules.
