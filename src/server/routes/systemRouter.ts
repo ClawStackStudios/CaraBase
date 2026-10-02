@@ -165,6 +165,16 @@ router.get('/backups/download/:filename', requireRole('superadmin'), (req, res) 
   if (!fs.existsSync(filePath)) {
     return res.status(404).json({ error: 'Backup not found' });
   }
+
+  try {
+    const stats = fs.statSync(filePath);
+    if (stats.size === 0) {
+      return res.status(400).json({ error: 'Backup file is 0 bytes and cannot be downloaded' });
+    }
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to access backup file' });
+  }
+
   res.download(filePath);
 });
 
@@ -178,10 +188,17 @@ router.delete('/backups/:filename', requireRole('superadmin'), (req, res) => {
     return res.status(404).json({ error: 'Backup not found' });
   }
   try {
-    fs.unlinkSync(filePath);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
     res.json({ success: true });
   } catch (e: any) {
-    res.status(500).json({ success: false, error: e.message });
+    // If it was already deleted (e.g. by retention concurrently), treat as success
+    if (e.code === 'ENOENT') {
+      res.json({ success: true });
+    } else {
+      res.status(500).json({ success: false, error: e.message });
+    }
   }
 });
 
