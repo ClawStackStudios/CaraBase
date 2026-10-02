@@ -32,6 +32,8 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, type, message }]);
     
+    // TODO(perf): manage toast timeout identifiers using a ref map and clear pending timers on unmount and manual dismissal
+    // Constraints: Preserve 4000ms auto-dismiss interval and guarantee no setState is invoked after unmount or early dismissal.
     // Auto-dismiss after 4 seconds
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));

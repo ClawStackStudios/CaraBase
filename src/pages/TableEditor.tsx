@@ -137,6 +137,8 @@ export default function TableEditor() {
     }
   }
 
+  // TODO(bug): add AbortController to fetchTableData and fetchTables in TableEditor to cancel in-flight requests and prevent race conditions
+  // Constraints: Pass signal to apiFetch, abort on selectedTable change or unmount, and ignore AbortError in catch blocks.
   async function fetchTableData(
     tableName: string, 
     pageNum: number, 

@@ -92,6 +92,8 @@ export function AdminDashboard() {
     }
   }, [showUptimeHistory]);
 
+  // TODO(bug): implement rollback and user toast error notification on handleSettingChange failure in AdminDashboard
+  // Constraints: Verify res.ok, revert to previousSettings on catch or non-200 response, and emit toast.error.
   const handleSettingChange = async (key: string, value: string) => {
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);

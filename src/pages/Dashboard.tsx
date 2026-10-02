@@ -19,6 +19,8 @@ export default function Dashboard() {
   const logsPerPage = 5;
 
   useEffect(() => {
+    // TODO(ux): add loading skeletons and an error recovery banner to Dashboard loadData effect
+    // Constraints: Do not display misleading zero stats while loading or on error; provide a retry button when network calls fail.
     async function loadData() {
       try {
         const [tables, keys, policies, logsRes] = await Promise.all([

@@ -211,6 +211,8 @@ async function startServer() {
 
       const activeDbPath = path.join(process.cwd(), 'data', 'carabase.sqlite');
 
+      // TODO(backup): delete carabase.sqlite-wal and carabase.sqlite-shm during backup import to prevent WAL journal corruption
+      // Constraints: Delete stale -wal and -shm files immediately after db.close() and prior to copying replacement database file; match /wipe cleanup logic.
       // 1. Close active DB connection to prevent WAL corruption
       db.close();
 
@@ -723,7 +725,8 @@ async function startServer() {
     };
   };
 
-  // SDK / Public API Middleware: Kill Switch & Rate Limiter
+  // TODO(security): implement periodic sweep or LRU eviction for rateLimitMap and shareRateLimitMap to prevent unbounded memory growth
+  // Constraints: Sweep expired IP records every 5 minutes; cap map size to prevent heap exhaustion during DDoS/scans.
   const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
   
   const publicApiGuard = (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -1064,6 +1067,8 @@ async function startServer() {
                   throw new Error('RLS_VIOLATION');
               }
 
+              // TODO(reliability): collect real-time change events during transaction and emit only after successful transaction commit
+              // Constraints: Never emit table_change events inside db.transaction(); prevent phantom event dispatch if transaction rolls back.
               // Transaction-based policy check
               const lastId = db.transaction(() => {
                   const result = db.prepare(`INSERT INTO ${table} (${keys.join(',')}) VALUES (${marks})`).run(...values);
@@ -1213,6 +1218,8 @@ async function startServer() {
   const storageApi = express.Router();
   storageApi.use(authenticateDataApi);
 
+  // TODO(storage): prevent orphaned disk files by unlinking req.file on database insert failure
+  // Constraints: Synchronously or asynchronously unlink req.file.path in catch block if DB insert fails; ensure no unhandled exceptions during cleanup.
   storageApi.post('/upload', upload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
     const id = uuidv4();

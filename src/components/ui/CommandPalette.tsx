@@ -57,6 +57,8 @@ export function CommandPalette() {
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
+      // TODO(bug): guard against division by zero in CommandPalette arrow navigation when filteredCommands is empty
+      // Constraints: Check if (filteredCommands.length === 0) return; before calculating modulo to prevent selectedIndex becoming NaN.
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         setSelectedIndex((prev) => (prev + 1) % filteredCommands.length);

@@ -125,7 +125,8 @@ export default function Backups() {
       if (res.ok) {
         toast.success(json.message || 'Database imported successfully. Server restarting...');
         setConfirmImportDbFile(null);
-        // Page will likely refresh or error out due to server restart, which is expected
+        // TODO(bug): store reload timeout in a ref and clear it on Backups unmount to prevent unexpected reloads after route navigation
+        // Constraints: Ensure user navigation away from /dashboard/backups cancels the pending window.location.reload().
         setTimeout(() => window.location.reload(), 3000);
       } else {
         toast.error(json.error || 'Import failed');

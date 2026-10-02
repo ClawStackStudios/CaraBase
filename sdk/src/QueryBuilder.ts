@@ -96,6 +96,8 @@ export class QueryBuilder {
         body: this.requestBody ? JSON.stringify(this.requestBody) : undefined
       });
 
+      // TODO(bug): handle 204 No Content and non-JSON error payloads gracefully in QueryBuilder and StorageClient
+      // Constraints: Check response.status === 204 and content-type before calling response.json(); preserve response.status and response.statusText in error envelope.
       const responseData = await response.json();
 
       if (!response.ok) {

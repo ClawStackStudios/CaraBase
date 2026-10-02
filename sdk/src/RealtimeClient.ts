@@ -46,6 +46,8 @@ export class RealtimeClient {
       }
     };
 
+    // TODO(resilience): implement exponential backoff reconnection and error callbacks in RealtimeClient.subscribe
+    // Constraints: Surface onError and onStatusChange callbacks; automatically reconnect on connection drops with exponential backoff and jitter (max 5 retries); clean up activeSubscriptions map on terminal closure.
     eventSource.onerror = (error) => {
       console.error(`Realtime subscription error on table ${table}:`, error);
       // Optional: handle automatic reconnection or bubbling errors

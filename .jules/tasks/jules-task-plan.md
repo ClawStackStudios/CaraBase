@@ -40,11 +40,49 @@ This task plan outlines the immediate refactoring and hardening milestones for C
 
 ## Task 3: Storage Membrane Validation & Hardening
 - **Location**: Storage upload handling (`upload.single('file')`).
-- **Goal**: Prevent unconstrained storage abuse and malicious payload injection.
+- **Goal**: Prevent unconstrained storage abuse, orphaned files, and malicious payload injection.
 - **Requirements**:
   - Enforce maximum upload size limit (e.g. 50MB default configurable via `MAX_UPLOAD_SIZE_MB`).
   - Add magic-byte / file extension validation to reject dangerous executables.
-  - Sanitize uploaded file names to prevent path traversal.
+  - Unlink `req.file.path` in catch block if database metadata insertion fails to avoid orphaned storage leaks.
+
+---
+
+## Task 4: Fix SQLite WAL Journal Corruption on Backup Restore
+- **Location**: `server.ts` (`POST /api/system/backups/import`) & `src/server/utils/backup.ts`.
+- **Goal**: Prevent stale WAL and shared memory replay over newly imported databases.
+- **Requirements**:
+  - Delete `carabase.sqlite-wal` and `carabase.sqlite-shm` immediately after `db.close()` prior to copying the imported backup file over `carabase.sqlite`.
+  - Delete partial 0-byte destination files in `doTriggerBackup` if `VACUUM INTO` encounters an error mid-flight.
+
+---
+
+## Task 5: Prevent Phantom Realtime SSE Events & Add Busy Timeout
+- **Location**: `server.ts` (REST mutation routes) & `src/server/db.ts`.
+- **Goal**: Ensure database mutations and real-time event broadcasting remain strictly atomic and lock-resilient.
+- **Requirements**:
+  - Defer `realtimeEmitter.emit` until after `db.transaction()` completes and commits, preventing phantom events if RLS checks fail or the transaction rolls back.
+  - Configure `db.pragma('busy_timeout = 5000')` in `src/server/db.ts` to prevent immediate `SQLITE_BUSY` exceptions during concurrent writes or backups.
+
+---
+
+## Task 6: Frontend Lifecycle & Navigation Stability
+- **Location**: `src/components/ui/CommandPalette.tsx`, `src/context/ToastContext.tsx`, `src/pages/Backups.tsx`, `src/pages/TableEditor.tsx`.
+- **Goal**: Eliminate memory leaks, unmanaged timers, and race hazards in the React application.
+- **Requirements**:
+  - Guard against division by zero in `CommandPalette.tsx` arrow navigation when search results are empty (`filteredCommands.length === 0`).
+  - Manage toast timers with a ref map in `ToastContext.tsx` and clear timeouts on unmount and dismissal.
+  - Clear `window.location.reload()` timeout in `Backups.tsx` on unmount to avoid delayed reloads after route navigation.
+  - Add `AbortController` signal to `fetchTableData` and `fetchTables` in `TableEditor.tsx` to cancel in-flight requests and prevent race conditions when switching tables.
+
+---
+
+## Task 7: SDK Error Normalization & Reconnect Resilience
+- **Location**: `sdk/src/QueryBuilder.ts`, `sdk/src/RealtimeClient.ts`.
+- **Goal**: Ensure the TypeScript SDK handles non-JSON responses and network disconnects gracefully.
+- **Requirements**:
+  - Check `response.status === 204` and `Content-Type` before calling `response.json()` in `QueryBuilder.ts` to preserve HTTP status codes and prevent JSON syntax errors on reverse-proxy HTML pages.
+  - Implement exponential backoff reconnection with jitter in `RealtimeClient.ts` and clean up `activeSubscriptions` on connection drop.
 
 ---
 
@@ -53,3 +91,4 @@ Before opening or submitting any PR:
 1. `npm run lint` (`tsc --noEmit`) must exit with code 0.
 2. `npm run build` (Vite frontend + esbuild server bundle) must succeed cleanly.
 3. `npm test` (`node tests/suite.cjs`) must pass all integration checks against the live server.
+

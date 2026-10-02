@@ -82,6 +82,8 @@ interface LobsterKeyWizardProps {
   onKeyGenerated: (key: LobsterKey) => void;
 }
 
+// TODO(refactor): extract wizard step renderers from LobsterKeyWizard into src/components/lobster-keys/wizard/ (StepDetails, StepPermissions, StepExpiration, StepReview, StepGenerated)
+// Constraints: Preserve current FormData contract, permission preset configurations (ECOSYSTEM, READ, WRITE, etc.), rate limiting range (0-1000), and key generation API flow.
 export function LobsterKeyWizard({ isOpen, onClose, onKeyGenerated }: LobsterKeyWizardProps) {
   const [step, setStep] = useState<WizardStep>('details');
   const [form, setForm] = useState<FormData>(INITIAL_FORM);

@@ -38,6 +38,8 @@ export default function Storage() {
     }
   };
 
+  // TODO(bug): validate that API responses in Storage.tsx are arrays before updating state to prevent TypeError in render
+  // Constraints: Check res.ok and Array.isArray(data); default to empty array and display toast.error on failure.
   const fetchFiles = async () => {
     try {
       const res = await apiFetch('/api/system/storage');
