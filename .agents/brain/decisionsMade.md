@@ -54,3 +54,15 @@
 **Confidence**: high — Lint, build, and GitHub Actions CI all 100% green.
 **Outcome**: Merged PRs #25, #23, #24, #22, #26, #21; closed PR #27; 0 open PRs remain.
 **Pattern reference**: New pattern — first instance.
+
+## Round 2 Jules PR Integration (CORS, CommandPalette, Storage File Auth) — 2026-10-02 14:45
+**Context**: 3 Jules PRs landed targeting suggestions from planted TODO comments (PR #28 CORS hardening, PR #29 CommandPalette cleanup, PR #30 storage direct file requireAuth).
+**Options considered**:
+- Option A: Block merges until live app walkthrough is completed.
+- Option B: Merge PRs #28, #29, and #30 sequentially based on orthogonal domain isolation, verify automated gates, and hold version tagging until after the live walkthrough.
+**Chosen**: Option B
+**Why**: Felt reason: All three PRs are 100% orthogonal with 100% green CI suites; integrating them now provides a clean, hardened codebase for Lucas to walk through and test live.
+**Confidence**: high — 3/3 checks passing on all PRs, 0 lints, 46.85s clean production build.
+**Outcome**: Merged PRs #28, #29, and #30; 0 open PRs remain in repository.
+**Pattern reference**: New pattern — first instance.
+

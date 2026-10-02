@@ -12,16 +12,19 @@
 - Decomposed Table Editor (`src/features/table-editor/`) under 200-line orchestrator with 8 modular components and 3 custom hooks.
 - Resilient Frontend Lifecycle with division-by-zero NaN guards (`CommandPalette`), timer ref tracking (`ToastContext`), and in-flight `AbortController` cancellation.
 - Hardened TypeScript SDK (`sdk/`) with HTTP 204 No Content / reverse-proxy error handling and exponential backoff reconnect.
+- Sanitized CORS origin engine (`corsConfig.ts`) with zero-wildcard enforcement, URL origin normalization, and environment-scoped LAN restrictions.
+- Direct storage file auth boundary (`/storage/v1/file/:id` gated by `requireAuth`), closing IDOR asset enumeration while preserving ShellProxy membrane for shares.
 - GitHub CI Pipeline with 3 parallel validation gates (Lint/Build, E2E, Docker) passing 100% green.
 - Antigravity Brain initialized with Self vs Environment architecture.
 
 ## What's In Flight
 - **GitHub Pull Requests**:
-  - All 7 Jules PRs (#21, #22, #23, #24, #25, #26, #27) fully reconciled and merged/closed.
+  - All 10 Jules PRs across Round 1 (#21-#27) and Round 2 (#28-#30) fully reconciled and merged.
   - Exactly **0 open PRs** remain in the repository.
 - **Dedicated Sub-Agents**:
   - Tailored security sub-agent `Sentinel` active in runtime (`agent.md`).
 - **Next Planned Milestone**:
+  - Comprehensive live app walkthrough with Lucas.
   - Decomposition of `server.ts` into modular route controllers under `src/server/routes/` to meet the 500-line hard ceiling (target ~250 lines).
 
 ## Known Issues & Debt
