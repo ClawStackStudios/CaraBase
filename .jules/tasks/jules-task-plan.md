@@ -48,12 +48,10 @@ This task plan outlines the immediate refactoring and hardening milestones for C
 
 ---
 
-## Task 4: Fix SQLite WAL Journal Corruption on Backup Restore
-- **Location**: `server.ts` (`POST /api/system/backups/import`) & `src/server/utils/backup.ts`.
-- **Goal**: Prevent stale WAL and shared memory replay over newly imported databases.
-- **Requirements**:
-  - Delete `carabase.sqlite-wal` and `carabase.sqlite-shm` immediately after `db.close()` prior to copying the imported backup file over `carabase.sqlite`.
-  - Delete partial 0-byte destination files in `doTriggerBackup` if `VACUUM INTO` encounters an error mid-flight.
+## Task 4: Fix SQLite WAL Journal Corruption on Backup Restore [COMPLETED ✅]
+- **Status**: Completed by Sentinel in commit `4f937e1`.
+- **Location**: `server.ts` (`POST /api/system/backups/import`) & `src/server/routes/systemRouter.ts`.
+- **Resolution**: Both `-wal` and `-shm` auxiliary files are explicitly unlinked prior to replacing the database file. Stale transaction replay is prevented.
 
 ---
 
