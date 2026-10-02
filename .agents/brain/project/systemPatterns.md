@@ -33,3 +33,19 @@ CaraBase combines an Express API server with a React single-page frontend:
 - Uploaded files stored in `data/storage/`.
 - Downloads gated through expiring `share_hash` tokens.
 - Dynamic MIME detection serving inline previews or binary attachments.
+
+### 6. The 4 Universal Invariables (Topological Audit)
+Every architectural boundary must resolve these four questions before modification:
+1. **Where does state live?** (Ownership & Truth) — Protects consistency and bounds blast radius.
+2. **Where does feedback live?** (Observability) — Informs error reporting, audit logs, and monitoring.
+3. **What breaks if I delete this?** (Coupling & Fragility) — Defines blast radius and refactoring safety.
+4. **When does timing work?** (Async & Ordering) — Eliminates race conditions and event sequence hazards.
+
+### 7. Hardened Route Boundaries & Fallback Routing
+- Fallback route handler specifically shields `/api`, `/storage`, and `/rest` paths from Vite/SPA catch-all routes to prevent source reflection or anonymous directory traversal.
+- System tables are permanently isolated under the `_carabase_` prefix, completely unmapped from generic REST routes.
+
+### 8. SuperAdmin Volatile In-Memory Sessions
+- SuperAdmin access is guarded by `ADMIN_TOKEN`. Sessions live exclusively in volatile in-memory Maps with a 20-minute rolling TTL; process restarts immediately invalidate all sessions.
+- Plaintext secrets are never transmitted: the client computes SHA-256 via WebCrypto (`crypto.subtle.digest`) and the server validates via `timingSafeCompare()`.
+- Sovereign metadata principle: Dashboard renders health, audit metrics, and schema, but strictly forbids content browsing (table rows, file streams) to preserve zero-knowledge data sovereignty.
