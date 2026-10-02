@@ -21,3 +21,14 @@
 **Confidence**: high — Workflow executed cleanly, committed with full reference updates.
 **Outcome**: Migrated to `.agents/brain/` with clean git tree.
 **Pattern reference**: New pattern — first instance.
+
+## Sentinel Security Subagent Architecture & Jules Handoff — 2026-10-01 22:55
+**Context**: Lucas requested a dedicated sub-agent `Sentinel` tailored to CaraBase security, fixing ONE issue (< 50 lines) and planting TODOs for Jules on secondary findings.
+**Options considered**:
+- Option A: Generic security agent prompt without repo-specific commands or invariants.
+- Option B: Deeply tailored agent with CaraBase toolchain (`npm test`, `npm run lint`, `npm run build`), key prefix invariants (`hu-`, `api-`, `lb-`), SQLite/SQLCipher boundaries, and structured Jules TODO handoff protocol.
+**Chosen**: Option B
+**Why**: Felt reason: An agent without repository-specific invariants generates hallucinated commands and superficial changes; grounding Sentinel in CaraBase's exact boundaries guarantees verified, high-signal security contributions.
+**Confidence**: high — Specification tested against repository structure, verification gates passed.
+**Outcome**: Created `.agents/agents/sentinel/agents.md` and registered via `define_subagent`.
+**Pattern reference**: New pattern — first instance.

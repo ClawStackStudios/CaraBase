@@ -139,5 +139,16 @@ Lucas approved merging PR #20 and cleaning up the repository. I merged PR #20 us
 I staged and committed 18 repository governance rules, skills, and templates under `.agents/` to ensure full tracking.
 Lucas then directed using Jules's Proactive Suggestions engine. I dispatched three research subagents across the codebase (Backend/Security, Frontend/Architecture, and SDK/Reliability).
 The subagents returned critical findings, including SQLite WAL journal corruption during backup imports, phantom SSE emissions inside DB transactions, a division-by-zero NaN bug in CommandPalette, and masked HTTP errors in the SDK.
-I synthesized these findings and planted 12 structured `// TODO(category): description \n// Constraints: ...` comments across `server.ts`, `db.ts`, `TableEditor.tsx`, `LobsterKeyWizard.tsx`, `CommandPalette.tsx`, `ToastContext.tsx`, `Backups.tsx`, `Dashboard.tsx`, `Storage.tsx`, `QueryBuilder.ts`, and `RealtimeClient.ts`, and expanded `.jules/tasks/jules-task-plan.md` with Tasks 4-7.
 Both `npm run lint` and `npm run build` passed cleanly, and I committed and pushed the changes to `origin/main`.
+
+## 2026-10-01 22:55 — Sentinel Sub-Agent Instantiation & Handoff Wiring
+
+Lucas proposed introducing dedicated, specialized sub-agents located in `.agents/agents/[name]/agents.md`, starting with "Sentinel" 🛡️ — a security-focused agent tasked with identifying and fixing exactly one small security issue (< 50 lines) or security enhancement, while passing up larger issues by planting structured Jules `// TODO(security)` comments.
+
+Rather than leaving Sentinel with generic example commands, I anchored its operational specifications directly in CaraBase's reality:
+- Verification gates: `npm run lint` (`tsc --noEmit`), `npm run build` (Vite + esbuild), `npm test` (`tests/suite.cjs`), and server start/stop commands.
+- Key prefix invariants: OWASP standards `hu-*`, `api-*`, `lb-*`, and `ls-*`.
+- Cryptographic & storage membranes: SQLite WAL mode, SQLCipher encryption, and RLS policies.
+- A hard constraint limiting any single fix to < 50 lines, with mandatory handoff of secondary or larger vulnerabilities into `// TODO(security)` comments for Google Jules.
+
+I created `.agents/agents/sentinel/agents.md` and registered the sub-agent into Antigravity's active runtime via `define_subagent`. Both `npm run lint` and `npm run build` passed with zero errors, confirming the workspace remains structurally sound. Sentinel is now armed, governed, and ready to scan and secure CaraBase.
