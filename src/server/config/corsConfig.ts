@@ -36,7 +36,7 @@ export function getCorsConfig(): CorsOptions {
         }
 
         // Sanitize origins: ignore '*', parse with URL to extract proper origin
-        const rawOrigins = [...envOrigins, ...dbOrigins];
+        const rawOrigins = isProduction ? [...envOrigins, ...dbOrigins] : [...envOrigins];
         const allowedOrigins = rawOrigins
           .filter(o => o !== '*')
           .map(o => {
