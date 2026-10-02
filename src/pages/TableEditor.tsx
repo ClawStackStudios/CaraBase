@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -108,8 +108,15 @@ export default function TableEditor() {
   const [isDropTableConfirmOpen, setIsDropTableConfirmOpen] = useState(false);
   const [isDroppingTable, setIsDroppingTable] = useState(false);
 
+  const fetchTablesAbortController = useRef<AbortController | null>(null);
+  const fetchTableDataAbortController = useRef<AbortController | null>(null);
+
   useEffect(() => {
     fetchTables();
+    return () => {
+      if (fetchTablesAbortController.current) fetchTablesAbortController.current.abort();
+      if (fetchTableDataAbortController.current) fetchTableDataAbortController.current.abort();
+    };
   }, []);
 
   useEffect(() => {
@@ -124,34 +131,44 @@ export default function TableEditor() {
   }, [selectedTable]);
 
   async function fetchTables() {
+    if (fetchTablesAbortController.current) {
+      fetchTablesAbortController.current.abort();
+    }
+    fetchTablesAbortController.current = new AbortController();
+
     setLoading(true);
     try {
-      const res = await apiFetch('/api/system/tables');
+      const res = await apiFetch('/api/system/tables', { signal: fetchTablesAbortController.current.signal });
       const data = await res.json();
       setTables(data);
       if (data.length > 0 && !selectedTable) setSelectedTable(data[0].name);
-    } catch (err) {
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
       console.error(err);
     } finally {
       setLoading(false);
     }
   }
 
-  // TODO(bug): add AbortController to fetchTableData and fetchTables in TableEditor to cancel in-flight requests and prevent race conditions
-  // Constraints: Pass signal to apiFetch, abort on selectedTable change or unmount, and ignore AbortError in catch blocks.
   async function fetchTableData(
     tableName: string, 
     pageNum: number, 
     orderBy: string | null = sortCol, 
     direction: "ASC" | "DESC" | null = sortDir
   ) {
+    if (fetchTableDataAbortController.current) {
+      fetchTableDataAbortController.current.abort();
+    }
+    fetchTableDataAbortController.current = new AbortController();
+    const signal = fetchTableDataAbortController.current.signal;
+
     setLoadingRows(true);
     try {
       // Introspect schema features
       const [colsRes, idxRes, fkRes] = await Promise.all([
-        apiFetch(`/api/system/tables/${tableName}/schema`),
-        apiFetch(`/api/system/tables/${tableName}/indexes`),
-        apiFetch(`/api/system/tables/${tableName}/foreign_keys`)
+        apiFetch(`/api/system/tables/${tableName}/schema`, { signal }),
+        apiFetch(`/api/system/tables/${tableName}/indexes`, { signal }),
+        apiFetch(`/api/system/tables/${tableName}/foreign_keys`, { signal })
       ]);
       setColumns(await colsRes.json());
       setIndexes(await idxRes.json());
@@ -165,14 +182,15 @@ export default function TableEditor() {
         url += `&order_by=${orderBy}&dir=${direction}`;
       }
 
-      const rowsRes = await apiFetch(url);
+      const rowsRes = await apiFetch(url, { signal });
       if (!rowsRes.ok) {
         throw new Error(await rowsRes.text());
       }
       setRows(await rowsRes.json());
-    } catch (err) {
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
       console.error(err);
-      toast.error('Error fetching table data: ' + (err as Error).message);
+      toast.error('Error fetching table data: ' + err.message);
     } finally {
       setLoadingRows(false);
     }

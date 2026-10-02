@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'info';
@@ -27,22 +27,34 @@ export const useToast = () => {
 
 export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const timeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  useEffect(() => {
+    return () => {
+      // Clear all timeouts on unmount
+      timeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+      timeoutsRef.current.clear();
+    };
+  }, []);
+
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+    if (timeoutsRef.current.has(id)) {
+      clearTimeout(timeoutsRef.current.get(id));
+      timeoutsRef.current.delete(id);
+    }
+  }, []);
 
   const addToast = useCallback((type: ToastType, message: string) => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, type, message }]);
     
-    // TODO(perf): manage toast timeout identifiers using a ref map and clear pending timers on unmount and manual dismissal
-    // Constraints: Preserve 4000ms auto-dismiss interval and guarantee no setState is invoked after unmount or early dismissal.
     // Auto-dismiss after 4 seconds
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
+    const timeoutId = setTimeout(() => {
+      removeToast(id);
     }, 4000);
-  }, []);
-
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
+    timeoutsRef.current.set(id, timeoutId);
+  }, [removeToast]);
 
   const success = useCallback((msg: string) => addToast('success', msg), [addToast]);
   const error = useCallback((msg: string) => addToast('error', msg), [addToast]);
