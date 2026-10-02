@@ -67,9 +67,10 @@ jules teleport <FULL_SESSION_ID>
 
 ### 4. Interactive Feedback & Follow-ups
 The CLI does not currently support posting follow-up messages into an active session. When Jules enters `Awaiting User Feedback` or `Awaiting Plan Approval`:
-- Open the session in the Jules Web UI:  
+- **Give the user a prompt to pass to Jules in the Web UI**: Antigravity formulates a precise, grounded, ready-to-copy prompt addressing Jules's plan or questions.
+- Provide the direct link to the session in the Jules Web UI:  
   **`https://jules.google.com/task/<FULL_SESSION_ID>`**
-- Submit your plan corrections, approvals, or answers directly in the web chat interface.
+- The user copies the provided prompt and pastes it directly into Jules's web chat interface to unblock or redirect Jules.
 
 ---
 
@@ -123,7 +124,10 @@ jules new "read your .jules/ directory, and read the jules-task-plan.md in the .
 
 ### Step 3: Monitor & Guide Execution
 1. Monitor status with `jules remote list --session`.
-2. If Jules pauses at `Awaiting User Feedback`, use the Web UI link (`https://jules.google.com/task/<ID>`) to unblock it.
+2. If Jules pauses at `Awaiting User Feedback` or `Awaiting Plan Approval`:
+   - Inspect Jules's questions or proposed plan.
+   - **Give the user a prompt to pass to Jules in the Web UI**, along with the direct URL (`https://jules.google.com/task/<ID>`).
+   - The user pastes the prompt into the web UI to steer or unblock Jules.
 
 ### Step 4: Audit & Teleport
 1. Inspect the diff remotely via `jules remote pull --session <ID>`.
