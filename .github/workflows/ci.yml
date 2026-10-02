@@ -126,10 +126,34 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image (validation only — no push)
+      - name: Build Docker image (validation and local export)
         uses: docker/build-push-action@v5
         with:
           context: .
+          load: true
           push: false
+          tags: carabase:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Smoke test container execution
+        run: |
+          TEST_DB_KEY=$(openssl rand -hex 32)
+          docker run -d --name carabase-test \
+            -p 5353:5353 \
+            -e DB_ENCRYPTION_KEY="$TEST_DB_KEY" \
+            carabase:test
+
+          echo "Polling container health check on http://localhost:5353/api/health..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5353/api/health > /dev/null; then
+              echo "Container healthy after ${i}s"
+              docker stop carabase-test
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "::error::Container failed to become healthy within 30s"
+          docker logs carabase-test
+          exit 1
