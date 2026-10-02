@@ -131,13 +131,15 @@ Jules features native webhook integration with GitHub Actions Check Suites via i
 
 ## 📋 The 4-Step Delegation Protocol
 
-### Step 1: Context Preparation & Task Plan File
+### Step 1: Context Preparation & Memory Seeding
 1. Ensure project guidelines, constraints, and architecture rules are up to date.
-2. Create the task directory and plan file in the workspace root:
+2. Seed Jules's persistent memory by maintaining `.jules/jules-knowledge-memory-integration.md` with concise, declarative "unit" statements for the repository.
+   > 📖 *For formatting conventions and pre-loading guidelines, see [references/knowledge-integration.md](./references/knowledge-integration.md).*
+3. Create the task directory and plan file in the workspace root:
    ```bash
    mkdir -p .jules/tasks
    ```
-3. Author `.jules/tasks/jules-task-plan.md` defining:
+4. Author `.jules/tasks/jules-task-plan.md` defining:
    - Scope and target files.
    - Architectural constraints and requirements.
    - Verification gates (e.g., typecheck, build, test suite).
