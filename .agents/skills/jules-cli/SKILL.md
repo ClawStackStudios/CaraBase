@@ -90,6 +90,8 @@ Antigravity agents can proactively direct Jules's task pipeline without manual t
 2. Insert scoped, actionable `// TODO:` comments directly above target modules, handlers, or components.
 3. When Jules executes its next background repo sweep, it automatically ingests these comments, synthesizes execution plans, and generates task cards for user review.
 
+> 📖 *For complete comment formats, language syntax, and examples, see [references/suggested-tasks.md](references/suggested-tasks.md).*
+
 ---
 
 ## 🛡️ Git Grounding & Hallucination Defenses
@@ -100,6 +102,8 @@ Always ground Jules prompts with explicit git invariants:
 1. **Specify the active base branch** (e.g., `main`).
 2. **Provide tree verification commands** (e.g., instruct Jules to run `git ls-tree -r --name-only HEAD` to verify file presence).
 3. **Set negative guardrails**: Explicitly state: *"DO NOT force-reset, rebase root, or force-push `main`."*
+
+> 📖 *For multi-PR consolidation strategies and PTY terminal tricks, see [references/git-topology.md](references/git-topology.md).*
 
 ---
 
@@ -120,6 +124,8 @@ Jules features native webhook integration with GitHub Actions Check Suites via i
 - **Do Not Intervene While CI Fixer Is Active**: When an agent detects a CI check failure on a Jules PR, do NOT push competing commits or force-reset the branch. Jules is already actively self-healing.
 - **Monitor the Repair Pass**: Inspect Jules's corrective edits using `jules remote pull --session <SESSION_ID>`.
 - **Intervene Only on Escalation**: Only formulate a manual guidance prompt if Jules exhausts its retries, asks a clarifying question, or transitions into `Awaiting User Feedback`.
+
+> 📖 *For failure patterns, webhook lifecycle, and runner troubleshooting, see [references/ci-fixer.md](references/ci-fixer.md).*
 
 ---
 
