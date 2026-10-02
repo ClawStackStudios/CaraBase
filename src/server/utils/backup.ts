@@ -4,7 +4,8 @@ import cron from 'node-cron';
 import Database from 'better-sqlite3-multiple-ciphers';
 
 const BACKUP_DIR = process.env.BACKUP_DIR || path.join(process.cwd(), 'data', 'backups');
-const BACKUP_RETENTION_COUNT = process.env.BACKUP_RETENTION_COUNT ? parseInt(process.env.BACKUP_RETENTION_COUNT, 10) : 5;
+const parsedCount = parseInt(process.env.BACKUP_RETENTION_COUNT || '5', 10);
+const BACKUP_RETENTION_COUNT = isNaN(parsedCount) || parsedCount < 1 ? 5 : parsedCount;
 
 // Ensure backup directory exists
 if (!fs.existsSync(BACKUP_DIR)) {
@@ -55,10 +56,14 @@ async function doTriggerBackup(db: Database.Database): Promise<BackupInfo> {
     }
     db.prepare(`VACUUM INTO ?`).run(destFile);
 
+    const stats = fs.statSync(destFile);
+    if (stats.size === 0) {
+      throw new Error('Backup file is 0 bytes');
+    }
+
     // Enforce retention policy — explicitly protect the file we just created
     enforceRetentionPolicy(filename);
 
-    const stats = fs.statSync(destFile);
     return {
       filename,
       sizeBytes: stats.size,
@@ -66,6 +71,13 @@ async function doTriggerBackup(db: Database.Database): Promise<BackupInfo> {
     };
   } catch (error) {
     console.error('[Backup Engine] Failed to create backup:', error);
+    try {
+      if (fs.existsSync(destFile)) {
+        fs.unlinkSync(destFile);
+      }
+    } catch (cleanupErr) {
+      console.error('[Backup Engine] Failed to cleanup partial backup:', cleanupErr);
+    }
     throw new Error('Database backup failed.');
   }
 }
@@ -84,15 +96,26 @@ export function getBackupsList(): BackupInfo[] {
     .sort()
     .reverse(); // newest first
 
-  return files.map(filename => {
+  const validBackups: BackupInfo[] = [];
+  for (const filename of files) {
     const filePath = path.join(BACKUP_DIR, filename);
-    const stats = fs.statSync(filePath);
-    return {
-      filename,
-      sizeBytes: stats.size,
-      createdAt: (parseBackupTimestamp(filename) || stats.birthtime).toISOString()
-    };
-  });
+    try {
+      const stats = fs.statSync(filePath);
+      if (stats.size === 0) {
+        fs.unlinkSync(filePath);
+        continue;
+      }
+      validBackups.push({
+        filename,
+        sizeBytes: stats.size,
+        createdAt: (parseBackupTimestamp(filename) || stats.birthtime).toISOString()
+      });
+    } catch (err) {
+      // Ignore deleted or inaccessible files
+    }
+  }
+
+  return validBackups;
 }
 
 /**
@@ -111,8 +134,10 @@ function enforceRetentionPolicy(currentFilename?: string) {
       if (currentFilename && backup.filename === currentFilename) continue;
       const filePath = path.join(BACKUP_DIR, backup.filename);
       try {
-        fs.unlinkSync(filePath);
-        console.log(`[Backup Engine] Deleted old backup: ${backup.filename}`);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+          console.log(`[Backup Engine] Deleted old backup: ${backup.filename}`);
+        }
       } catch (err) {
         console.error(`[Backup Engine] Failed to delete old backup ${backup.filename}:`, err);
       }
