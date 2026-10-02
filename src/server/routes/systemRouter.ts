@@ -196,6 +196,10 @@ router.post('/backups/import', requireRole('superadmin'), upload.single('db_file
     }
     const activeDbPath = path.join(process.cwd(), 'data', 'carabase.sqlite');
     db.close();
+    const walPath = activeDbPath + '-wal';
+    if (fs.existsSync(walPath)) fs.unlinkSync(walPath);
+    const shmPath = activeDbPath + '-shm';
+    if (fs.existsSync(shmPath)) fs.unlinkSync(shmPath);
     fs.copyFileSync(req.file.path, activeDbPath);
     fs.unlinkSync(req.file.path);
     res.json({ success: true, message: 'Database imported. Server restarting...' });

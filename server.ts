@@ -90,7 +90,8 @@ async function startServer() {
       cb(null, uuidv4() + ext);
     }
   });
-  // TODO: Enforce file upload size limit (e.g. 50MB) and validate file extension/magic-bytes in multer options to prevent unconstrained storage exhaustion
+  // TODO(security): Enforce strict upload file size limit and validate MIME types / magic-bytes in Multer to prevent unconstrained storage exhaustion
+  // Constraints: Set limits: { fileSize: 50 * 1024 * 1024 } (50MB) and configure fileFilter validating MIME types and magic bytes on all upload instances.
   const upload = multer({ storage: storageOptions });
 
   // --- Core API Routes ---
@@ -211,12 +212,20 @@ async function startServer() {
 
       const activeDbPath = path.join(process.cwd(), 'data', 'carabase.sqlite');
 
-      // TODO(backup): delete carabase.sqlite-wal and carabase.sqlite-shm during backup import to prevent WAL journal corruption
-      // Constraints: Delete stale -wal and -shm files immediately after db.close() and prior to copying replacement database file; match /wipe cleanup logic.
       // 1. Close active DB connection to prevent WAL corruption
       db.close();
 
-      // 2. Overwrite the active DB with the uploaded file
+      // 2. Unlink dangling -wal and -shm journal files to prevent WAL replay corruption
+      const walPath = activeDbPath + '-wal';
+      if (fs.existsSync(walPath)) {
+        fs.unlinkSync(walPath);
+      }
+      const shmPath = activeDbPath + '-shm';
+      if (fs.existsSync(shmPath)) {
+        fs.unlinkSync(shmPath);
+      }
+
+      // 3. Overwrite the active DB with the uploaded file
       fs.copyFileSync(req.file.path, activeDbPath);
 
       // 3. Delete the uploaded temp file
@@ -500,6 +509,8 @@ async function startServer() {
     }
   });
 
+  // TODO(security): Validate CREATE VIEW queries against multi-statement execution and semicolon chaining
+  // Constraints: Validate query contains no unquoted semicolons or parse via SQL AST before calling db.exec, preventing chained DDL/DML injection.
   systemApi.post('/views', requireRole('admin'), (req, res) => {
     const { query } = req.body;
     if (!query || typeof query !== 'string') return res.status(400).json({ error: 'Query is required' });
@@ -641,6 +652,8 @@ async function startServer() {
 
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.substring(7).trim();
+      // TODO(security): Deprecate and remove legacy pk_ prefix support to enforce OWASP key prefix invariants
+      // Constraints: Drop pk_ check; strictly require ls- (public) or ls-p- (private) for LobsterService API keys.
       if (token.startsWith('ls-p-') || token.startsWith('ls-') || token.startsWith('pk_')) {
         legacyKey = token;
       }
@@ -771,6 +784,8 @@ async function startServer() {
   externalApi.use(authenticateDataApi);
 
   // Dynamic REST API Generator Catch-all Interceptor Router
+  // TODO(security): Wrap custom endpoint database operations in rlsContext.run to enforce RLS membrane functions
+  // Constraints: Execute all SQL within rlsContext.run({ userUuid, username }, ...) so auth_uid() and auth_role() correctly resolve in policies.
   externalApi.all('/custom/:path(*)', async (req, res) => {
       const path = req.params.path;
       const method = req.method.toUpperCase();
@@ -1297,6 +1312,8 @@ async function startServer() {
          const isImage = row.mime_type.startsWith('image/');
          const isVideo = row.mime_type.startsWith('video/');
          
+         // TODO(security): Sanitize and HTML-escape row.original_name in ShellProxy HTML template to prevent stored XSS
+         // Constraints: Escape &, <, >, ", and ' in row.original_name before injecting into <title>, alt, download attribute, and DOM text elements.
          const html = `<!DOCTYPE html>
 <html lang="en">
 <head>

@@ -152,3 +152,9 @@ Rather than leaving Sentinel with generic example commands, I anchored its opera
 - A hard constraint limiting any single fix to < 50 lines, with mandatory handoff of secondary or larger vulnerabilities into `// TODO(security)` comments for Google Jules.
 
 I created `.agents/agents/sentinel/agents.md` and registered the sub-agent into Antigravity's active runtime via `define_subagent`. Both `npm run lint` and `npm run build` passed with zero errors, confirming the workspace remains structurally sound. Sentinel is now armed, governed, and ready to scan and secure CaraBase.
+
+I dispatched Sentinel on its inaugural mission. Sentinel audited the codebase across five critical security vectors: WAL handling, file uploads, stored XSS, SQL injection, and RLS membranes.
+It selected a critical data integrity and isolation bug: upon restoring backups via `systemApi.post('/backups/import')` or `systemRouter.ts`, active database replacement did not unlink lingering `carabase.sqlite-wal` and `carabase.sqlite-shm` files. Upon server restart, SQLite would replay orphaned WAL pages from the prior state onto the imported database, causing salt/btree corruption or cross-state data leakage.
+Sentinel resolved this surgically in under 15 lines by unlinking both auxiliary files before copying the replacement DB.
+For the remaining five vectors (multer limits, view multi-statement SQLi, legacy `pk_` keys, custom endpoint RLS context, and ShellProxy stored XSS), Sentinel adhered strictly to the Jules handoff protocol, planting structured `// TODO(security)` and `// Constraints:` comments.
+Sentinel logged the vulnerability pattern in `.jules/sentinel.md`, and both `npm run lint` and `npm run build` passed cleanly.
