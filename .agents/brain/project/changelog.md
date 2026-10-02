@@ -11,6 +11,7 @@
 - Defined dedicated security subagent `Sentinel` in `.agents/agents/sentinel/agent.md` with strict < 50-line diff ceiling and Jules handoff protocol.
 - Executed Sentinel inaugural mission; fixed SQLite WAL unlinking on restore (< 15 lines) and logged pattern in `.jules/sentinel.md`.
 - Expanded `.agents/skills/jules-cli/SKILL.md` with multi-session fleet concurrency, orthogonal domain partitioning, dual-channel steering, and the 4-component prompt formula.
+- Documented official Jules tier quotas (Free: 15/3, Pro: 100/15, Ultra: 300/60) and codified the Conversational Concurrency Calibration Protocol in `jules-cli` skill.
 - Dispatched 7 concurrent Google Jules tasks for overnight autonomous execution.
 
 ## [v0.2.0] — Phase 2 Ratification

@@ -113,9 +113,20 @@ Every `jules new` prompt should follow this verified structure:
 
 ---
 
-## 🚀 Multi-Session Fleet Concurrency & Parallelism
+## 🚀 Multi-Session Fleet Concurrency & Quota Tiers
 
-Jules accounts often support substantial concurrent session allowances (e.g. up to 100 simultaneous sessions). Rather than dispatching tasks in serial sequence ("Task 1 &rarr; PR &rarr; Merge &rarr; Task 2"), Antigravity agents can orchestrate an entire fleet of targeted tasks in parallel.
+Google Jules supports tiered daily and concurrent execution quotas:
+
+| Plan Tier | Daily Sessions | Concurrent Sessions | Best For |
+| :--- | :--- | :--- | :--- |
+| **Free** | 15 / day | **3 concurrent** | Quick single-file fixes, small bug investigations |
+| **Pro** | 100 / day | **15 concurrent** | Parallel feature decomposition, multi-domain sweeps |
+| **Ultra** | 300 / day | **60 concurrent** | Massive full-codebase refactors, fleet modernization |
+
+### Conversational Concurrency Calibration Protocol
+Never assume or impose tier limits onto the developer arbitrarily. Before triggering a batch dispatch:
+- **Ask the user how many sessions they want to do concurrently**: Solicit their desired concurrency so delegation feels smooth, natural, and tuned to their active workflow pacing rather than forced by tier limits.
+- **Calibrate the fleet to their target**: Once confirmed (e.g. 7 tasks across the Pro allowance), launch that exact batch size across isolated container VMs.
 
 ### 1. Orthogonal Architectural Domain Partitioning
 When launching multiple concurrent sessions targeting the same repository, **each task must be partitioned into an isolated architectural domain**. If multiple sessions attempt to refactor the same functions or contiguous lines on separate branches simultaneously, merging their PRs later will produce complex git merge conflicts.
@@ -195,7 +206,8 @@ Jules features native webhook integration with GitHub Actions Check Suites via i
 4. If prior agents or commits already completed parts of the plan, update `.jules/tasks/jules-task-plan.md` (e.g. `[COMPLETED ✅]`) and push to `main` before dispatching.
 
 ### Step 2: Offload Tasks via Jules CLI (Single or Fleet)
-When dispatching a task with `jules new`, use the 4-component prompt formula:
+1. **Calibrate Concurrency**: If planning a fleet dispatch, prompt the user for their desired concurrent session count to keep delegation natural and aligned with their workflow pacing and plan tier (Free: 3, Pro: 15, Ultra: 60 concurrent).
+2. **Dispatch with Prompt Formula**: When dispatching with `jules new`, use the 4-component prompt formula:
 
 ```bash
 # Single task dispatch
