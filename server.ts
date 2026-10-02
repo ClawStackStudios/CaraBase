@@ -26,6 +26,7 @@ import { getCorsConfig } from './src/server/config/corsConfig.js';
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const realtimeEmitter = new EventEmitter();
 
+// TODO: Decompose server.ts into modular route controllers under src/server/routes/ to comply with the 500-line architectural ceiling (target ~250 lines)
 async function startServer() {
   const audit = createAuditLogger(db);
   const app = express();
@@ -89,6 +90,7 @@ async function startServer() {
       cb(null, uuidv4() + ext);
     }
   });
+  // TODO: Enforce file upload size limit (e.g. 50MB) and validate file extension/magic-bytes in multer options to prevent unconstrained storage exhaustion
   const upload = multer({ storage: storageOptions });
 
   // --- Core API Routes ---
@@ -559,6 +561,7 @@ async function startServer() {
     }
   });
 
+  // TODO: Add statement execution timeout guard to prevent long-running queries from locking SQLite WAL write transactions
   systemApi.post('/query', requireRole('superadmin'), (req, res) => {
     const { query, method = 'all', params = [] } = req.body;
     try {

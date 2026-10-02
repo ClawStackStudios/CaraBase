@@ -27,6 +27,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ConfirmDialogInput } from "@/components/ui/confirm-dialog-input";
 import { useToast } from "@/context/ToastContext";
 
+// TODO: Decompose TableEditor into modular subcomponents under src/features/table-editor/ (TableSidebar, TableDataGrid, TableSchemaTab, TableRowDrawer, TableIndexesModal, TableFkModal) to comply with the 500-line architectural ceiling (target ~250 lines)
 export default function TableEditor() {
   const [tables, setTables] = useState<any[]>([]);
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
