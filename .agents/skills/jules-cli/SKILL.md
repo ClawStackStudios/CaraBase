@@ -100,10 +100,66 @@ Because Jules operates in an isolated container VM, complex branching trees or m
 
 Always ground Jules prompts with explicit git invariants:
 1. **Specify the active base branch** (e.g., `main`).
-2. **Provide tree verification commands** (e.g., instruct Jules to run `git ls-tree -r --name-only HEAD` to verify file presence).
+2. **Provide tree verification commands**: Instruct Jules to run `git ls-tree -r --name-only HEAD` before modifying files to verify code presence.
 3. **Set negative guardrails**: Explicitly state: *"DO NOT force-reset, rebase root, or force-push `main`."*
 
+### 📝 The 4-Component Battle-Tested Prompt Formula
+Every `jules new` prompt should follow this verified structure:
+```text
+"First, verify repository files using git ls-tree -r --name-only HEAD on branch main. DO NOT force-reset or force-push main. Next, read your .jules/ directory and read jules-task-plan.md in the .jules/tasks/ directory. Implement Task N: [Task Title]. [Scoped file targets, boundary conditions, and line constraints]. Verify with npm run lint, npm run build, and npm test before opening a Pull Request."
+```
+
 > 📖 *For multi-PR consolidation strategies and PTY terminal tricks, see [references/git-topology.md](./references/git-topology.md).*
+
+---
+
+## 🚀 Multi-Session Fleet Concurrency & Parallelism
+
+Jules accounts often support substantial concurrent session allowances (e.g. up to 100 simultaneous sessions). Rather than dispatching tasks in serial sequence ("Task 1 &rarr; PR &rarr; Merge &rarr; Task 2"), Antigravity agents can orchestrate an entire fleet of targeted tasks in parallel.
+
+### 1. Orthogonal Architectural Domain Partitioning
+When launching multiple concurrent sessions targeting the same repository, **each task must be partitioned into an isolated architectural domain**. If multiple sessions attempt to refactor the same functions or contiguous lines on separate branches simultaneously, merging their PRs later will produce complex git merge conflicts.
+
+Partition work across non-overlapping domains:
+- **Backend Router Decomposition**: Extract route controllers into dedicated modules (`src/server/routes/`).
+- **Frontend Component Decomposition**: Extract complex screens into sub-features (`src/features/<feature>/`).
+- **Storage & Upload Membranes**: Independent middleware and limits (`storageRouter.ts`, `multer` options).
+- **Maintenance & Backup Utilities**: Standalone operational scripts (`src/server/utils/backup.ts`).
+- **Database Pragmas & Event Atomicity**: Connection configuration and transaction lifecycle hooks (`src/server/db.ts`).
+- **Frontend Primitives & Lifecycle**: Isolated UI widgets and context providers (`components/ui/`, `ToastContext.tsx`).
+- **Client SDK**: Separate library packaging and network clients (`sdk/src/`).
+
+### 2. Immediate Session Metadata & URL Capture
+The output of `jules new` immediately prints the complete 19–20 digit numeric Session ID and direct web session URL on stdout:
+```text
+Using repository from working directory: Owner/Repo
+Session is created.
+ID: 13435142300694340266
+Task: ...
+URL: https://jules.google.com/session/13435142300694340266
+```
+Unlike `jules remote list --session` (which truncates IDs with an ellipsis in standard terminal viewports), `jules new` provides the full raw ID. Always capture and present both the Session ID and direct link (`https://jules.google.com/session/<ID>`) immediately upon dispatch.
+
+---
+
+## 🎯 Dual-Channel Steering: Pairing Inline `// TODO:` with Task Plans
+
+Jules ingests work through two complementary channels:
+1. **The Background Proactivity Scanner**: Sweeps repository code periodically for inline `// TODO(category): description \n// Constraints: ...` comments to generate "Suggested Tasks" cards.
+2. **Explicit CLI / Web Prompts**: Targeted dispatches via `jules new` or direct user prompts.
+
+### The Dual-Channel Pairing Protocol
+For maximum reliability, ensure that **every task defined in `.jules/tasks/jules-task-plan.md` has matching structured `// TODO:` comments planted directly above the target code blocks**:
+
+```typescript
+// TODO(security): Enforce strict upload file size limit and validate MIME types / magic-bytes in Multer
+// Constraints: Set limits: { fileSize: 50 * 1024 * 1024 } (50MB) and configure fileFilter validating MIME types.
+```
+
+Benefits:
+- **Double Anchoring**: Jules's LLM planner has full context from both the comprehensive task plan markdown and the pinpoint inline code annotations.
+- **Proactive Fallback**: If a developer accesses the Jules Web UI instead of the CLI, the exact same tasks are already queued in the "Suggested Tasks" pane.
+- **Dynamic Task Plan Invalidation**: When another agent (e.g. Sentinel) or a developer resolves an issue, mark it `[COMPLETED ✅]` in `.jules/tasks/jules-task-plan.md` and commit to `main` before dispatching so Jules never duplicates effort or fights existing fixes.
 
 ---
 
@@ -135,34 +191,31 @@ Jules features native webhook integration with GitHub Actions Check Suites via i
 1. Ensure project guidelines, constraints, and architecture rules are up to date.
 2. Seed Jules's persistent memory by maintaining `.jules/jules-knowledge-memory-integration.md` with concise, declarative "unit" statements for the repository.
    > 📖 *For formatting conventions and pre-loading guidelines, see [references/knowledge-integration.md](./references/knowledge-integration.md).*
-3. Create the task directory and plan file in the workspace root:
-   ```bash
-   mkdir -p .jules/tasks
-   ```
-4. Author `.jules/tasks/jules-task-plan.md` defining:
-   - Scope and target files.
-   - Architectural constraints and requirements.
-   - Verification gates (e.g., typecheck, build, test suite).
+3. Author `.jules/tasks/jules-task-plan.md` with numbered tasks, domain boundaries, and acceptance criteria.
+4. If prior agents or commits already completed parts of the plan, update `.jules/tasks/jules-task-plan.md` (e.g. `[COMPLETED ✅]`) and push to `main` before dispatching.
 
-### Step 2: Offload Task via Jules CLI
-When dispatching a task with `jules new`, ALWAYS include the mandatory context directive:
+### Step 2: Offload Tasks via Jules CLI (Single or Fleet)
+When dispatching a task with `jules new`, use the 4-component prompt formula:
 
-> `"read your .jules/ directory, and read the jules-task-plan.md in the .jules/tasks/ directory."`
-
-Example:
 ```bash
-jules new "read your .jules/ directory, and read the jules-task-plan.md in the .jules/tasks/ directory to implement Task 1."
+# Single task dispatch
+jules new "First, verify repository files using git ls-tree -r --name-only HEAD on branch main. DO NOT force-reset or force-push main. Next, read your .jules/ directory and read jules-task-plan.md in the .jules/tasks/ directory. Implement Task 1: Decompose server.ts into modular routes. Verify with npm run lint, npm run build, and npm test before opening a Pull Request."
+
+# Fleet dispatch: Launch multiple orthogonal tasks in rapid succession
+jules new "First, verify repository files... Implement Task 2: Decompose TableEditor.tsx..."
+jules new "First, verify repository files... Implement Task 3: Storage Membrane..."
 ```
+Capture and record the returned Session ID and URL immediately from the CLI output.
 
 ### Step 3: Monitor & Guide Execution
-1. Periodically check session progress via `jules remote list --session`.
+1. Periodically check fleet progress via `jules remote list --session`.
 2. Inspect ongoing code diffs using `jules remote pull --session <SESSION_ID>`.
 3. When Jules enters `Awaiting User Feedback` or `Awaiting Plan Approval`:
    - Ask the user to copy/paste the question or plan Jules posted in the Web UI.
    - Analyze Jules's input and produce a clear, grounded copy-paste prompt.
-   - Provide the direct URL (`https://jules.google.com/task/<SESSION_ID>`).
+   - Provide the direct URL (`https://jules.google.com/session/<SESSION_ID>`).
 
-### Step 4: Audit & Apply Results
-1. Inspect the completed patch using `jules remote pull --session <SESSION_ID>`.
-2. Apply changes locally with `jules remote pull --session <SESSION_ID> --apply` or `jules teleport <SESSION_ID>`.
-3. Run local verification gates (lint, build, unit/integration test suites) to confirm total correctness before merging.
+### Step 4: Morning Audit & Sequential PR Reconciliation
+1. Inspect completed patches using `jules remote pull --session <SESSION_ID>`.
+2. Merge pull requests sequentially in order of architectural dependency (e.g., core route decomposition first, followed by feature and utility PRs).
+3. Run local verification gates (`npm run lint`, `npm run build`, `npm test`) on each merged state to confirm end-to-end structural integrity.

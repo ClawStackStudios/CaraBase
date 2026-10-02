@@ -20,8 +20,8 @@
    - Task 5: Realtime SSE & SQLite busy timeout (`7489828986672343257`)
    - Task 6: Frontend lifecycle & navigation (`12014265538923283059`)
    - Task 7: SDK error normalization & backoff (`8195321804952896399`)
-9. **[2026-10-01] Git Invariants Grounding**: Grounded all Jules prompts with branch `main`, `git ls-tree` verification, and explicit prohibition against force-pushing/force-resetting `main`.
-10. **[2026-10-01] Remote Verification**: Confirmed via `jules remote list --session` that all 7 sessions are running in cloud VMs.
+9. **[2026-10-01] Remote Verification**: Confirmed via `jules remote list --session` that all 7 sessions are running in cloud VMs.
+10. **[2026-10-01] Jules Skill Expansion**: Expanded `.agents/skills/jules-cli/SKILL.md` codifying multi-session fleet concurrency, domain partitioning, dual-channel steering, and the 4-component prompt formula.
 
 ## Next Steps
 1. Let Jules execute all 7 sessions overnight in isolated container VMs with automated GitHub Actions CI feedback.
