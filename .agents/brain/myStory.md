@@ -66,3 +66,6 @@ Lucas requested updating `.agents/skills/jules-cli/SKILL.md` with the complete o
 - Added deep documentation on Jules's proactive `// TODO:` scanning mechanism and our strategy for planting inline TODO targets.
 - Documented session follow-up via the Web UI (`https://jules.google.com/task/<ID>`) and git hallucination defenses.
 Committed the enriched skill file cleanly.
+
+Lucas reviewed `.agents/skills/jules-cli/SKILL.md` and requested refining the feedback protocol to explicitly state: "Give the user a prompt to pass to Jules in the Web UI."
+I updated Section 4 and Step 3 of the protocol so that whenever Jules is awaiting feedback or plan approval, Antigravity formulates a complete, grounded, ready-to-paste prompt for the user along with the direct URL, ensuring seamless collaboration across tools.
