@@ -29,9 +29,28 @@ export class StorageClient {
         body: formData
       });
 
-      const responseData = await response.json();
+      if (response.status === 204) {
+        return { data: null, error: null };
+      }
+
+      const contentType = response.headers.get('content-type');
+      let responseData: any = null;
+
+      if (contentType && contentType.includes('application/json')) {
+        responseData = await response.json();
+      } else {
+        const text = await response.text();
+        if (!response.ok) {
+          return { data: null, error: { message: `HTTP ${response.status} ${response.statusText}`, details: text, status: response.status, statusText: response.statusText } };
+        }
+        responseData = text;
+      }
 
       if (!response.ok) {
+        if (typeof responseData === 'object' && responseData !== null) {
+          responseData.status = responseData.status || response.status;
+          responseData.statusText = responseData.statusText || response.statusText;
+        }
         return { data: null, error: responseData };
       }
 
