@@ -1,5 +1,13 @@
 # Stage 1: Builder (Compiles frontend, backend, and native modules)
+<<<<<<< HEAD
+<<<<<<< HEAD
+FROM node:25-bookworm AS builder
+=======
+FROM node:25-bookworm AS builder
+>>>>>>> origin/dependabot/docker/node-25-bookworm-slim
+=======
 FROM node:22-bookworm AS builder
+>>>>>>> origin/dependabot/npm_and_yarn/minor-and-patch-6f77824635
 WORKDIR /app
 
 # Install native compilation toolchain for better-sqlite3
@@ -17,7 +25,15 @@ RUN npm run build
 
 
 # Stage 2: Production Dependencies Only
+<<<<<<< HEAD
+<<<<<<< HEAD
+FROM node:25-bookworm AS prod-deps
+=======
+FROM node:25-bookworm AS prod-deps
+>>>>>>> origin/dependabot/docker/node-25-bookworm-slim
+=======
 FROM node:22-bookworm AS prod-deps
+>>>>>>> origin/dependabot/npm_and_yarn/minor-and-patch-6f77824635
 WORKDIR /app
 
 # Install native compilation toolchain
@@ -29,7 +45,15 @@ RUN npm ci --omit=dev
 
 
 # Stage 3: Runner (Minimal production image)
+<<<<<<< HEAD
+<<<<<<< HEAD
+FROM node:25-bookworm-slim AS runner
+=======
+FROM node:25-bookworm-slim AS runner
+>>>>>>> origin/dependabot/docker/node-25-bookworm-slim
+=======
 FROM node:22-bookworm-slim AS runner
+>>>>>>> origin/dependabot/npm_and_yarn/minor-and-patch-6f77824635
 WORKDIR /app
 
 ENV NODE_ENV=production
