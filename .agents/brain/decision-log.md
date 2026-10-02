@@ -8,3 +8,6 @@ Encountered dirty worktree on `/migrate-to-brain` due to user preferences in `US
 
 ## 2026-10-01 — Root knowledge extraction without file deletion
 Extracted deep topological invariants, the 4 Invariables, and Epistemic boundaries from root `BRAIN.md`, `CRUSTAGENT.md`, `HEART.md`, and `RULES.md` into long-term memory and project specs, honoring Lucas's directive to absorb knowledge without removing root files.
+
+## 2026-10-01 — Jules Dockerfile conflict markers & self-repair
+Jules created PR #18 (branch `resolve-all-prs-17983432046683792243`, commit `c1c3f5e`), but accidentally committed unresolved git conflict markers in `Dockerfile` and temporary `fix_server.sh` scripts. Docker build failed in CI/VM, triggering Jules's autonomous self-repair loop to clean conflict markers and re-verify.
