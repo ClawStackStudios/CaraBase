@@ -83,3 +83,7 @@ Lucas then requested refactoring `.agents/skills/jules-cli/SKILL.md` to be compl
 Lucas noted that Jules finished, and we checked remote pull requests. We discovered that Jules pushed branch `resolve-all-prs-17983432046683792243` and created PR #18.
 However, inspecting commit `c1c3f5e` revealed why the build failed: raw merge conflict markers (`<<<<<<< HEAD`, `=======`, `>>>>>>>`) had been left in `Dockerfile`, and temporary shell helper scripts (`fix_server.sh`) were tracked in the commit.
 When the Docker build ran, it failed on the malformed Dockerfile syntax. Jules immediately caught the failure and shifted into an autonomous self-repair loop (`Status: Planning`), updating the files live. Lucas confirmed in the Web UI that Jules is actively correcting the files.
+
+Lucas asked whether we should capture the GitHub CI and CI Fixer mechanics in the skill.
+I recognized that this is a core architectural pattern: GitHub Actions `ci.yml` evaluates all PRs, and GitHub webhooks stream failure reports directly to Jules. Jules's native CI Fixer then intercepts the failure, awakens autonomously, and iterates until the check passes green.
+I codified this lifecycle and an operational non-interference rule for Antigravity agents into `.agents/skills/jules-cli/SKILL.md` and committed the update.
