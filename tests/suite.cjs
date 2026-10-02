@@ -558,18 +558,20 @@ async function runTests() {
      storageFileId = data.id;
   } catch(e) { assert(false, "Storage upload execution crashed: " + e.message); }
 
-  // 2. Retrieve publicly via shared download link (no headers required)
+  // 2. Retrieve securely via shared download link (headers required)
   try {
-     const downloadRes = await fetch(`${BASE_URL}/storage/v1/file/${storageFileId}`);
-     assert(downloadRes.status === 200, "Publicly retrieved shared asset anonymously without credentials");
+     const downloadRes = await fetch(`${BASE_URL}/storage/v1/file/${storageFileId}`, {
+       headers: { 'Authorization': `Bearer ${token1}` }
+     });
+     assert(downloadRes.status === 200, "Securely retrieved shared asset using authorization credentials");
      const text = await downloadRes.text();
      assert(text.includes('ClawStack Storage physical'), "Downloaded file contents match upload stream exactly");
   } catch(e) { assert(false, "Shared link download validation crashed"); }
 
   // 3. Block directory traversal attacks (dot-dot-slash vectors)
   try {
-     const attack1 = await fetch(`${BASE_URL}/storage/v1/file/../../server.ts`);
-     const attack2 = await fetch(`${BASE_URL}/storage/v1/file/%2e%2e%2f%2e%2e%2fserver.ts`);
+     const attack1 = await fetch(`${BASE_URL}/storage/v1/file/../../server.ts`, { headers: { 'Authorization': `Bearer ${token1}` } });
+     const attack2 = await fetch(`${BASE_URL}/storage/v1/file/%2e%2e%2f%2e%2e%2fserver.ts`, { headers: { 'Authorization': `Bearer ${token1}` } });
      assert((attack1.status === 404 || attack1.status === 403) && (attack2.status === 404 || attack2.status === 403), "Directory traversal injection vectors securely blocked");
   } catch(e) { assert(false, "Directory traversal sanitization crashed: " + e.message); }
 
@@ -581,7 +583,9 @@ async function runTests() {
      });
      assert(deleteRes.status === 200, "Storage asset deleted successfully via system API");
 
-     const checkRes = await fetch(`${BASE_URL}/storage/v1/file/${storageFileId}`);
+     const checkRes = await fetch(`${BASE_URL}/storage/v1/file/${storageFileId}`, {
+       headers: { 'Authorization': `Bearer ${token1}` }
+     });
      assert(checkRes.status === 404, "Verify deleted file is physically removed from disk layout (returns 404)");
   } catch(e) { assert(false, "Asset deletion physical unlinking test crashed: " + e.message); }
 
@@ -931,7 +935,7 @@ async function runTests() {
 
   // 5. Null byte injection in storage file retrieval
   try {
-    const nullByteRes = await fetch(`${BASE_URL}/storage/v1/file/test%00.txt`);
+    const nullByteRes = await fetch(`${BASE_URL}/storage/v1/file/test%00.txt`, { headers: { 'Authorization': `Bearer ${token1}` } });
     assert(nullByteRes.status === 404, "Null byte injection in storage path returns 404 (not a server crash)");
   } catch(e) { assert(false, "Null byte injection test crashed: " + e.message); }
 
