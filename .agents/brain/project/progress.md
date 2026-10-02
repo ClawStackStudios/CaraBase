@@ -5,25 +5,26 @@
 - Opaque Token Auth (`hu-`, `api-`, `lb-`) and RBAC middleware.
 - Dynamic REST API (`/api/rest/:table`) with pagination and sorting.
 - Row-Level Security (RLS) enforcement.
-- Realtime Server-Sent Events (SSE).
-- Storage Engine & ShellProxy Membrane with expiring share hashes.
-- SuperAdmin dashboard (React + Tailwind + Motion).
-- GitHub CI Pipeline with 3 parallel validation gates (Lint/Build, E2E, Docker).
+- Realtime Server-Sent Events (SSE) with deferred post-transaction commit atomicity.
+- SQLite connection resilient with `busy_timeout = 5000` pragma.
+- Storage Engine & ShellProxy Membrane with 50MB size limits and executable magic-bytes inspection (`MZ`, `ELF`, `#!`).
+- Hardened Backup Engine with automatic 0-byte file cleanup on failed `VACUUM INTO` and retention pruning.
+- Decomposed Table Editor (`src/features/table-editor/`) under 200-line orchestrator with 8 modular components and 3 custom hooks.
+- Resilient Frontend Lifecycle with division-by-zero NaN guards (`CommandPalette`), timer ref tracking (`ToastContext`), and in-flight `AbortController` cancellation.
+- Hardened TypeScript SDK (`sdk/`) with HTTP 204 No Content / reverse-proxy error handling and exponential backoff reconnect.
+- GitHub CI Pipeline with 3 parallel validation gates (Lint/Build, E2E, Docker) passing 100% green.
 - Antigravity Brain initialized with Self vs Environment architecture.
-- Atomic SQLite backup import with `-wal` and `-shm` journal unlinking to prevent WAL replay corruption.
 
 ## What's In Flight
 - **GitHub Pull Requests**:
-  - Consolidated PR #20 merged into `main` (auto-merging PR #16 Node 26 & PR #19 `@types/multer` + `tsx` bumps).
-  - All redundant Dependabot PRs (#9, #10, #11, #12, #13) fully resolved and closed.
+  - All 7 Jules PRs (#21, #22, #23, #24, #25, #26, #27) fully reconciled and merged/closed.
   - Exactly **0 open PRs** remain in the repository.
 - **Dedicated Sub-Agents**:
-  - Tailored security sub-agent `Sentinel` defined and completed inaugural audit; 1 focused fix (< 15 lines) deployed.
-- **Google Jules Proactivity Integration**:
-  - 17 structured `// TODO(...)` comments planted across codebase (12 architecture/stability + 5 security handoffs) to seed Jules's Suggested Tasks scanner.
+  - Tailored security sub-agent `Sentinel` active in runtime (`agent.md`).
 - **Next Planned Milestone**:
-  - Decomposition of `server.ts` (~650 lines) into modular route controllers under `src/server/routes/` to meet the 500-line ceiling (target ~250 lines).
+  - Decomposition of `server.ts` into modular route controllers under `src/server/routes/` to meet the 500-line hard ceiling (target ~250 lines).
 
 ## Known Issues & Debt
-- `server.ts` is currently ~650 lines; needs decomposition to adhere to Lucas's 500-line hard ceiling.
+- `server.ts` is currently ~1,600 lines; needs decomposition into modular route controllers under `src/server/routes/` to adhere to Lucas's 500-line hard ceiling.
+
 

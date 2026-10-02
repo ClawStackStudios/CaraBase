@@ -1,28 +1,29 @@
 # Active Context
 
 ## Current Focus
-- Session Goal: Leverage Google Jules's multi-session capacity (100 sessions) by dispatching all 7 architecture, hardening, and resilience tasks concurrently for overnight execution.
-- Immediate Task: All 7 Jules sessions successfully launched and actively executing in isolated container VMs; tracking session IDs and URLs for morning reconciliation.
+- Session Goal: Reconcile and integrate all 7 Google Jules pull requests sequentially across Phase 1 (SDK & Backup), Phase 2 (Backend Hardening), and Phase 3 (Frontend Architecture & Stability).
+- Immediate Task: All 7 PRs resolved (6 merged, 1 superseded/closed); GitHub Actions CI on `main` is 100% green; 0 open PRs remain.
 
 ## Active Decisions (Sliding 10)
-1. **[2026-10-01] Tailored Sentinel Agent Specification**: Authored `.agents/agents/sentinel/agent.md` tailored specifically to CaraBase toolchain, OWASP key prefixes, and < 50-line scope bound.
-2. **[2026-10-01] Registered Sentinel Runtime**: Registered Sentinel sub-agent with Antigravity runtime via `define_subagent`.
-3. **[2026-10-01] Sentinel Inaugural Scan & Remediation**: Dispatched Sentinel; fixed SQLite WAL/SHM unlinking corruption on restore (< 15 lines), passed lint & build, committed to `main` (`4f937e1`).
-4. **[2026-10-01] Jules Security Handoffs & Journaling**: Planted 5 structured `// TODO(security)` comments across multer limits, view multi-statement SQLi, legacy `pk_` keys, custom endpoint RLS context, and ShellProxy stored XSS; logged invariant in `.jules/sentinel.md`.
-5. **[2026-10-01] Spec Rename to agent.md**: Renamed specification to `.agents/agents/sentinel/agent.md` (singular) and updated all memory pointers (`a24ae9e`).
-6. **[2026-10-01] Task Plan Reconciliation**: Marked Task 4 WAL unlinking as completed by Sentinel in `.jules/tasks/jules-task-plan.md` (`30fca01`).
-7. **[2026-10-01] Massive Jules Concurrency Allocation**: Lucas allocated parallel capacity to launch all 7 tasks individually across dedicated Jules VM sessions.
-8. **[2026-10-01] 7 Concurrent Jules Tasks Dispatched**:
-   - Task 1: `server.ts` decomposition (`13435142300694340266`)
-   - Task 2: `TableEditor.tsx` decomposition (`6897361883843583773`)
-   - Task 3: Storage Membrane hardening (`7110544981684879528`)
-   - Task 4: Backup Engine hardening (`17169011405765085067`)
-   - Task 5: Realtime SSE & SQLite busy timeout (`7489828986672343257`)
-   - Task 6: Frontend lifecycle & navigation (`12014265538923283059`)
-   - Task 7: SDK error normalization & backoff (`8195321804952896399`)
-9. **[2026-10-01] Remote Verification**: Confirmed via `jules remote list --session` that all 7 sessions are running in cloud VMs.
-10. **[2026-10-01] Jules Tier Quotas & Concurrency Protocol**: Updated `.agents/skills/jules-cli/SKILL.md` with official tier quotas (Free: 15/3, Pro: 100/15, Ultra: 300/60) and codified the Conversational Concurrency Calibration Protocol to prompt users for their preferred concurrency before fleet dispatch.
+1. **[2026-10-02] Phase 1 Integration (Zero-Overlap Modules)**:
+   - Merged PR #25 (SDK Error Normalization & Reconnect Resilience, `ffdeff9`).
+   - Merged PR #23 (Backup Engine Hardening & 0-byte Vacuum Cleanup, `670ddcb`).
+2. **[2026-10-02] Phase 2 Integration (Backend Hardening)**:
+   - Merged PR #24 (Realtime SSE Post-Transaction Atomicity & SQLite `busy_timeout = 5000`, `2c2176c`).
+   - Merged PR #22 (Storage Membrane 50MB Limits & Executable Magic-Byte Inspection, `dee87cb`).
+3. **[2026-10-02] Phase 3 Integration (Frontend Lifecycle & Stability)**:
+   - Merged PR #26 (CommandPalette division-by-zero NaN guard, ToastContext timer ref cleanup, Backups unmount reload cleanup, `a1a95ac`).
+4. **[2026-10-02] TableEditor Monolith Decomposed**:
+   - Merged PR #21 (`bef7b60`), decomposing `TableEditor.tsx` from 1,600+ lines down to ~165 lines orchestrator across 8 modular components in `src/features/table-editor/` and 3 custom hooks with in-flight `AbortController` cancellation.
+5. **[2026-10-02] PR #27 Superseded Resolution**: Closed PR #27 as superseded by PR #21's cleaner hook and `WorkspacePanel` architecture.
+6. **[2026-10-02] Zero Open PRs In Repo**: Reduced open PR count to exactly 0.
+7. **[2026-10-02] Automated Verification Gates Passed**: Validated local `npm run lint` (0 errors) and `npm run build` (clean Vite + esbuild bundle in 46.75s).
+8. **[2026-10-02] GitHub Actions CI 100% Green on Main**: Verified that the merged `main` branch (`bef7b60`) passed all GitHub Actions workflows:
+   - `CI` workflow: 100% green in 2m23s.
+   - `Build and Publish Docker Image`: 100% green in 2m37s.
+9. **[2026-10-02] Jules Fleet Concurrency Proven**: Successfully validated the 7-session parallel dispatch pattern from dispatch through morning reconciliation.
+10. **[2026-10-02] Next Target Milestone**: Decompose `server.ts` into modular routes (`schemaRouter.ts`, `maintenanceRouter.ts`, `queryRouter.ts`, `realtimeRouter.ts`), bringing `server.ts` under 250 lines to complete the backend ceiling compliance.
 
 ## Next Steps
-1. Let Jules execute all 7 sessions overnight in isolated container VMs with automated GitHub Actions CI feedback.
-2. In the morning, inspect remote PRs / diffs (`jules remote pull --session <ID>`), run local pre-flight gates (`npm run lint`, `npm run build`, `npm test`), and merge PRs sequentially.
+1. Report successful completion of the 7-PR fleet reconciliation to Lucas.
+2. Review remaining backend decomposition for `server.ts` to achieve full < 250-line modularity.
