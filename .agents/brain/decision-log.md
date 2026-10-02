@@ -14,3 +14,6 @@ Jules created PR #18 (branch `resolve-all-prs-17983432046683792243`, commit `c1c
 
 ## 2026-10-01 — Sentinel sub-agent bounds & Jules handoff
 Tailored Sentinel sub-agent specification in `.agents/agents/sentinel/agent.md` with explicit toolchain commands and OWASP key prefixes. Enforced < 50 lines diff ceiling per security fix to avoid over-scoping; codified mandatory `// TODO(security)` handoff protocol for secondary findings so Jules can ingest them asynchronously.
+
+## 2026-10-01 — 7 concurrent Jules tasks dispatched
+Dispatched all 7 tasks from `.jules/tasks/jules-task-plan.md` in parallel using `jules new`. Grounded all prompts with `git ls-tree` verification and base branch `main` to prevent isolated VM git topology hallucinations. Confirmed 7 live sessions in remote registry.
