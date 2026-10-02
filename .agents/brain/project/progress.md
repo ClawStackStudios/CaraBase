@@ -12,13 +12,14 @@
 - Antigravity Brain initialized with Self vs Environment architecture.
 
 ## What's In Flight
-- **GitHub Pull Requests Resolution**:
-  - PR #13 (Critical Sentinel SQL injection fix): Awaiting merge into `main`.
-  - PR #17 (Grouped minor-and-patch updates): Ready for integration testing.
-  - PR #16 (Docker Node 25 base image bump): Ready for container validation.
-  - Redundant Dependabot PRs (#9, #10, #11, #12): To be superseded by PR #17.
-- **Jules Background Session**:
-  - Session `17983432046683792243` active, guided by Antigravity plan.
+- **GitHub Pull Requests**:
+  - Consolidated PR #18 (incorporating PR #13 SQL injection fix, Dockerfile Node 25, and dependency updates) merged into `main`.
+  - PR #13 closed as resolved; Jules Sentinel security advisory preserved in `.jules/sentinel.md`.
+  - Redundant Dependabot PRs (#9, #10, #11, #12) closed as superseded.
+  - Remaining open: PR #16 (Node 26 bump) and PR #19 (`@types/multer` + `tsx` bumps) — both 100% green in CI.
+- **Next Planned Milestone**:
+  - Decomposition of `server.ts` (~650 lines) into modular route controllers under `src/server/routes/` to meet the 500-line ceiling (target ~250 lines).
 
 ## Known Issues & Debt
 - `server.ts` is currently ~650 lines; needs decomposition to adhere to Lucas's 500-line hard ceiling.
+
