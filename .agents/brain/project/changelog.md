@@ -8,7 +8,7 @@
 - Integrated topological wisdom, 4 Invariables, and Epistemic boundaries from root `BRAIN.md`, `CRUSTAGENT.md`, `HEART.md`, and `RULES.md` into Antigravity Brain.
 - Consolidated PR #16 & #19 into PR #20 with live container boot smoke testing in CI; merged with 0 remaining open PRs.
 - Seeded Google Jules Proactive Suggestions engine with 12 structured `// TODO(...)` comments across 12 files.
-- Defined dedicated security subagent `Sentinel` in `.agents/agents/sentinel/agents.md` with strict < 50-line diff ceiling and Jules handoff protocol.
+- Defined dedicated security subagent `Sentinel` in `.agents/agents/sentinel/agent.md` with strict < 50-line diff ceiling and Jules handoff protocol.
 
 ## [v0.2.0] — Phase 2 Ratification
 - Production-ready embedded SQLite database with SQLCipher encryption.

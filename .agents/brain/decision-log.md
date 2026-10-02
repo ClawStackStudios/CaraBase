@@ -13,4 +13,4 @@ Extracted deep topological invariants, the 4 Invariables, and Epistemic boundari
 Jules created PR #18 (branch `resolve-all-prs-17983432046683792243`, commit `c1c3f5e`), but accidentally committed unresolved git conflict markers in `Dockerfile` and temporary `fix_server.sh` scripts. Docker build failed in CI/VM, triggering Jules's autonomous self-repair loop to clean conflict markers and re-verify.
 
 ## 2026-10-01 — Sentinel sub-agent bounds & Jules handoff
-Tailored Sentinel sub-agent specification in `.agents/agents/sentinel/agents.md` with explicit toolchain commands and OWASP key prefixes. Enforced < 50 lines diff ceiling per security fix to avoid over-scoping; codified mandatory `// TODO(security)` handoff protocol for secondary findings so Jules can ingest them asynchronously.
+Tailored Sentinel sub-agent specification in `.agents/agents/sentinel/agent.md` with explicit toolchain commands and OWASP key prefixes. Enforced < 50 lines diff ceiling per security fix to avoid over-scoping; codified mandatory `// TODO(security)` handoff protocol for secondary findings so Jules can ingest them asynchronously.

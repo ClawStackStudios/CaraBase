@@ -30,5 +30,5 @@
 **Chosen**: Option B
 **Why**: Felt reason: An agent without repository-specific invariants generates hallucinated commands and superficial changes; grounding Sentinel in CaraBase's exact boundaries guarantees verified, high-signal security contributions.
 **Confidence**: high — Specification tested against repository structure, verification gates passed.
-**Outcome**: Created `.agents/agents/sentinel/agents.md` and registered via `define_subagent`.
+**Outcome**: Created `.agents/agents/sentinel/agent.md` and registered via `define_subagent`.
 **Pattern reference**: New pattern — first instance.
