@@ -38,7 +38,7 @@ export const authenticateDataApi = (req: Request, res: Response, next: NextFunct
                 if (agentRow) {
                   (req as any).userUuid = agentRow.user_uuid;
                   (req as any).username = `agent:${agentRow.name}`;
-                  (req as any).keyType = 'agent'; // FIX: Ensure keyType is set for sandboxing
+                  (req as any).keyType = 'agent';
                 }
                 if (!apiKey) {
                   (req as any).apiKey = { type: 'session' };
@@ -65,7 +65,7 @@ export const authenticateDataApi = (req: Request, res: Response, next: NextFunct
             if (!isExpired) {
               (req as any).userUuid = agentRow.user_uuid;
               (req as any).username = `agent:${agentRow.name}`;
-              (req as any).keyType = 'agent'; // FIX: Ensure keyType is set
+              (req as any).keyType = 'agent';
               if (!apiKey) {
                  (req as any).apiKey = { type: 'session' };
               }
