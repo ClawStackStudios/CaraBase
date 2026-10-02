@@ -61,10 +61,12 @@ export function CommandPalette() {
       // Constraints: Check if (filteredCommands.length === 0) return; before calculating modulo to prevent selectedIndex becoming NaN.
       if (e.key === 'ArrowDown') {
         e.preventDefault();
+        if (filteredCommands.length === 0) return;
         setSelectedIndex((prev) => (prev + 1) % filteredCommands.length);
       }
       if (e.key === 'ArrowUp') {
         e.preventDefault();
+        if (filteredCommands.length === 0) return;
         setSelectedIndex((prev) => (prev - 1 + filteredCommands.length) % filteredCommands.length);
       }
       if (e.key === 'Enter') {

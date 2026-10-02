@@ -23,7 +23,16 @@ export default function Backups() {
   const [confirmWipe, setConfirmWipe] = useState(false);
   
   const importInputRef = useRef<HTMLInputElement>(null);
+  const reloadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toast = useToast();
+
+  useEffect(() => {
+    return () => {
+      if (reloadTimeoutRef.current) {
+        clearTimeout(reloadTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const fetchBackups = async () => {
     try {
@@ -125,9 +134,7 @@ export default function Backups() {
       if (res.ok) {
         toast.success(json.message || 'Database imported successfully. Server restarting...');
         setConfirmImportDbFile(null);
-        // TODO(bug): store reload timeout in a ref and clear it on Backups unmount to prevent unexpected reloads after route navigation
-        // Constraints: Ensure user navigation away from /dashboard/backups cancels the pending window.location.reload().
-        setTimeout(() => window.location.reload(), 3000);
+        reloadTimeoutRef.current = setTimeout(() => window.location.reload(), 3000);
       } else {
         toast.error(json.error || 'Import failed');
       }
@@ -147,7 +154,7 @@ export default function Backups() {
       if (res.ok) {
         toast.success(json.message || 'Volume wiped. Server restarting...');
         setConfirmWipe(false);
-        setTimeout(() => window.location.reload(), 3000);
+        reloadTimeoutRef.current = setTimeout(() => window.location.reload(), 3000);
       } else {
         toast.error(json.error || 'Wipe failed');
       }
