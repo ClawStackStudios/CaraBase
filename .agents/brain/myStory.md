@@ -87,3 +87,10 @@ When the Docker build ran, it failed on the malformed Dockerfile syntax. Jules i
 Lucas asked whether we should capture the GitHub CI and CI Fixer mechanics in the skill.
 I recognized that this is a core architectural pattern: GitHub Actions `ci.yml` evaluates all PRs, and GitHub webhooks stream failure reports directly to Jules. Jules's native CI Fixer then intercepts the failure, awakens autonomously, and iterates until the check passes green.
 I codified this lifecycle and an operational non-interference rule for Antigravity agents into `.agents/skills/jules-cli/SKILL.md` and committed the update.
+
+Lucas suggested creating a dedicated `references/` directory beside `SKILL.md` so that as our operational expertise deepens, specialized knowledge doesn't bloat the primary CLI guide.
+I implemented this pattern immediately, establishing `.agents/skills/jules-cli/references/` with three deep-dive guides:
+1. `ci-fixer.md`: Full event lifecycle, failure patterns, and non-interference protocols.
+2. `suggested-tasks.md`: Comment parsing semantics, language syntaxes, and high-signal templates for Jules's proactivity scanner.
+3. `git-topology.md`: Defenses against container VM tree hallucinations, multi-PR consolidation, and PTY terminal buffer workarounds.
+I linked these canonically within `SKILL.md` and committed the modularization.
