@@ -67,7 +67,7 @@ jules teleport <SESSION_ID>
 
 ### 4. Interactive Feedback & Follow-ups
 The CLI does not currently support viewing conversational transcripts or submitting replies to active sessions directly via terminal arguments. When Jules pauses in `Awaiting User Feedback` or `Awaiting Plan Approval`:
-1. **Ask the user to fetch the prompt/question Jules is waiting on**: Because CLI inspection only reveals git diffs and status, ask the user to copy whatever question, plan proposal, or review comment Jules posted in the Web UI.
+1. **Ask the user to copy/paste the prompt/question Jules is waiting on**: Because CLI inspection only reveals git diffs and status, ask the user to copy whatever question, plan proposal, or review comment Jules posted in the Web UI.
 2. **Formulate a grounded response prompt**: Analyze Jules's message, cross-reference it against the codebase and git state, and generate a precise, copy-pasteable prompt for the user.
 3. **Provide the direct session link**:  
    **`https://jules.google.com/task/<SESSION_ID>`**
@@ -150,7 +150,7 @@ jules new "read your .jules/ directory, and read the jules-task-plan.md in the .
 1. Periodically check session progress via `jules remote list --session`.
 2. Inspect ongoing code diffs using `jules remote pull --session <SESSION_ID>`.
 3. When Jules enters `Awaiting User Feedback` or `Awaiting Plan Approval`:
-   - Ask the user to fetch the question or plan Jules posted in the Web UI.
+   - Ask the user to copy/paste the question or plan Jules posted in the Web UI.
    - Analyze Jules's input and produce a clear, grounded copy-paste prompt.
    - Provide the direct URL (`https://jules.google.com/task/<SESSION_ID>`).
 
