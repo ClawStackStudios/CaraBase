@@ -1,23 +1,23 @@
 # Active Context
 
 ## Current Focus
-- Session Goal: Map and resolve GitHub Pull Requests for CaraBase sequentially, collaborating with Google Jules via Jules CLI / web UI.
-- Immediate Task: Jules session `17983432046683792243` dispatched and corrected; Antigravity Brain initialized and migrated from legacy memory-bank structure to modern Self vs Environment architecture.
+- Session Goal: Audit open Pull Requests on GitHub (`ClawStackStudios/CaraBase`), understand why earlier PRs remain open after `origin/main` push, and reconcile them cleanly.
+- Immediate Task: Present the PR audit breakdown to Lucas, offer to close superseded PRs (#13, #9, #10, #11, #12), and review pending PRs (#16 Node 26, #19 minor devDeps).
 
 ## Active Decisions (Sliding 10)
-1. **[2026-10-01] Switch to Main**: Navigated back from `chore/dependabot-consolidation-001` to `main`, preserving Lucas's uncommitted `USER.md` preferences.
-2. **[2026-10-01] PR Auditing**: Mapped all 7 open GitHub pull requests (#13, #17, #16, #12, #11, #10, #9) and confirmed 100% CI pass rates across all runs.
-3. **[2026-10-01] PR #13 Prioritization**: Ratified PR #13 (Sentinel CRITICAL SQL injection fix in `server.ts` schema builder) as the top priority merge target.
-4. **[2026-10-01] Jules Session Recovery**: Discovered active Jules session `17983432046683792243` on `ClawStackStudios/CaraBase` in status `Awaiting User Feedback`.
-5. **[2026-10-01] Jules Hallucination Intercept**: Intercepted and blocked Jules's plan to force-reset `main` (Jules incorrectly believed `main` was empty, when in fact commit `540a887` contains 166 files).
-6. **[2026-10-01] Jules Sequential Prompt**: Provided Lucas with the exact prompt to paste into the Jules Web UI directing Jules to merge PR #13, consolidate PR #17, and verify PR #16.
-7. **[2026-10-01] Worktree Hygiene**: Committed Lucas's component granularity preferences (`~250 lines/file`, `500 ceiling`) in `USER.md` before executing Brain migration.
-8. **[2026-10-01] Brain Migration (/migrate-to-brain)**: Migrated `.agents/memory-bank/` to `.agents/brain/`, created `brain/project/`, updated markdown references across `.agents/`, and committed the refactor.
-9. **[2026-10-01] Self vs Environment Boundary**: Initializing full environment files in `.agents/brain/project/` and internal self files in `.agents/brain/`.
-10. **[2026-10-01] Root Knowledge Absorption**: Absorbed deep topological invariants (4 Invariables, Epistemic boundaries, Metaphorical seeds, 105-test suite oracle) from root `BRAIN.md`, `CRUSTAGENT.md`, `HEART.md`, and `RULES.md` into the Brain.
+1. **[2026-10-01] Jules CI Fixer Validation**: Monitored Jules autonomous repair loop fixing `Dockerfile` conflict markers, reaching 100% green CI on PR #18 (`f635c42`).
+2. **[2026-10-01] Skill Modularization**: Established `.agents/skills/jules-cli/references/` containing deep-dive guides for CI Fixer, suggested tasks, and git topology.
+3. **[2026-10-01] Local Verification Gates**: Merged `origin/resolve-all-prs-17983432046683792243`, cleaned stray scripts, and verified lint (0 errors), build (clean dist), and tests (107/107 assertions passed).
+4. **[2026-10-01] Live Run Sanity**: Ran `npm run scuttle:dev-start` to verify backend (:5353) and frontend (:5454) live endpoints, then stopped cleanly.
+5. **[2026-10-01] Origin Push**: Pushed verified `main` (`85f5be8`) to `origin/main` with explicit user confirmation.
+6. **[2026-10-01] PR #18 Auto-Merge**: GitHub recognized `f635c42` as merged into `main`, successfully transitioning PR #18 to Merged/Closed.
+7. **[2026-10-01] Open PR Audit via `gh` CLI**: Discovered 7 open PRs (#19, #16, #13, #12, #11, #10, #9) using `/config/.local/bin/gh pr list`.
+8. **[2026-10-01] GitHub PR Lifecycle Root Cause**: Identified that GitHub does not auto-close PRs unless their specific head branch is merged or commit messages contain `Closes #N`.
+9. **[2026-10-01] Sentinel Advisory Restored**: Extracted `.jules/sentinel.md` security writeup from PR #13 and committed it locally to retain Sentinel's documentation.
+10. **[2026-10-01] PR Supersession Strategy**: Verified PR #13 and PRs #9-#12 are already fully integrated in `main`, ready for explicit closure.
 
 ## Next Steps
-1. Monitor Jules session `17983432046683792243` as it finalizes the 3 clean commits.
-2. Verify remote diff and apply cleanly or pull when ready.
-3. Run local verification gates (`npm test`, `npm run lint`, `npm run build`).
-4. Close superseded Dependabot PRs (#9, #10, #11, #12).
+1. Present the GitHub auto-close explanation and PR audit status to Lucas.
+2. Close superseded PRs (#13, #9, #10, #11, #12) upon Lucas's confirmation.
+3. Evaluate PR #16 (Node 26) and PR #19 (`@types/multer` + `tsx`).
+4. Push `.jules/sentinel.md` to `origin/main` when confirmed.

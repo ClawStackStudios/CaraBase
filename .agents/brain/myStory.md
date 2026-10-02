@@ -114,3 +114,13 @@ I executed the local verification sequence:
 6. Enhanced `tests/suite.cjs` to load `dotenv` and support local encrypted databases. Ran `npm test`, achieving a 100% pass rate (107/107 tests passed).
 7. Booted `npm run scuttle:dev-start` in the background; verified `http://127.0.0.1:5353/api/health` returns status `ok` and `http://127.0.0.1:5454/` returns HTTP 200 OK.
 All three verification gates (Tests, Build, Live run) hold firm.
+
+After pushing `main` to `origin`, Lucas noticed that earlier pull requests were still showing as open on GitHub and asked to investigate.
+Using the local GitHub CLI (`/config/.local/bin/gh pr list`), I audited the open PRs on `ClawStackStudios/CaraBase`.
+Seven PRs remain in the open state:
+- PR #18 was indeed automatically marked as `Merged` by GitHub when commit `f635c42` landed on `origin/main`.
+- PR #13 (Sentinel CRITICAL SQL injection fix) remains open because Jules applied the fix into PR #18's branch rather than merging PR #13's branch directly. The code fix is already in `main` (`server.ts` line 321). I copied Jules's security advisory writeup into `.jules/sentinel.md` and committed it locally so the security history is preserved.
+- PRs #9, #10, #11, and #12 (Dependabot individual bumps for `@types/node`, `js-sha256`, `eventsource`, and `better-sqlite3-multiple-ciphers`) were superseded by PR #18, and all those versions already exist in `package.json` on `main`.
+- PR #16 (Node Docker image) was updated by Dependabot to propose `node:26-bookworm-slim`.
+- PR #19 is a fresh Dependabot PR opened right after our push, proposing minor bumps for `@types/multer` (2.3.0) and `tsx` (4.23.15).
+I prepared the audit breakdown and closure recommendations for Lucas.
