@@ -1,3 +1,4 @@
+require('dotenv').config();
 const crypto = require('crypto');
 global.EventSource = require('eventsource').EventSource;
 
@@ -60,8 +61,9 @@ async function runTests() {
     // needs the same key to open the database directly.
     const Database = require('better-sqlite3-multiple-ciphers');
     const db = new Database('./data/carabase.sqlite');
-    if (process.env.CI_DB_KEY) {
-      db.pragma(`key = '${process.env.CI_DB_KEY}'`);
+    const dbKey = process.env.CI_DB_KEY || process.env.DB_ENCRYPTION_KEY;
+    if (dbKey) {
+      db.pragma(`key = '${dbKey}'`);
     }
     db.prepare("UPDATE users SET role = 'superadmin' WHERE uuid = ?").run(user1Uuid);
     db.prepare("UPDATE system_settings SET value = '10000' WHERE key = 'rate_limit_per_minute'").run();
