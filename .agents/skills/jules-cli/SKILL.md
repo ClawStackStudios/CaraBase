@@ -103,6 +103,26 @@ Always ground Jules prompts with explicit git invariants:
 
 ---
 
+## 🔄 GitHub CI Integration & Autonomous "CI Fixer"
+
+Jules features native webhook integration with GitHub Actions Check Suites via its GitHub App (`google-labs-jules[bot]`).
+
+### How CI-Driven Self-Repair Works
+1. **Pull Request Trigger**: When Jules opens a pull request or updates a branch targeting `main`, GitHub Actions automatically triggers all workflows configured with `on: pull_request:`.
+2. **Webhook Notification**: If a CI check fails (e.g. Lint, E2E Test Suite, Docker Build), GitHub instantly fires a `check_suite.completed` webhook to Jules.
+3. **Autonomous "CI Fixer" Wakeup**:
+   - The Jules Web UI displays: `Check Suite Failure: 1 check failed. Jules has been notified.`
+   - Even if Jules had previously marked the task as `Ready for review` or `Completed`, Jules's **CI Fixer** autonomously transitions back into `Planning` or `In Progress`.
+   - Jules ingests the exact error logs from GitHub Actions, identifies the failed steps, and applies corrective edits inside its VM.
+4. **Automated Re-commit & Verification**: Jules commits the fix, pushes to the PR branch, and triggers a fresh CI run until the check suite passes green.
+
+### Operational Rule for Antigravity Agents
+- **Do Not Intervene While CI Fixer Is Active**: When an agent detects a CI check failure on a Jules PR, do NOT push competing commits or force-reset the branch. Jules is already actively self-healing.
+- **Monitor the Repair Pass**: Inspect Jules's corrective edits using `jules remote pull --session <SESSION_ID>`.
+- **Intervene Only on Escalation**: Only formulate a manual guidance prompt if Jules exhausts its retries, asks a clarifying question, or transitions into `Awaiting User Feedback`.
+
+---
+
 ## 📋 The 4-Step Delegation Protocol
 
 ### Step 1: Context Preparation & Task Plan File
