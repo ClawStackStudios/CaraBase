@@ -35,26 +35,30 @@ export function getCorsConfig(): CorsOptions {
           console.error('[CORS] Failed to read dynamic origins from DB', e);
         }
 
-        const allowedOrigins = [...envOrigins, ...dbOrigins];
+        // Sanitize origins: ignore '*', parse with URL to extract proper origin
+        const rawOrigins = [...envOrigins, ...dbOrigins];
+        const allowedOrigins = rawOrigins
+          .filter(o => o !== '*')
+          .map(o => {
+            try {
+              return new URL(o).origin;
+            } catch {
+              return null;
+            }
+          })
+          .filter((o): o is string => o !== null);
 
         // 1. Always allow localhost
         if (isLocalhost(hostname)) return callback(null, true);
 
-        // 2. Allow LAN access (Private IPs)
-        if (isPrivateIP(hostname)) return callback(null, true);
+        // 2. Allow LAN access (Private IPs) ONLY in development
+        if (!isProduction && isPrivateIP(hostname)) return callback(null, true);
 
-        if (isProduction) {
-          // 3. In Prod: Allow explicit CORS origins
-          if (allowedOrigins.includes(origin)) return callback(null, true);
+        // 3. Strictly enforce allowed origins
+        if (allowedOrigins.includes(url.origin)) return callback(null, true);
 
-          console.warn(`[CORS] ⚠️ Rejected origin in production: ${origin}`);
-          return callback(null, false);
-        } else {
-          // In Dev: Allow configured origins or reject
-          if (allowedOrigins.includes(origin)) return callback(null, true);
-          console.warn(`[CORS] ⚠️ Rejected origin in development: ${origin}`);
-          return callback(null, false);
-        }
+        console.warn(`[CORS] ⚠️ Rejected origin in ${isProduction ? 'production' : 'development'}: ${origin}`);
+        return callback(null, false);
       } catch (err) {
         console.warn(`[CORS] ⚠️ Invalid origin format: ${origin}`);
         callback(null, false);
