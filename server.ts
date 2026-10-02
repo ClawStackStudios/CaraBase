@@ -1094,12 +1094,13 @@ async function startServer() {
                       throw new Error('RLS_VIOLATION');
                   }
                   
-                  realtimeEmitter.emit(`table_change_${table}`, {
-                      action: 'INSERT',
-                      data: { id: lastId, ...data }
-                  });
                   return lastId;
               })();
+
+              realtimeEmitter.emit(`table_change_${table}`, {
+                  action: 'INSERT',
+                  data: { id: lastId, ...data }
+              });
 
               res.json({ success: true, id: lastId });
           });
@@ -1141,7 +1142,7 @@ async function startServer() {
                   throw new Error('RLS_VIOLATION');
               }
 
-              const changes = db.transaction(() => {
+              const { changes, emittedEvents } = db.transaction(() => {
                   const targetRows = db.prepare(`SELECT rowid AS carabase_rowid, * FROM ${table} WHERE (${whereClause}) AND (${rlsSelectFilter}) AND (${rlsUpdateFilter})`).all(...filterValues) as any[];
                   
                   if (targetRows.length === 0) {
@@ -1157,15 +1158,17 @@ async function startServer() {
                       }
                   }
 
-                  for (const row of targetRows) {
-                      realtimeEmitter.emit(`table_change_${table}`, {
-                          action: 'UPDATE',
-                          data: { ...row, ...data }
-                      });
-                  }
+                  const emittedEvents = targetRows.map(row => ({
+                      action: 'UPDATE',
+                      data: { ...row, ...data }
+                  }));
 
-                  return result.changes;
+                  return { changes: result.changes, emittedEvents };
               })();
+
+              for (const event of emittedEvents) {
+                  realtimeEmitter.emit(`table_change_${table}`, event);
+              }
 
               res.json({ success: true, changes });
           });
@@ -1198,7 +1201,7 @@ async function startServer() {
                   throw new Error('RLS_VIOLATION');
               }
 
-              const changes = db.transaction(() => {
+              const { changes, emittedEvents } = db.transaction(() => {
                   const targetRows = db.prepare(`SELECT rowid AS carabase_rowid, * FROM ${table} WHERE (${whereClause}) AND (${rlsSelectFilter}) AND (${rlsDeleteFilter})`).all(...filterValues) as any[];
                   
                   if (targetRows.length === 0) {
@@ -1207,15 +1210,17 @@ async function startServer() {
 
                   const result = db.prepare(`DELETE FROM ${table} WHERE (${whereClause}) AND (${rlsSelectFilter}) AND (${rlsDeleteFilter})`).run(...filterValues);
 
-                  for (const row of targetRows) {
-                      realtimeEmitter.emit(`table_change_${table}`, {
-                          action: 'DELETE',
-                          data: row
-                      });
-                  }
+                  const emittedEvents = targetRows.map(row => ({
+                      action: 'DELETE',
+                      data: row
+                  }));
 
-                  return result.changes;
+                  return { changes: result.changes, emittedEvents };
               })();
+
+              for (const event of emittedEvents) {
+                  realtimeEmitter.emit(`table_change_${table}`, event);
+              }
 
               res.json({ success: true, changes });
           });

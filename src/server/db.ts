@@ -71,6 +71,7 @@ const db = openDatabase();
 
 // TODO(performance): configure busy_timeout pragma and implement statement execution timeouts for ad-hoc queries
 // Constraints: Set db.pragma('busy_timeout = 5000') in openDatabase; add timeout protection to raw query runner to avoid blocking the main event loop.
+db.pragma('busy_timeout = 5000');
 db.pragma('journal_mode = WAL');
 db.pragma('synchronous = NORMAL');
 db.pragma('foreign_keys = ON');
