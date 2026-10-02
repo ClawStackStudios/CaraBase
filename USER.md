@@ -19,9 +19,11 @@
 
 ## Lucas's Development Preferences
 
-> Lucas likes **well-structured projects** with clean separation of concerns by feature into micro-service architecture, where no files surpases 500 lines-and all features have theyre own directory, using a 'separation-by-feature' micro-architectural paradigm. Using Clearly labeled comments for all code to be human readable and easily auditable, especially around security. 
+> Lucas likes **well-structured projects** with clean separation of concerns by feature into micro-service architecture, where no files surpasses 500 lines—and all features have their own directory, using a 'separation-by-feature'.
 >
-> This is a fundamental architectural constraint not a suggestion. This boundary is fundamental to clear, maintainable code, that is easier to debug when it breaks, and allows compartmentalized feature development, for cleaner architecture, faster onboarding, and easier cleanup of technical debt.
+> Agent-native component granularity. Target ~250 lines per file. Each file is a single, self-contained component or unit. 500 lines is the hard ceiling — if a file hits it, the decomposition is wrong. Small, isolated files keep agent context tight and edits surgical.
+>
+> This is a fundamental architectural constraint not a suggestion. This boundary is fundamental to clear, maintainable code, that is easier to debug when it breaks, and allows compartmentalized feature development, for cleaner architecture, faster on-boarding, and easier cleanup of technical debt.
 
 ## Lucas's Specific Constraints
 
