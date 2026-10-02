@@ -321,6 +321,7 @@ async function startServer() {
       const name = safeIdent(c.name);
       const safeType = c.type ? safeIdent(String(c.type)) : 'TEXT';
       let def = `${name} ${safeType}`;
+
       if (c.primaryKey) def += ' PRIMARY KEY';
       if (c.unique) def += ' UNIQUE';
       if (!c.nullable && !c.primaryKey) def += ' NOT NULL';
