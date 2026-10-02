@@ -76,4 +76,6 @@ Lucas pasted Jules's message from the Web UI:
 - Jules reported that all 3 PRs (#13, #17, #16) were successfully resolved and all 107/107 tests pass!
 - Jules removed the temporary `patch_*.sh` scripts and is cleaning up extraneous blank lines in `server.ts`.
 - Jules asked whether to create 1 single consolidated commit or 3 separate clean commits for the 3 integrations.
-I am providing Lucas with a clear, direct prompt instructing Jules to proceed with 3 separate clean commits (or 1 consolidated if simpler) and push the branch.
+I provided Lucas with a clear, direct prompt instructing Jules to proceed with 3 separate clean commits and push the branch.
+
+Lucas then requested refactoring `.agents/skills/jules-cli/SKILL.md` to be completely portable: removing any environment-specific absolute paths, using only standard `jules` CLI commands and generic placeholders (`owner/repo`), ensuring the skill is cleanly decoupled and universally applicable to any user setup. Refactored and committed.
