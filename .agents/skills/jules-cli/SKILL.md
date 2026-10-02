@@ -66,11 +66,12 @@ jules teleport <FULL_SESSION_ID>
 ```
 
 ### 4. Interactive Feedback & Follow-ups
-The CLI does not currently support posting follow-up messages into an active session. When Jules enters `Awaiting User Feedback` or `Awaiting Plan Approval`:
-- **Give the user a prompt to pass to Jules in the Web UI**: Antigravity formulates a precise, grounded, ready-to-copy prompt addressing Jules's plan or questions.
-- Provide the direct link to the session in the Jules Web UI:  
+The CLI does not currently support viewing conversation transcripts or posting follow-up messages into an active session. When Jules enters `Awaiting User Feedback` or `Awaiting Plan Approval`:
+- **Ask the user to fetch the prompt/question Jules is waiting on**: Because CLI output only reveals git diffs and status (not the conversational chat), the agent asks the user to copy whatever question, plan, or feedback Jules posted in the Web UI so the agent can work directly off of Jules's context.
+- **Formulate a grounded response prompt**: The agent analyzes Jules's message, verifies the relevant git and code invariants, and creates a precise, ready-to-copy prompt for the user to pass back to Jules.
+- **Provide the direct session link**:  
   **`https://jules.google.com/task/<FULL_SESSION_ID>`**
-- The user copies the provided prompt and pastes it directly into Jules's web chat interface to unblock or redirect Jules.
+- **User paste**: The user pastes the grounded prompt directly into Jules's web chat interface to steer or unblock Jules.
 
 ---
 
@@ -124,10 +125,11 @@ jules new "read your .jules/ directory, and read the jules-task-plan.md in the .
 
 ### Step 3: Monitor & Guide Execution
 1. Monitor status with `jules remote list --session`.
-2. If Jules pauses at `Awaiting User Feedback` or `Awaiting Plan Approval`:
-   - Inspect Jules's questions or proposed plan.
-   - **Give the user a prompt to pass to Jules in the Web UI**, along with the direct URL (`https://jules.google.com/task/<ID>`).
-   - The user pastes the prompt into the web UI to steer or unblock Jules.
+2. Pull the latest code diff to inspect ongoing progress via `jules remote pull --session <ID>`.
+3. If Jules pauses at `Awaiting User Feedback` or `Awaiting Plan Approval`:
+   - **Ask the user to fetch the prompt/question Jules is waiting on** in the Web UI so the agent can work off Jules's exact context.
+   - Formulate a grounded response prompt addressing Jules's plan or questions.
+   - Give the user the copy-paste prompt and direct link (`https://jules.google.com/task/<ID>`) to submit in the web interface.
 
 ### Step 4: Audit & Teleport
 1. Inspect the diff remotely via `jules remote pull --session <ID>`.
