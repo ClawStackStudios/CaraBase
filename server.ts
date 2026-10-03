@@ -1289,7 +1289,7 @@ async function startServer() {
   // Apply rate limiter and kill switch to all /storage/v1 routes
   app.use('/storage/v1', publicApiGuard);
 
-  // Direct file retrieval route (mounted before auth router for anonymous sharing)
+  // Direct internal file retrieval route (protected with requireAuth)
   app.get('/storage/v1/file/:id', requireAuth, (req, res) => {
      try {
        const row = db.prepare('SELECT * FROM _carabase_storage WHERE id = ?').get(req.params.id) as any;
