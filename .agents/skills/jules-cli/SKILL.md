@@ -104,9 +104,9 @@ Always ground Jules prompts with explicit git invariants:
 3. **Set negative guardrails**: Explicitly state: *"DO NOT force-reset, rebase root, or force-push `main`."*
 
 ### 📝 The 4-Component Battle-Tested Prompt Formula
-Every `jules new` prompt should follow this verified structure:
+Every `jules new` prompt should follow this verified atomic structure:
 ```text
-"First, verify repository files using git ls-tree -r --name-only HEAD on branch main. DO NOT force-reset or force-push main. Next, read your .jules/ directory and read jules-task-plan.md in the .jules/tasks/ directory. Implement Task N: [Task Title]. [Scoped file targets, boundary conditions, and line constraints]. Verify with npm run lint, npm run build, and npm test before opening a Pull Request."
+"First, verify repository files using git ls-tree -r --name-only HEAD on branch main. DO NOT force-reset or force-push main. Next, read .jules/JULES.md for fleet rules, then execute your assigned task in .jules/tasks/task-N.md. [Scoped file targets, boundary conditions, and line constraints]. Verify with npm run lint, npm run build, and npm test before opening a Pull Request."
 ```
 
 > 📖 *For multi-PR consolidation strategies and PTY terminal tricks, see [references/git-topology.md](./references/git-topology.md).*
@@ -198,24 +198,23 @@ Jules features native webhook integration with GitHub Actions Check Suites via i
 
 ## 📋 The 4-Step Delegation Protocol
 
-### Step 1: Context Preparation & Memory Seeding
-1. Ensure project guidelines, constraints, and architecture rules are up to date.
-2. Seed Jules's persistent memory by maintaining `.jules/jules-knowledge-memory-integration.md` with concise, declarative "unit" statements for the repository.
-   > 📖 *For formatting conventions and pre-loading guidelines, see [references/knowledge-integration.md](./references/knowledge-integration.md).*
-3. Author `.jules/tasks/jules-task-plan.md` with numbered tasks, domain boundaries, and acceptance criteria.
-4. If prior agents or commits already completed parts of the plan, update `.jules/tasks/jules-task-plan.md` (e.g. `[COMPLETED ✅]`) and push to `main` before dispatching.
+### Step 1: Context Preparation & Atomic Task Creation
+1. Maintain `.jules/JULES.md` as the malleable, global fleet briefing (repository invariants, tech stack, verification commands, and file length ceilings).
+2. Author isolated, dedicated task files in `.jules/tasks/task-<N>.md` (one file per task). Each file details the target file paths, specific problem statement, desired architectural shape, and acceptance criteria.
+3. Commit `.jules/JULES.md` and the `.jules/tasks/task-<N>.md` files to `main` before launching the fleet so every container VM pulls the latest task specifications.
 
 ### Step 2: Offload Tasks via Jules CLI (Single or Fleet)
 1. **Calibrate Concurrency**: If planning a fleet dispatch, prompt the user for their desired concurrent session count to keep delegation natural and aligned with their workflow pacing and plan tier (Free: 3, Pro: 15, Ultra: 60 concurrent).
-2. **Dispatch with Prompt Formula**: When dispatching with `jules new`, use the 4-component prompt formula:
+2. **Dispatch with Prompt Formula**: When dispatching with `jules new`, use the atomic prompt formula:
 
 ```bash
 # Single task dispatch
-jules new "First, verify repository files using git ls-tree -r --name-only HEAD on branch main. DO NOT force-reset or force-push main. Next, read your .jules/ directory and read jules-task-plan.md in the .jules/tasks/ directory. Implement Task 1: Decompose server.ts into modular routes. Verify with npm run lint, npm run build, and npm test before opening a Pull Request."
+jules new "First, verify repository files using git ls-tree -r --name-only HEAD on branch main. DO NOT force-reset or force-push main. Next, read .jules/JULES.md for fleet rules, then execute your assigned task in .jules/tasks/task-1.md. Verify with npm run lint, npm run build, and npm test before opening a Pull Request."
 
 # Fleet dispatch: Launch multiple orthogonal tasks in rapid succession
-jules new "First, verify repository files... Implement Task 2: Decompose TableEditor.tsx..."
-jules new "First, verify repository files... Implement Task 3: Storage Membrane..."
+jules new "First, verify repository files... Read .jules/JULES.md... execute .jules/tasks/task-1.md..."
+jules new "First, verify repository files... Read .jules/JULES.md... execute .jules/tasks/task-2.md..."
+jules new "First, verify repository files... Read .jules/JULES.md... execute .jules/tasks/task-3.md..."
 ```
 Capture and record the returned Session ID and URL immediately from the CLI output.
 

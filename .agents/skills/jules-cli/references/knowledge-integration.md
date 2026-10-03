@@ -30,7 +30,7 @@ By providing a structured knowledge transfer document:
 
 ## 3. The Declarative "Unit" Style Format
 
-When authoring `.jules/jules-knowledge-memory-integration.md`, format each memory unit to adhere to these rules:
+When authoring `.jules/JULES.md`, format each memory unit to adhere to these rules:
 
 1. **Self-Contained**: Each bullet point must be completely understandable in isolation without referencing neighboring bullets.
 2. **Factual & Imperative**: Use direct, unambiguous statements (*"To run tests, use npm test...", "System tables use the _carabase_ prefix..."*).
