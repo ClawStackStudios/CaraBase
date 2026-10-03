@@ -26,7 +26,8 @@ import { getCorsConfig } from './src/server/config/corsConfig.js';
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const realtimeEmitter = new EventEmitter();
 
-// TODO: Decompose server.ts into modular route controllers under src/server/routes/ to comply with the 500-line architectural ceiling (target ~250 lines)
+// TODO(refactor): Decompose server.ts into modular route controllers under src/server/routes/
+// Constraints: Extract schemaRouter, queryRouter, storageRouter, realtimeRouter, and customApiRouter; each module must be under 300 lines; keep Express app setup and middleware registration in server.ts (target ~200 lines).
 async function startServer() {
   const audit = createAuditLogger(db);
   const app = express();
@@ -593,7 +594,8 @@ async function startServer() {
     }
   });
 
-  // TODO: Add statement execution timeout guard to prevent long-running queries from locking SQLite WAL write transactions
+  // TODO(performance): Add statement execution timeout guard to prevent long-running queries from locking SQLite WAL write transactions
+  // Constraints: Wrap query execution in a timeout guard or interrupt handler; return 408/504 if query exceeds timeout limit (e.g. 5000ms).
   systemApi.post('/query', requireRole('superadmin'), (req, res) => {
     const { query, method = 'all', params = [] } = req.body;
     try {
@@ -1099,8 +1101,6 @@ async function startServer() {
                   throw new Error('RLS_VIOLATION');
               }
 
-              // TODO(reliability): collect real-time change events during transaction and emit only after successful transaction commit
-              // Constraints: Never emit table_change events inside db.transaction(); prevent phantom event dispatch if transaction rolls back.
               // Transaction-based policy check
               const lastId = db.transaction(() => {
                   const result = db.prepare(`INSERT INTO ${table} (${keys.join(',')}) VALUES (${marks})`).run(...values);
@@ -1255,8 +1255,6 @@ async function startServer() {
   const storageApi = express.Router();
   storageApi.use(authenticateDataApi);
 
-  // TODO(storage): prevent orphaned disk files by unlinking req.file on database insert failure
-  // Constraints: Synchronously or asynchronously unlink req.file.path in catch block if DB insert fails; ensure no unhandled exceptions during cleanup.
   storageApi.post('/upload', upload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 

@@ -17,7 +17,8 @@ interface Endpoint {
   created_at: string;
 }
 
-// TODO: Decompose ApiBuilder into modular subcomponents under src/features/api-builder/ (EndpointList, EndpointFilterEditor, ValidationRulesEditor, EndpointTestConsole) to comply with the 500-line architectural ceiling (target ~250 lines)
+// TODO(refactor): Decompose ApiBuilder into modular subcomponents under src/features/api-builder/
+// Constraints: Extract EndpointList, EndpointFilterEditor, ValidationRulesEditor, and EndpointTestConsole; preserve all existing form validation and endpoint testing functionality; target ~250 lines for orchestrator.
 export default function ApiBuilder() {
   const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
   const [tables, setTables] = useState<any[]>([]);

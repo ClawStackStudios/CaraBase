@@ -30,7 +30,8 @@ const HUMAN_PERMISSIONS = {
   canDelete: true,
 };
 
-// TODO: Implement exponential backoff rate-limiting on consecutive failed token authentications to prevent brute-force attacks against opaque tokens
+// TODO(security): Implement exponential backoff rate-limiting on consecutive failed token authentications to prevent brute-force attacks against opaque tokens
+// Constraints: Track failed attempts per IP; apply progressive delay or temporary lockout; reset on successful token validation; permanently exempt loopback addresses (127.0.0.1, ::1).
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   const auth = req.headers.authorization;
   if (!auth?.startsWith('Bearer ')) {
