@@ -57,14 +57,16 @@ export function CommandPalette() {
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (filteredCommands.length === 0 && ['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) {
+        e.preventDefault();
+        return;
+      }
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        if (filteredCommands.length === 0) return;
         setSelectedIndex((prev) => (prev + 1) % filteredCommands.length);
       }
       if (e.key === 'ArrowUp') {
         e.preventDefault();
-        if (filteredCommands.length === 0) return;
         setSelectedIndex((prev) => (prev - 1 + filteredCommands.length) % filteredCommands.length);
       }
       if (e.key === 'Enter') {
