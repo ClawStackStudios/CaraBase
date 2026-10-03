@@ -14,7 +14,8 @@
 7. **[2026-10-02] PR #34 Closed as Superseded**: Closed PR #34 as superseded by PR #28's comprehensive CORS origin sanitization.
 8. **[2026-10-02] PR #35 Merged (CommandPalette Key Handler)**: Merged PR #35; unified early exit guard for ArrowDown, ArrowUp, and Enter when `filteredCommands` is empty.
 9. **[2026-10-02 18:12] Zero Open PRs & 100% Green CI on Main**: Reduced open PRs to exactly 0; GitHub Actions check runs (CI, Docker Build, Pages) all 100% green on `main`.
-10. **[2026-10-02 19:03] Jules Fleet & Skill Synthesis Codified**: Synthesized 4 external skills into `.agents/skills/jules-cli/SKILL.md`, `.jules/JULES.md`, `references/api-reference.md`, `references/task-templates.md`, and `scripts/parse_sessions.py` with strict CI/CD redlines and TTY safety.
+10. **[2026-10-02 19:10] Jules CLI Skill Promoted Globally**: Promoted `jules-cli` skill to global `~/.gemini/config/skills/jules-cli` (inheritable across all workspaces); verified executable script permissions and removed local repo copy.
+
 
 
 ## Next Steps
