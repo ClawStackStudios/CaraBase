@@ -1,60 +1,100 @@
 # Installation & Hosting
 
-CaraBase is designed to be easily hosted either as a bare-metal Node.js application or inside a Docker container.
+CaraBase is packaged as a single unified container (combining both the React frontend and the Express/SQLite backend). You can host it anywhere that runs Docker, or run it directly from source on bare metal.
 
-## Local Development (Source)
+## 1. Docker Compose (Recommended)
 
-If you are developing CaraBase or want to run it locally on your machine:
+Docker Compose is the easiest way to deploy CaraBase, as it cleanly manages your environment variables and persistent volume mounts.
+
+Create a `docker-compose.yml` file and a `.env` file in your project directory:
+
+::: code-group
+
+```yaml [docker-compose.yml]
+version: '3.8'
+
+services:
+  carabase:
+    image: ghcr.io/clawstackstudios/carabase:latest
+    container_name: carabase
+    ports:
+      - "5353:5353"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    env_file: .env
+```
+
+```env [.env]
+# Ensure you generate these secrets securely!
+DB_ENCRYPTION_KEY="your_64_character_hex_string"
+ADMIN_TOKEN="your_base48_string"
+
+NODE_ENV="production"
+PORT=5353
+```
+
+:::
+
+Then, launch the stack:
+
+```bash
+docker compose up -d
+```
+
+## 2. Docker CLI
+
+If you prefer to use the standard Docker CLI without Compose, you can run the image directly. Ensure you pass your environment variables and mount the `/app/data` volume so your database survives container restarts.
+
+```bash
+docker run -d \
+  --name carabase \
+  -p 5353:5353 \
+  -v ./data:/app/data \
+  -e DB_ENCRYPTION_KEY="your_64_character_hex_string" \
+  -e ADMIN_TOKEN="your_base48_string" \
+  -e NODE_ENV="production" \
+  ghcr.io/clawstackstudios/carabase:latest
+```
+
+> [!WARNING]
+> Do not omit the `-v ./data:/app/data` volume mount. Without it, your SQLite database and all uploaded files will be destroyed instantly when the container stops or updates.
+
+## 3. Local Development (Source)
+
+If you are developing CaraBase itself or prefer running bare metal Node.js:
 
 1. **Install Dependencies**
    ```bash
    npm install
    ```
-2. **Start the Development Server**
+
+2. **Configure Environment**
+   Copy `.env.example` to `.env` and fill in your keys.
+
+3. **Start the Development Stack**
    ```bash
-   npm run dev
+   npm run scuttle
    ```
-   This command concurrently runs Vite (for the React frontend) and `tsx watch` (for hot-reloading the Express backend). The backend will output `CaraBase API running on port 5353`.
+   This concurrently launches the Express API Backend (port `5353`) and the Vite React Frontend (port `5454`) with Hot Module Replacement (HMR).
 
-## Production Build (Bare Metal)
+### Production Build (Bare Metal)
 
-1. **Build the Assets**
+To build and run from source in production mode:
+
+1. **Build the Artifacts**
    ```bash
    npm run build
    ```
-   This command compiles the React frontend into `/dist` and transpiles the Express backend into `dist/server.cjs` using `esbuild`.
+   This compiles the React frontend into `dist/` and bundles the backend into `dist/server.cjs`.
 
 2. **Run the Server**
    ```bash
    npm start
    ```
+   Serves the unified frontend and backend on port `5353`.
 
-## Docker Deployment (Recommended)
+## Next Steps
 
-Running CaraBase via Docker ensures that native SQLite extensions (like `better-sqlite3`) are properly compiled for the runtime environment.
-
-### Using Docker Compose
-
-1. **Create the Data Directory**
-   Ensure the `data` directory exists locally so the container can mount it without creating permission issues.
-   ```bash
-   mkdir -p ./data
-   ```
-
-2. **Configure your `.env` (Optional but recommended)**
-   ```env
-   ADMIN_TOKEN=your_secure_superadmin_password
-   PORT=3000
-   CORS_ORIGINS=https://your-frontend.com
-   ```
-
-3. **Start the Container**
-   ```bash
-   docker-compose up -d --build
-   ```
-
-Your CaraBase instance will now be running on port `3000`. The SQLite database files will be safely persisted inside the `./data` directory on your host machine.
-
-### Next Steps
-
-If you intend to host CaraBase publicly without opening firewall ports, we highly recommend reading the [Cloudflare Tunnels](cloudflare-tunnel.md) guide.
+Once your server is running, navigate to `http://localhost:5353` in your browser. 
+Read the [First Login & Roles](/first-login) guide to understand how to access the system.

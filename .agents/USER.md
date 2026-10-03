@@ -53,13 +53,13 @@
 - **Plan thoroughly before implementing.** Plan well, implement once. Not: plan poorly, implement twice. "You buy cheap, You buy twice."
 - **Review your own work after implementation.** Check for code cleanliness. Try to break your own code — test its rigidity and robustness before handing it off to me for review.
 - **Create and maintain the following documentation files for every project:**
-  - `CRUSTAGENT.md` — CrustAgent specific, first person perspective project overview of project topology.
-  - `src/CRUSTAGENT.md` — CrustAgent specific, first person perspective project code-view of project topology, patterns, anti-patterns and wisdom.
   - `README.md` — full project overview and run instructions
+  - `CHANGELOG.md` — notable changes adhering to Keep a Changelog 1.1.0 and 4-digit SemVer
   - `ROADMAP.md` — current and future development direction
-  - `CONTRIBUTING.md` — contribution guidelines
+  - `CONTRIBUTING.md` — contribution guidelines, two-layer attribution, and verification gates
   - `SECURITY.md` — security practices and ClawKeys©™ protocol
   - `ARCHITECTURE.md` — ASCII construction-style blueprints of the codebase
+
 
 ---
 ## Documentation Standards

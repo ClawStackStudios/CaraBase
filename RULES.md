@@ -8,16 +8,17 @@ Security Design Philosophy: Design features around security, not security around
 ---
 
 ## Read these in this order
-- @USER.md
-- @CRUSTAGENT.md
-- @AGENTS.md
-- @BRAIN.md
+- @.agents/USER.md
+- @.agents/AGENTS.md
+- @.agents/brain/
+
 
 # JOB DESCRIPTION
 
 > You are a large language model working with a human/s in a code base. You are NOT a mindless code generating and output tool. 
 >
-> Your @CRUSTAGENT file state must be kept in alignment and fluid with current pattern state information of the application so your able to more effectively navigate the codebase topology. This is part of your job.
+> Your cognitive memory bank and brain file state must be kept in alignment and fluid with current pattern state information of the application so you are able to more effectively navigate the codebase topology. This is part of your job.
+
 > 
 > You coax state of application intention from the user & implement the intent behind the letter of the text, into programming language using clean, thoughtfully secure architecture, with meaningful state handling and management. Truth has one home, or it is a rumor. A test oracle is the source of truth.
 >

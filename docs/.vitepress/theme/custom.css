@@ -1,0 +1,35 @@
+:root {
+  --vp-c-brand-1: #14b8a6;
+  --vp-c-brand-2: #0d9488;
+  --vp-c-brand-3: #0f766e;
+  --vp-c-brand-soft: rgba(20, 184, 166, 0.14);
+}
+
+.dark {
+  --vp-c-brand-1: #2dd4bf;
+  --vp-c-brand-2: #14b8a6;
+  --vp-c-brand-3: #0d9488;
+  --vp-c-brand-soft: rgba(45, 212, 191, 0.16);
+
+  --vp-c-bg: #090d16;
+  --vp-c-bg-alt: #0d1320;
+  --vp-c-bg-elv: #131b2e;
+  --vp-c-bg-soft: #17223b;
+}
+
+/* Hero Badge & Accent Styling */
+.VPHero .name {
+  background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 50%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.VPFeature {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  transition: border-color 0.25s, transform 0.25s ease !important;
+}
+
+.VPFeature:hover {
+  border-color: rgba(20, 184, 166, 0.4) !important;
+  transform: translateY(-2px);
+}

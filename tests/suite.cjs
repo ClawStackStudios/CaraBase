@@ -21,7 +21,7 @@ async function runTests() {
   }
 
   // Back-end URL configured under Scuttle
-  const BASE_URL = 'http://localhost:5353';
+  const BASE_URL = 'http://127.0.0.1:5353';
   
   // Set up mock metadata variables for human user
   let user1Uuid = crypto.randomUUID();

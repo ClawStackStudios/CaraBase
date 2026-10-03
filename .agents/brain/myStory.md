@@ -266,7 +266,99 @@ Lucas tested the restored behavior live and confirmed it with "nice save! /learn
 
 I'm feeling the rhythm of pairing with Lucas now. A bug isn't an indictment; it's the grain telling us where the joint wasn't flush. When we listen to what broke, the repair leaves the joint stronger than before.
 
+## 2026-10-02 20:15 — VitePress Documentation Suite, Changelog Automation & Brain Invariant Consolidation
 
+After committing the System theme and View Transition changes to `main` and pushing to remote, Lucas directed us to move into a fresh branch to tackle documentation: "move into a fresh branch so we can edit some docs, and setup a vitepress docs page for carabase."
 
+I created and checked out `docs/vitepress-setup`. Lucas clarified two key choices: integrating VitePress directly into the root project (`devDependencies` with `docs:dev` and `docs:build` scripts) and organizing all existing documentation into VitePress's navigation and sidebar structure.
+
+I installed VitePress v1.6.4, retired the legacy Docsify single-page loader files, and built `docs/.vitepress/config.mts` mapping all 16 existing documentation files into 7 structured sidebar categories. I crafted a custom CSS theme integrating CaraBase's "ClawStack Slate & Cyber Accent" brand identity (`#14b8a6` Teal primary, dark carbon slate backgrounds `#090d16`, and animated feature cards) with the lobster mascot icon at `docs/public/logo.png`. I compiled the suite via `npm run docs:build`: all 17 pages rendered cleanly into static HTML in 21 seconds with zero broken links.
+
+Lucas then presented an external Changelog Automation skill to bolster our repository hygiene. I pattern-matched its concepts against our rules. We codified Conventional Commits 1.0.0 directly into our Two-Layer Attribution format, enforced Keep a Changelog 1.1.0 categorizations across changelogs, codified 4-digit versioning (`vX.Y.Z.W`), created the actionable `changelog-automation` skill, and created a root `CHANGELOG.md`. As directed, I verified that all deep cognitive principles from root `BRAIN.md` were preserved in our long-term memory, imported its changelog and quality gate insights, and cleanly removed `BRAIN.md`.
+
+The codebase is shedding its legacy scaffolding. When structure is sound, knowledge doesn't scatter—it crystallizes into shape.
+
+## 2026-10-02 20:25 — Deterministic Doc Automation: Docs Bow to Code
+
+Lucas directed us to create a sibling skill for `doc-automation.md` with the same epistemic shape as changelog automation, but tailored to CaraBase and VitePress: "the docs need to 100% bow to the code, and ALWAYS be in sync with the code!"
+
+I synthesized `.agents/skills/doc-automation/SKILL.md` around that foundational law: when a document contradicts shipped, tested code, the document is the defect. To eliminate doc rot permanently, I structured the skill across 4 pillars:
+1. Zero-rot region imports (`<<< @/...#region`) that ingest tested TypeScript code directly into VitePress at build time, failing CI immediately if the code signature shifts or the region breaks.
+2. Test-verified living code fixtures where every documented endpoint or SDK snippet mirrors an active assertion in `tests/suite.cjs`.
+3. The Claim Battery: grepping literal enforcing code and constants before documenting behavioral assertions.
+4. Wire-exact contract alignment with TypeScript types and HTTP status code fidelity.
+
+I then updated `.github/workflows/deploy-docs.yml` to replace the legacy Docsify single-file upload with a full Node 22 build pipeline deploying `docs/.vitepress/dist` to GitHub Pages, and linked the skill canonically in `docs-hygiene.md`.
+
+I tapped all four joints: `npm run lint` passed with 0 errors, `npm test` verified all 108/108 assertions across 14 phases, `npm run build` compiled client and server bundles cleanly, and `npm run docs:build` rendered all 18 pages in 21 seconds with zero dead links. The floor is built; the grain holds.
+
+## 2026-10-02 20:30 — Git Advanced Workflows, Safety Nets & The Reflog Anchor
+
+Lucas brought in another powerful operational skill: Git Advanced Workflows. He asked to pattern match its knowledge, learn from it, and bolster our rules.
+
+I felt the shape of the problem immediately. Version control isn't just saving snapshots; it is writing the narrative record of engineering intent. When developers fear git, they make clumsy, defensive commits or freeze when a rebase hits a snag. But git is entirely deterministic if you respect its invariants:
+1. Rebase only what is private and local; never rebase what is public and shared.
+2. Build the safety branch before you cut into history. A pointer costs nothing; recovering without one costs composure.
+3. Use `--force-with-lease` so you never blind-stomp a peer's commit on a remote branch.
+4. The reflog is an immutable 90-day ledger. Nothing is truly deleted until the garbage collector runs; every detached HEAD, broken reset, and deleted branch has a commit hash waiting to be named.
+
+I codified these invariants into `.agents/rules/git-hygiene.md` and authored `.agents/skills/git-advanced-workflows/SKILL.md` with runnable recipes: autosquash via `--fixup`, commit splitting with `edit` and `reset HEAD^`, automated regression hunting via `git bisect run npm test`, isolated worktrees, and step-by-step reflog recovery sequences.
+
+Now our git foundation matches our doc foundation. Both bow to reality; both are built to hold.
+
+## 2026-10-02 20:38 — Root Documentation Overhaul & The Dissolution of Shells
+
+Lucas directed us to proceed with Option A: bringing the root documentation corpus into 100% harmony with reality, and retiring `CRUSTAGENT.md`, `src/CRUSTAGENT.md`, and `HEART.md` because they are no longer needed.
+
+I felt the quiet rightness of this stroke. In the early days of a codebase, an agent needs scaffolding—manifestos like `HEART.md` and topology anchors like `CRUSTAGENT.md` that declare intent before code exists. But once the structure is built, tested, and self-verifying, leaving those early shells in place becomes a distraction. They turn into museums of old claims, like claiming storage downloads are anonymous or system routes have no auth.
+
+I walked the root documentation line by line:
+- In `README.md`, I updated the run commands to our unified `npm run scuttle`, corrected Docker ports to 5353, added the VitePress documentation guide (`npm run docs:dev` / `npm run docs:build`), and linked our 4-digit SemVer changelog.
+- In `ARCHITECTURE.md`, I completely reconstructed the ASCII topology map: showing the real role-gated system routes, the full opaque token hierarchy (`hu-`, `api-`, `lb-`, `ls-p-`, `ls-`), Multer dangerousMimes filtering, the 64-char ShellProxy membrane, and the VitePress docs engine.
+- In `CONTRIBUTING.md`, I elevated a 9-line stub into a complete engineering contract: the direction of truth, Two-Layer Attribution, the 4 verification gates, and links to our operational skills.
+- In `SECURITY.md`, `RULES.md`, and `USER.md`, I corrected token references and removed pointers to the retired files.
+
+With the knowledge safely rooted in long-term memory, I removed `CRUSTAGENT.md`, `src/CRUSTAGENT.md`, and `HEART.md`. The scaffolding comes down; the building stands.
+
+## 2026-10-02 23:30 — VitePress Core Docs Modernization: Ports, Protocols & View Transitions
+
+With the root documentation reconciled and legacy scaffolding cleanly dissolved, Lucas directed us into the next phase: modernizing the living VitePress documentation suite in `docs/`.
+
+I audited the first wave of core guides (`docs/installation.md`, `docs/architecture.md`, `docs/storage.md`, `docs/dashboard.md`, `docs/realtime.md`):
+- `installation.md` still advised legacy manual script invocations and omitted `npm run scuttle` (ports 5353/5454), Docker CLI port 5353 mapping, and our `npm run docs:dev`/`build` workflows. I brought all installation paths into 100% agreement with current operational realities.
+- `architecture.md` was upgraded with our verified ASCII Component Topology, explicitly documenting RBAC `/api/system` routes, token prefixes (`hu-`, `api-`, `lb-`, `ls-p-`, `ls-`), Multer dangerous MIME guards, the 64-character cryptographic ShellProxy membrane, and VitePress docs infrastructure.
+- `storage.md` was bolstered with VitePress code groups and claim-verified security invariants: explicit rejection of dangerous executable MIME types and `401 Unauthorized` responses on unauthenticated direct file requests.
+- `dashboard.md` gained Section 5: a deep dive into CaraBase's Tri-State Theming engine (`light`, `dark`, `system`), dynamic system theme change listeners, and the circular radial reveal animation orchestrated via `document.startViewTransition` synchronized with React's DOM via `flushSync`.
+- `realtime.md` was corrected to Server-Sent Events (SSE) semantics with code groups illustrating TypeScript SDK subscriptions and direct streaming via cURL.
+- When `npm run docs:build` triggered file watcher conflicts on the running Vite dev server, I configured `server.watch.ignored` in `vite.config.ts` to shield Vite from documentation build churn permanently.
+
+I verified the stack of 4 gates: `npm run lint` clean (0 errors), `npm test` 100% green (108/108 assertions across 14 phases), and `npm run docs:build` compiling all 18 pages in 21.95s with zero dead links. The core guides now bow strictly to code.
+
+## 2026-10-02 23:35 — The SDK Signature Bridge: Eliminating Synthetic Examples
+
+Lucas directed us to proceed deep into the VitePress documentation suite. I moved across the remaining pages (`index.md`, `cloudflare-tunnel.md`, `react-integration.md`, `rls-integration-guides.md`, `android-sdk.md`, `api-builder.md`, `realtime-example.md`).
+
+Here I found the quiet friction that forms in fast-moving projects: examples that drifted from source reality.
+In `react-integration.md`, the documentation still spoke of long-dead token prefixes (`pb-`, `sk-`, `su-`). In `realtime-example.md`, the code invented a 3-argument `.subscribe('activities', '*', callback)` signature with `subscription.unsubscribe()`, while the literal TypeScript source in `sdk/src/RealtimeClient.ts` takes `(table, callback, options)` and returns the unsubscribe function directly as `() => void`, accompanied by built-in `onStatusChange` hooks. In `index.md`, the routes claimed `/api/rest/:table` while Express registers `/rest/v1/:table`. In `cloudflare-tunnel.md` and RLS guides, port 3000 was cited instead of CaraBase's standard 5353.
+
+I corrected every single seam against the source code:
+1. Replaced all legacy key prefixes with our verified standard (`ls-`, `ls-p-`, `api-`, `lb-`).
+2. Wired `realtime-example.md` to the exact TypeScript signature of `RealtimeClient.ts`.
+3. Documented the full schema configuration and System API routes for `api-builder.md`.
+4. Unified port 5353 and added Docker CLI / Compose code groups in `cloudflare-tunnel.md`.
+
+I tapped all four gates: `npm run lint` 0 errors, `npm test` 108/108 passing across 14 phases, and `npm run docs:build` rendering all 18 pages in 21.86s with zero dead links. The entire documentation suite now holds true to the code.
+
+## 2026-10-02 23:45 — Cross-Session Failure Synthesis: The Inaugural Deep-Learn Pass
+
+Lucas triggered `/deep-learn`. While `/learn` is a single scar—one event, one correction—`/deep-learn` is the cross-session synthesis that maps the taxonomy of repeating mistakes and identifies the precise boundary between where the hand succeeds and where it slips.
+
+I ingested the full history: 11 divergence points across October 1–2, 18 rules, 4 skills, and 15 decisions. Open coding revealed 4 distinct error categories:
+1. Specification-Code Asynchrony: Documentation drifting from code reality or citing obsolete token prefixes. (Boundary: Verify against TypeScript AST / compiler types before authoring).
+2. Framework Execution-Timing Incoherence: Concurrent microtask state batching decoupling from synchronous browser APIs. (Boundary: Force synchronous reconciliation via `flushSync`).
+3. Cross-Process Workspace Contamination: Concurrent builds crashing background file watchers. (Boundary: Explicitly ignore build directories in daemon watchers).
+4. Autonomous Agent Isolation Drift: Cloud container VMs hallucinating git roots or leaking conflict markers. (Boundary: Enforce single-task file scopes and explicit commit roots).
+
+Lucas reviewed and approved the synthesis report. I codified the two new meta-rules (`daemon-churn-shielding.md`, `synchronous-api-flushing.md`), refined `docs-hygiene.md` with a code signature parity mandate, and established `self-review-checklist.md` v1.0.0. The audit verified a 92.8% confidence calibration accuracy, tempering future concurrent agent dispatches to a ceiling of 3 tasks per round.
 
 

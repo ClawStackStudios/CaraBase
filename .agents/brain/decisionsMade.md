@@ -99,6 +99,77 @@
 **Outcome**: Restored circular reveal animation, added System theme mode, and codified patterns into `ui-webdev/SKILL.md`, `systemPatterns.md`, and `long-term/patterns.md`.
 **Pattern reference**: Link to `long-term/patterns.md § view-transition-flushsync`.
 
+## Conventional Commits, Keep a Changelog & 4-Digit SemVer Bolstering — 2026-10-02 20:15
+**Context**: Lucas shared a comprehensive Changelog Automation skill to bolster repository hygiene, git standards, and documentation practices.
+**Options considered**:
+- Option A: Retain loose commit style and unstructured changelog notes.
+- Option B: Integrate Conventional Commits 1.0.0 directly into the Two-Layer Attribution format (header <= 72 chars, imperative lowercase), enforce Keep a Changelog 1.1.0 categorized subheadings (`Added`, `Changed`, `Fixed`, `Security`), enforce 4-digit Semantic Versioning (`vX.Y.Z.W`), establish a root `CHANGELOG.md`, create the `changelog-automation` skill, and retire root `BRAIN.md` after full knowledge import.
+**Chosen**: Option B
+**Why**: Felt reason: Standardizing commits and changelogs turns git history into an automated, auditable, and human-readable stream; 4-digit versioning aligns build counters monotonically with CI releases.
+**Confidence**: high — All rules, skills, and changelogs verified; 108/108 tests passing and VitePress docs build passing in 21s.
+**Outcome**: Updated `git-hygiene.md`, `docs-hygiene.md`, `semantic-versioning.md`, created `changelog-automation/SKILL.md`, created root `CHANGELOG.md`, and retired `BRAIN.md`.
+**Pattern reference**: Link to `skills/changelog-automation/SKILL.md`.
+## Deterministic Doc Automation Skill & GitHub Pages CI Workflow — 2026-10-02 20:25
+**Context**: Lucas requested a sibling skill to changelog automation tailored to CaraBase and VitePress, codifying the law that documentation 100% bows to code and is perpetually synchronized.
+**Options considered**:
+- Option A: Write high-level prose rules without concrete tooling or syntax patterns.
+- Option B: Synthesize a dedicated `doc-automation` skill structured around 4 deterministic pillars: zero-rot region imports (`<<< @/...#region`), test-verified living snippets, claim battery verification, and wire-exact contract types. Update `.github/workflows/deploy-docs.yml` to build VitePress and deploy `docs/.vitepress/dist` to GitHub Pages. Link skill in `docs-hygiene.md`.
+**Chosen**: Option B
+**Why**: Felt reason: Documentation rot begins the instant documentation diverges from executable reality; region imports and claim batteries make documentation breakage fail fast in CI rather than mislead users in production.
+**Confidence**: high — Verified all 4 pre-flight gates: lint, 108/108 tests, build, and docs:build (18 pages, 0 broken links).
+**Outcome**: Created `.agents/skills/doc-automation/SKILL.md`, updated `.agents/rules/docs-hygiene.md`, and upgraded `.github/workflows/deploy-docs.yml`.
+**Pattern reference**: Link to `skills/doc-automation/SKILL.md`.
+
+## Git Advanced Workflows Skill & Git Hygiene Bolstering — 2026-10-02 20:30
+**Context**: Lucas shared an advanced Git workflows skill to bolster repository hygiene, history editing, and safety protocols.
+**Options considered**:
+- Option A: Keep minimal git hygiene rules without concrete rebase, bisect, worktree, or reflog guidelines.
+- Option B: Bolster `.agents/rules/git-hygiene.md` with strict safety mandates (safety backup branches before rebase, `--force-with-lease` mandate, reflog 90-day retention invariant, clean bisect and worktree lifecycle rules) and synthesize `.agents/skills/git-advanced-workflows/SKILL.md` with executable step-by-step recipes.
+**Chosen**: Option B
+**Why**: Felt reason: Git history should be atomic and expressive for PRs, but engineers need an inviolable safety net (backup branches, reflog, and clean abort commands) so history manipulation is fearless rather than fragile.
+**Confidence**: high — All rules, skills, and links verified; lint, 108/108 tests, application build, and VitePress docs build passing.
+**Outcome**: Bolstered `git-hygiene.md`, linked in `docs-hygiene.md`, and created `git-advanced-workflows/SKILL.md`.
+**Pattern reference**: Link to `skills/git-advanced-workflows/SKILL.md`.
+
+## Root Documentation Overhaul & Retirement of CRUSTAGENT/HEART — 2026-10-02 20:38
+**Context**: Lucas requested Option A: updating the root documentation files to 100% bow to code, and retiring `CRUSTAGENT.md`, `src/CRUSTAGENT.md`, and `HEART.md`.
+**Options considered**:
+- Option A: Keep root documents as legacy artifacts with stale port and routing notes.
+- Option B: Rewrite `README.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`, `SECURITY.md`, `RULES.md`, and `USER.md` to reflect literal runtime truth (`npm run scuttle`, port 5353, token hierarchy, two-layer attribution, 4-digit SemVer, and VitePress living docs), while cleanly deleting `CRUSTAGENT.md`, `src/CRUSTAGENT.md`, and `HEART.md`.
+**Chosen**: Option B
+**Why**: Felt reason: Scaffolding that was useful during bootstrapping becomes dead weight once the architecture holds; truth must have one home, and root docs must speak the same language as the codebase.
+**Confidence**: high — Verified all files and links; 108/108 tests passing; docs and linter 100% green.
+**Outcome**: Overhauled 6 root documentation files and deleted 3 legacy files cleanly.
+**Pattern reference**: Link to `skills/doc-automation/SKILL.md`.
+
+## VitePress Core Documentation Modernization — 2026-10-02 23:30
+**Context**: Following the root documentation overhaul, `docs/` core guides contained obsolete port numbers, missing features (View Transition theming, dangerous MIME filters), and broken external relative links.
+**Options considered**:
+- Option A: Leave `docs/` as written and focus only on deploying VitePress.
+- Option B: Systematically audit and modernize `docs/installation.md`, `docs/architecture.md`, `docs/storage.md`, `docs/dashboard.md`, and `docs/realtime.md` with code groups, exact network ports (5353/5454), token hierarchies, and theme transition architecture.
+**Chosen**: Option B
+**Why**: Felt reason: Documentation is an active reflection of the system; if users follow `installation.md` and ports fail, or read `storage.md` and don't know unauthenticated access yields 401, the system feels fractured.
+**Confidence**: high — All 108 tests passing; `docs:build` compiles cleanly with zero dead links.
+**Outcome**: Updated 5 core documentation guides in `docs/` and added `watch.ignored` in `vite.config.ts`.
+**Pattern reference**: Link to `skills/doc-automation/SKILL.md`.
+
+## VitePress Full Suite Modernization & SDK Parity — 2026-10-02 23:35
+**Context**: Remaining documentation pages contained outdated REST routes (`/api/rest`), legacy token prefixes (`pb-`, `sk-`, `su-`), port 3000 references, and a mismatched `RealtimeClient` subscription signature in `realtime-example.md`.
+**Options considered**:
+- Option A: Leave client SDK docs and integration examples as loosely descriptive approximations.
+- Option B: Rewrite client integration and architecture docs (`index.md`, `cloudflare-tunnel.md`, `react-integration.md`, `rls-integration-guides.md`, `android-sdk.md`, `api-builder.md`, `realtime-example.md`) to 100% match shipped code, exact TypeScript signatures (`RealtimeClient.ts`), and the `ls-`/`ls-p-`/`api-`/`lb-` token standard.
+**Chosen**: Option B
+**Why**: Felt reason: An SDK example that invents method signatures or calls dead prefixes breaks developer trust on the first try; code and documentation must speak the exact same language.
+**Confidence**: high — Verified against `RealtimeClient.ts`, `server.ts`, and `tests/suite.cjs`; all 108 tests passing; 18 VitePress pages compile cleanly with zero dead links.
+**Outcome**: Modernized 7 documentation files in `docs/` and verified full build and test suites.
+**Pattern reference**: Link to `skills/doc-automation/SKILL.md`.
+
+## Calibration Note — 2026-10-02 23:45
+**Audit Scope**: Evaluated 14 historical decisions made during repository restructuring, hardening, and documentation phases.
+**Findings**: Empirical calibration accuracy is 92.8% (13 clean outcomes, 1 rework).
+- High-confidence decisions across architectural design, security boundaries, documentation synchronization, and UI refactors consistently yielded clean, single-pass implementations.
+- A singular overconfidence bias was identified during unbounded concurrent agent dispatch (7 simultaneous tasks targeting shared components), which produced duplicate and competing PRs requiring multi-phase manual reconciliation.
+**Suggested Adjustment**: When dispatching concurrent autonomous subagents, enforce a maximum concurrency of 3 tasks per round unless tasks are proven strictly orthogonal by filesystem partition.
 
 
 

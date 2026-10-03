@@ -9,15 +9,12 @@ services:
     volumes:
       - ./data:/app/data
     restart: unless-stopped
+    env_file: .env
     environment:
       - NODE_ENV=production
       - PORT=5353
       - PUID=1000
       - PGID=1000
-      # - DB_ENCRYPTION_KEY=your_encryption_key_here
-      # - TOKEN_TTL_DEFAULT=1d
-      # - CLOUDFLARE_TUNNEL_URL=https://carabase.yourdomain.com
-      # - CORS_ORIGINS=https://carabase.yourdomain.com,https://yourfrontend.com
 
   # Optional: Cloudflare Tunnel for secure, zero-port-exposure public access
   # cloudflared:

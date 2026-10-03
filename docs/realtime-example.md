@@ -4,28 +4,28 @@ This guide demonstrates how to use CaraBase's Server-Sent Events (SSE) capabilit
 
 ## 1. Prerequisites
 
-Make sure you have initialized the `carabase-js` client as shown in the [React Integration Guide](./react-integration.md).
+Make sure you have initialized the `carabase-js` client as shown in the [React Integration Guide](/react-integration).
 
 ```typescript
-// src/carabase.ts
+// src/lib/carabase.ts
 import { createClient } from 'carabase-js';
 
 export const cb = createClient(
-  import.meta.env.VITE_CARABASE_URL,
-  import.meta.env.VITE_CARABASE_ANON_KEY
+  import.meta.env.VITE_CARABASE_URL || 'http://localhost:5353',
+  import.meta.env.VITE_CARABASE_PUBLIC_KEY || 'ls-your-public-key'
 );
 ```
 
 ## 2. Setting up a Realtime Subscription
 
-The `.realtime.subscribe()` method allows you to listen to specific database events (`INSERT`, `UPDATE`, `DELETE`, or `*` for all) on a specific table.
+The `.realtime.subscribe(table, callback, options)` method opens an SSE stream to receive live database mutations (`INSERT`, `UPDATE`, `DELETE`) on a specific table, automatically managing reconnection with exponential backoff and jitter.
 
-Here is an example of a component that maintains a live feed of activities. When another user (or another browser window) inserts a row into the `activities` table, this component will immediately update.
+Here is an example of a component that maintains a live feed of activities. When any client mutates the `activities` table, this component updates immediately.
 
 ```tsx
 // src/components/LiveActivityFeed.tsx
 import React, { useEffect, useState } from 'react';
-import { cb } from '../carabase';
+import { cb } from '../lib/carabase';
 
 interface Activity {
   id: number;
@@ -36,10 +36,10 @@ interface Activity {
 
 export function LiveActivityFeed() {
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [connectionStatus, setConnectionStatus] = useState('Connecting...');
+  const [status, setStatus] = useState<string>('connecting');
 
   useEffect(() => {
-    // 1. Fetch initial data
+    // 1. Fetch initial snapshot
     const fetchInitialData = async () => {
       const { data, error } = await cb
         .from('activities')
@@ -54,34 +54,36 @@ export function LiveActivityFeed() {
     fetchInitialData();
 
     // 2. Set up the Realtime Subscription
-    // We subscribe to all changes ('*') on the 'activities' table
-    const subscription = cb.realtime.subscribe('activities', '*', (payload) => {
-      console.log('Realtime event received!', payload);
+    // Returns an unsubscribe function directly: () => void
+    const unsubscribe = cb.realtime.subscribe('activities', (payload) => {
+      console.log('Realtime mutation received:', payload);
       
       if (payload.action === 'INSERT') {
-        // Add new record to the top of the list
         setActivities(prev => [payload.record as Activity, ...prev]);
       } 
       else if (payload.action === 'UPDATE') {
-        // Update the existing record in the list
         setActivities(prev => 
-          prev.map(activity => 
-            activity.id === payload.record.id ? (payload.record as Activity) : activity
+          prev.map(item => 
+            item.id === payload.record.id ? (payload.record as Activity) : item
           )
         );
       } 
       else if (payload.action === 'DELETE') {
-        // Remove the record from the list
-        setActivities(prev => prev.filter(activity => activity.id !== payload.old_record.id));
+        const deletedId = payload.old_record?.id ?? payload.record?.id;
+        setActivities(prev => prev.filter(item => item.id !== deletedId));
+      }
+    }, {
+      onStatusChange: (newStatus) => {
+        setStatus(newStatus);
+      },
+      onError: (err) => {
+        console.error('Realtime SSE error:', err);
       }
     });
 
-    setConnectionStatus('Connected (Live Feed Active)');
-
     // 3. Cleanup on unmount
     return () => {
-      subscription.unsubscribe();
-      setConnectionStatus('Disconnected');
+      unsubscribe();
     };
   }, []);
 
@@ -91,12 +93,12 @@ export function LiveActivityFeed() {
         <h2>Live Activity Feed</h2>
         <span style={{ 
           fontSize: '0.8rem', 
-          color: connectionStatus.includes('Connected') ? 'green' : 'gray',
-          backgroundColor: '#f0fdf4',
+          color: status === 'connected' ? 'green' : status === 'error' ? 'red' : 'gray',
+          backgroundColor: status === 'connected' ? '#f0fdf4' : '#f8fafc',
           padding: '4px 8px',
           borderRadius: '12px'
         }}>
-          ● {connectionStatus}
+          ● {status.toUpperCase()}
         </span>
       </div>
 

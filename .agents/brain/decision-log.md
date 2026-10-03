@@ -39,6 +39,30 @@ Lucas identified a missing 'System' theme selection beside the 'Dark Mode' butto
 ## 2026-10-02 — View Transition flushSync & radial reveal restoration
 Discovered that React 18/19 asynchronous batching causes startViewTransition to capture post-transition snapshots prematurely. Wrapped state setter and DOM class updates in flushSync and extracted mouse coordinates with screen center fallback; codified learnings in ui-webdev skill, systemPatterns.md, and long-term patterns.
 
+## 2026-10-02 — VitePress setup, Changelog automation & BRAIN.md retirement
+Migrated documentation from Docsify to VitePress on branch docs/vitepress-setup with brand theme and 18-page sidebar. Bolstered git-hygiene with Conventional Commits 1.0.0 and 72-char limit, docs-hygiene with Keep a Changelog 1.1.0, and semantic-versioning with 4-digit versioning (vX.Y.Z.W). Imported knowledge from root BRAIN.md into CHANGELOG.md and long-term memory, and retired BRAIN.md.
+
+## 2026-10-02 — Deterministic doc automation skill & GitHub Pages CI
+Synthesized `.agents/skills/doc-automation/SKILL.md` embodying the law that docs 100% bow to code. Codified zero-rot region imports (`<<< @/...#region`), test oracle validation, claim battery verification, and wire-exact contracts. Upgraded `.github/workflows/deploy-docs.yml` for Node 22 and VitePress build artifact deployment. Verified all 4 pre-flight gates 100% green.
+
+## 2026-10-02 — Git advanced workflows skill & git-hygiene safety bolstering
+Pattern-matched external Git Advanced Workflows skill into `.agents/rules/git-hygiene.md` and `.agents/skills/git-advanced-workflows/SKILL.md`. Codified mandatory safety backup branches before interactive rebases, `--force-with-lease` mandate, automated bisect via test suites (`git bisect run npm test`), worktree isolation lifecycles, and 90-day reflog recovery protocols.
+
+## 2026-10-02 — Root documentation overhaul & legacy file retirement
+Overhauled root documentation (README.md, ARCHITECTURE.md, CONTRIBUTING.md, SECURITY.md, RULES.md, USER.md) aligning 100% with shipped code, VitePress commands, port 5353/5454, two-layer attribution, and 4-digit SemVer. Retired legacy CRUSTAGENT.md, src/CRUSTAGENT.md, and HEART.md after confirming complete preservation of cognitive wisdom in long-term memory.
+
+## 2026-10-02 — VitePress docs page modernization & dead-link repair
+Modernized `docs/installation.md`, `docs/architecture.md`, `docs/storage.md`, `docs/dashboard.md`, and `docs/realtime.md` with VitePress code groups, correct 5353/5454 ports, scuttle run commands, Tri-State theme and flushSync View Transition details, Multer dangerousMimes validation, and 401 unauthenticated storage guards. Resolved VitePress dead-link audit failure on relative skill reference; verified 100% green compilation across all 18 pages in 21s.
+
+## 2026-10-02 — VitePress full suite alignment & SDK signature parity
+Audited remaining docs suite: corrected `/rest/v1/:table` route paths in index.md, eliminated legacy `pb-`/`sk-` token prefixes in react-integration.md and android-sdk.md, updated cloudflare-tunnel.md and rls guides to port 5353, enriched api-builder.md with full endpoint schema and System API routes, and repaired realtime-example.md to match RealtimeClient.ts callback and unsubscribe signatures. Verified 18 pages build clean in 21s.
+
+
+
+
+
+
+
 
 
 

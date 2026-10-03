@@ -22,6 +22,10 @@
 - Fortified `jules-cli` skill with Local-First triage, git slug auto-detection, TTY `< /dev/null` safety, stdin task piping, native REST API contracts (`v1alpha/sessions`), structured task templates, and PTY JSON session parsing.
 - Automated integration regression test enforcing `requireAuth` on `/storage/v1/file/:id` (`tests/suite.cjs`).
 - Tri-state Theme Engine (`light` | `dark` | `system`) with dynamic OS `prefers-color-scheme` listener, Settings selection UI, and restored `flushSync` View Transition circular reveal wipe.
+- VitePress documentation suite on branch `docs/vitepress-setup` with ClawStack brand styling, local search, and 18-page sidebar.
+- Root `CHANGELOG.md` adhering to Keep a Changelog 1.1.0 with 4-digit Semantic Versioning (`vX.Y.Z.W`).
+- Dedicated `changelog-automation` skill and Conventional Commits 1.0.0 integration across `git-hygiene.md`, `docs-hygiene.md`, and `semantic-versioning.md`.
+- Root `BRAIN.md` retired after full knowledge consolidation into long-term memory and changelog.
 
 
 ## What's In Flight

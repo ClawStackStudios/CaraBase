@@ -81,14 +81,17 @@ We enforce a modern build and run pipeline to handle the React Vite Frontend bun
    ```bash
    npm install
    ```
-2. Run development server (Vite + TSX Node watcher):
+2. Run development stack (Express on `http://localhost:5353` + Vite UI on `http://localhost:5454`):
    ```bash
-   npm run dev
+   npm run scuttle
    ```
+   Or run components individually:
+   - Backend only: `npm run dev:server` (port 5353)
+   - Frontend only: `npm run dev` (port 5454)
 
 ### Production Build
 
-1. Build the frontend into `/dist` and transpile the Express backend into `dist/server.cjs`:
+1. Build the frontend into `dist/` and bundle the Express backend into `dist/server.cjs`:
    ```bash
    npm run build
    ```
@@ -124,13 +127,35 @@ Running CaraBase via Docker is the recommended approach to ensure a consistent e
    ```
 2. Run the container:
    ```bash
-   docker run -d -p 3000:3000 -v ./data:/app/data -e DB_ENCRYPTION_KEY="your-secure-key" carabase
+   docker run -d -p 5353:5353 -v ./data:/app/data -e DB_ENCRYPTION_KEY="your-secure-key" carabase
    ```
 
 *(Note: The `./data` directory must be mounted as a volume so that your database files persist across container restarts. `DB_ENCRYPTION_KEY` is **strictly required** in production; CaraBase will fail to start without it to ensure your data is always encrypted at rest.)*
+
+## Living Documentation & Changelog
+
+CaraBase features a deterministic living documentation suite powered by [VitePress](https://vitepress.dev/) adhering to our **[Doc Automation](.agents/skills/doc-automation/SKILL.md)** protocol: zero-rot source region imports (`<<< @/...#region`), test-verified living snippets, and wire-exact contract types.
+
+- **Start Docs Dev Server**:
+  ```bash
+  npm run docs:dev
+  ```
+  Launches interactive docs at `http://localhost:5173`.
+- **Build Docs Artifact**:
+  ```bash
+  npm run docs:build
+  ```
+  Audits all internal links and compiles static HTML into `docs/.vitepress/dist` (automatically deployed via GitHub Pages).
+- **Preview Production Docs**:
+  ```bash
+  npm run docs:preview
+  ```
+- **Changelog & Releases**:
+  All notable changes are tracked in **[CHANGELOG.md](./CHANGELOG.md)** adhering to [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/) and 4-digit Semantic Versioning (`vX.Y.Z.W`).
 
 ### Public Access & Security
 
 If you intend to expose CaraBase to the internet, we strongly recommend using Cloudflare Tunnels rather than opening incoming firewall ports. 
 CaraBase natively supports `cloudflared` to provide zero-port-exposure hosting, explicit CORS locking, and public file sharing URLs.
 Please read the [Cloudflare Tunnel Setup Guide](./docs/cloudflare-tunnel.md) for quick deployment instructions.
+
