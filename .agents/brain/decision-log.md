@@ -51,6 +51,10 @@ Pattern-matched external Git Advanced Workflows skill into `.agents/rules/git-hy
 ## 2026-10-02 — Root documentation overhaul & legacy file retirement
 Overhauled root documentation (README.md, ARCHITECTURE.md, CONTRIBUTING.md, SECURITY.md, RULES.md, USER.md) aligning 100% with shipped code, VitePress commands, port 5353/5454, two-layer attribution, and 4-digit SemVer. Retired legacy CRUSTAGENT.md, src/CRUSTAGENT.md, and HEART.md after confirming complete preservation of cognitive wisdom in long-term memory.
 
+## 2026-10-02 — VitePress docs page modernization & dead-link repair
+Modernized `docs/installation.md`, `docs/architecture.md`, `docs/storage.md`, `docs/dashboard.md`, and `docs/realtime.md` with VitePress code groups, correct 5353/5454 ports, scuttle run commands, Tri-State theme and flushSync View Transition details, Multer dangerousMimes validation, and 401 unauthenticated storage guards. Resolved VitePress dead-link audit failure on relative skill reference; verified 100% green compilation across all 18 pages in 21s.
+
+
 
 
 

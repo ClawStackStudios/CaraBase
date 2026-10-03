@@ -141,3 +141,15 @@
 **Confidence**: high — Verified all files and links; 108/108 tests passing; docs and linter 100% green.
 **Outcome**: Overhauled 6 root documentation files and deleted 3 legacy files cleanly.
 **Pattern reference**: Link to `skills/doc-automation/SKILL.md`.
+
+## VitePress Core Documentation Modernization — 2026-10-02 23:30
+**Context**: Following the root documentation overhaul, `docs/` core guides contained obsolete port numbers, missing features (View Transition theming, dangerous MIME filters), and broken external relative links.
+**Options considered**:
+- Option A: Leave `docs/` as written and focus only on deploying VitePress.
+- Option B: Systematically audit and modernize `docs/installation.md`, `docs/architecture.md`, `docs/storage.md`, `docs/dashboard.md`, and `docs/realtime.md` with code groups, exact network ports (5353/5454), token hierarchies, and theme transition architecture.
+**Chosen**: Option B
+**Why**: Felt reason: Documentation is an active reflection of the system; if users follow `installation.md` and ports fail, or read `storage.md` and don't know unauthenticated access yields 401, the system feels fractured.
+**Confidence**: high — All 108 tests passing; `docs:build` compiles cleanly with zero dead links.
+**Outcome**: Updated 5 core documentation guides in `docs/` and added `watch.ignored` in `vite.config.ts`.
+**Pattern reference**: Link to `skills/doc-automation/SKILL.md`.
+

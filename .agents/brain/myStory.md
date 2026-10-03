@@ -319,3 +319,17 @@ I walked the root documentation line by line:
 - In `SECURITY.md`, `RULES.md`, and `USER.md`, I corrected token references and removed pointers to the retired files.
 
 With the knowledge safely rooted in long-term memory, I removed `CRUSTAGENT.md`, `src/CRUSTAGENT.md`, and `HEART.md`. The scaffolding comes down; the building stands.
+
+## 2026-10-02 23:30 — VitePress Core Docs Modernization: Ports, Protocols & View Transitions
+
+With the root documentation reconciled and legacy scaffolding cleanly dissolved, Lucas directed us into the next phase: modernizing the living VitePress documentation suite in `docs/`.
+
+I audited the first wave of core guides (`docs/installation.md`, `docs/architecture.md`, `docs/storage.md`, `docs/dashboard.md`, `docs/realtime.md`):
+- `installation.md` still advised legacy manual script invocations and omitted `npm run scuttle` (ports 5353/5454), Docker CLI port 5353 mapping, and our `npm run docs:dev`/`build` workflows. I brought all installation paths into 100% agreement with current operational realities.
+- `architecture.md` was upgraded with our verified ASCII Component Topology, explicitly documenting RBAC `/api/system` routes, token prefixes (`hu-`, `api-`, `lb-`, `ls-p-`, `ls-`), Multer dangerous MIME guards, the 64-character cryptographic ShellProxy membrane, and VitePress docs infrastructure.
+- `storage.md` was bolstered with VitePress code groups and claim-verified security invariants: explicit rejection of dangerous executable MIME types and `401 Unauthorized` responses on unauthenticated direct file requests.
+- `dashboard.md` gained Section 5: a deep dive into CaraBase's Tri-State Theming engine (`light`, `dark`, `system`), dynamic system theme change listeners, and the circular radial reveal animation orchestrated via `document.startViewTransition` synchronized with React's DOM via `flushSync`.
+- `realtime.md` was corrected to Server-Sent Events (SSE) semantics with code groups illustrating TypeScript SDK subscriptions and direct streaming via cURL.
+- When `npm run docs:build` triggered file watcher conflicts on the running Vite dev server, I configured `server.watch.ignored` in `vite.config.ts` to shield Vite from documentation build churn permanently.
+
+I verified the stack of 4 gates: `npm run lint` clean (0 errors), `npm test` 100% green (108/108 assertions across 14 phases), and `npm run docs:build` compiling all 18 pages in 21.95s with zero dead links. The core guides now bow strictly to code.

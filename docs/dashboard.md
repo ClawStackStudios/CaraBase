@@ -4,7 +4,9 @@ CaraBase is designed not just as a silent backend, but as a robust visual interf
 
 > [!NOTE]
 > **Role-Based Access Control (RBAC)**
-> The tools outlined in this document are strictly gated by the user's role. Standard `viewer` users will not see these tools. To access advanced features like the SQL Editor and Table Editor, you must log in via the `/admin-login` portal using the SuperLobster identity.
+> The tools outlined in this document are strictly gated by the user's role. Standard `viewer` users will not see structural tools. To access advanced features like the SQL Editor and Table Editor, you must log in via the `/admin-login` portal using the SuperLobster identity.
+
+---
 
 ## 1. Global Command Palette (`⌘K`)
 
@@ -17,9 +19,11 @@ By pressing `Cmd + K` (or `Ctrl + K` on Windows/Linux), you immediately summon t
 - **Action Shortcuts:** Jump straight to critical pages like "API Keys", "Storage", or "Policies" without touching the mouse.
 - **Efficiency:** The palette maintains focus and supports standard Arrow Key and Enter navigation, allowing power users to navigate the entire platform seamlessly.
 
+---
+
 ## 2. Raw SQL Editor
 
-While the Table Editor provides a beautiful visual grid for managing rows, there are times when you need the raw power of unrestrained SQL execution. 
+While the Table Editor provides a visual grid for managing rows, there are times when you need the raw power of unrestrained SQL execution. 
 
 Located at `/sql`, the **SQL Editor** is a dedicated sandbox for the SuperAdmin:
 - **Execution Engine:** Write any valid SQLite syntax (`SELECT`, `INSERT`, `UPDATE`, `CREATE TABLE`, `DROP`, etc.).
@@ -30,14 +34,18 @@ Located at `/sql`, the **SQL Editor** is a dedicated sandbox for the SuperAdmin:
 > **SuperAdmin Isolation**
 > The SQL Editor executes directly against the system database connection. It completely bypasses Row-Level Security (RLS) constraints. As such, the `/api/system/sql` endpoint is strictly guarded by the `requireRole('superadmin')` backend middleware. The UI hides this entirely from `viewer` and `admin` roles.
 
+---
+
 ## 3. The "Lobster Guides" (Visual Wizards)
 
 For users who want to scaffold infrastructure without writing raw SQL, the dashboard provides Guided Wizards.
 
 ### Setup Wizard
 The Setup Wizard bridges the gap between raw infrastructure and working applications. It visually walks you through creating architecture:
-1. **Table Scaffolding:** Visually define columns and types.
-2. **RLS Generation:** Using visual toggles (e.g., "Only the Creator", "Public"), the wizard automatically generates the invisible-ink SQLite policies (`author_id = @user_id`) without requiring you to write a single line of SQL.
+1. **Table Scaffolding:** Visually define columns, SQLite data types, and primary key constraints.
+2. **RLS Generation:** Using visual toggles (e.g., "Only the Creator", "Public"), the wizard automatically generates SQLite policies (`author_id = @user_id`) without requiring you to write a single line of SQL.
+
+---
 
 ## 4. The Connect Integrator
 
@@ -51,6 +59,22 @@ For environments without the CaraBase SDK, this path generates raw `fetch()` sni
 - It automatically appends your specific `ls-` Public Key into the headers.
 
 ### Framework Client
-For modern frameworks (Next.js, Vite, React Native), this path provides the exact SDK initialization logic required.
+For modern frameworks (Next.js, Vite, React Native), this path provides the exact SDK initialization logic required:
 - **Client Components:** Snippets for standard browser usage (`createClient()`).
 - **Server Components (SSR):** Specific snippets for Next.js Server Actions and API Routes, handling cookie injection and middleware bindings natively.
+
+---
+
+## 5. Tri-State Theming & View Transitions
+
+CaraBase provides an integrated visual experience with three distinct theme selections in **Settings → Appearance**:
+
+1. **Light Mode (`light`)**: High-contrast, clean slate styling.
+2. **Dark Mode (`dark`)**: Deep carbon slate `#090d16` with teal accents.
+3. **System Mode (`system`)**: Synchronizes automatically with the host operating system's color scheme in real time via an active `matchMedia('(prefers-color-scheme: dark)')` listener.
+
+### Circular Reveal View Transitions
+When switching themes, CaraBase triggers a circular radial wipe originating from the user's cursor:
+- Uses the modern browser **View Transitions API** (`document.startViewTransition`).
+- **`flushSync` DOM Synchronization**: Because React 18 and 19 batch state updates asynchronously across microtasks, the state setter and root `.dark` DOM class mutations are wrapped in `flushSync` from `react-dom`. This ensures the browser captures the post-transition snapshot synchronously, guaranteeing a smooth radial reveal.
+- **Defensive Viewport Fallback**: If triggered via keyboard shortcuts or external events without mouse coordinates, the wipe expands smoothly from the exact center of the viewport.

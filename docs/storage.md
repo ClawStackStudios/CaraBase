@@ -2,31 +2,78 @@
 
 CaraBase provides an integrated file storage engine that handles physical asset uploading, metadata tracking, and cryptographic public sharing without requiring external services like AWS S3.
 
-## Uploads and Asset Tracking
+---
 
-When an authenticated user uploads a file, CaraBase processes the `multipart/form-data` payload via the `/api/system/storage/upload` endpoint.
-- The physical binary is securely saved to disk inside the `data/storage/` directory, named with a system-generated UUID to prevent directory traversal attacks.
-- The metadata (original filename, MIME type, size, ownership, and physical path) is logged in the `_carabase_storage_files` system table.
+## Uploads & Asset Security
+
+Authenticated users upload files via `multipart/form-data` to `/api/system/storage/upload`.
+
+### Security Hardening & MIME Validation
+All uploads pass through Multer configured with strict MIME inspection:
+- **Executable Blocking**: Dangerous MIME types (`application/x-msdownload`, `application/x-executable`, `application/x-sh`) are immediately rejected.
+- **Physical Isolation**: Uploaded files are saved to `data/storage/` named with system-generated UUIDs, entirely neutralizing directory traversal and path collision injection attacks.
+- **Metadata Persistence**: File size, original name, detected MIME type, and physical path are securely tracked in the `_carabase_storage_files` system table.
+
+::: code-group
+
+```bash [cURL Upload]
+curl -X POST "http://localhost:5353/api/system/storage/upload" \
+  -H "Authorization: Bearer api-your-session-token" \
+  -F "file=@/path/to/image.png"
+```
+
+```typescript [TypeScript / React SDK]
+import { createClient } from '@carabase/sdk';
+
+const carabase = createClient({
+  baseUrl: 'http://localhost:5353',
+  apiKey: 'api-your-session-token'
+});
+
+const { data, error } = await carabase.storage.upload(fileBlob);
+```
+
+:::
+
+---
 
 ## The ShellProxy Membrane
 
-To securely share physical assets with the public internet, CaraBase utilizes a cryptographic proxy boundary called the **ShellProxy Membrane**.
+To securely share physical assets with the public internet without opening direct access to disk, CaraBase utilizes a cryptographic boundary called the **ShellProxy Membrane**.
 
-You cannot access a file by guessing its physical path or its internal UUID. Instead, users must explicitly generate a **Share Hash**.
+You cannot access a file by guessing its physical path or its internal UUID. Direct requests to `/storage/v1/file/:id` without an Authorization header return `401 Unauthorized`. Instead, users must explicitly generate a **Share Hash**.
 
-1. The client requests a share link via the API, optionally passing an expiration time (`share_expires_at`).
+### Generating a Share Hash
+1. The client requests a share link via `POST /api/system/storage/:fileId/shares`, optionally passing an expiration timestamp (`share_expires_at`).
 2. The server generates a cryptographic 64-character hex string (`share_hash`).
 3. This hash is persisted in the `_carabase_storage_shares` table and mapped to the underlying file.
 
-### Dual-Serve Content Negotiation
+::: code-group
 
-When a request hits the public ShellProxy at `/storage/v1/file/:share_hash`, the membrane adapts based on the client's `Accept` HTTP header:
+```bash [Create Expiring Share]
+curl -X POST "http://localhost:5353/api/system/storage/FILE_UUID/shares" \
+  -H "Authorization: Bearer api-your-session-token" \
+  -H "Content-Type: application/json" \
+  -d '{"expiresInSeconds": 3600}'
+```
 
-- **Browser Preview (`Accept: text/html`)**: If a user opens the link in a web browser, the membrane renders a beautiful, Tailwind-styled HTML interface. It displays the file's metadata and provides an embedded preview (if it's an image) or a prominent "Download" button.
-- **Raw Binary Stream (Automated / programmatic access)**: If the `Accept` header does not request HTML, or if a client downloads the file directly, the membrane streams the raw binary bytes. 
+:::
 
-To prevent Cross-Site Scripting (XSS) and MIME-sniffing vulnerabilities, all raw binary responses are forced to include strict `X-Content-Type-Options: nosniff` headers.
+---
 
-### Expiration and Revocation
+## Dual-Serve Content Negotiation
 
-Because hashes are tracked in SQLite, they can be instantly revoked. Once revoked, or if the `share_expires_at` TTL lapses, the ShellProxy membrane silently drops the request, returning a `404 Not Found` without revealing whether the underlying file still exists.
+When a request reaches the public ShellProxy at `/storage/v1/file/:share_hash`, the membrane adapts based on the client's `Accept` HTTP header:
+
+- **Browser Preview (`Accept: text/html`)**: If a user opens the link in a web browser, the membrane renders a responsive Tailwind-styled HTML interface displaying file metadata, image preview (for supported image formats), and a secure download button.
+- **Raw Binary Stream (Direct Download / API)**: When accessed without an HTML accept header, the membrane streams raw binary bytes with strict `X-Content-Type-Options: nosniff` security headers to eliminate MIME-sniffing and cross-site scripting (XSS) risks.
+
+---
+
+## Expiration & Immediate Revocation
+
+Because share hashes reside in SQLite, they can be revoked instantly via `DELETE /api/system/storage/shares/:shareHash`.
+
+Once revoked, or if the `share_expires_at` TTL lapses:
+- The ShellProxy membrane silently drops the request.
+- The server responds with `404 Not Found` without revealing whether the underlying physical file exists.
