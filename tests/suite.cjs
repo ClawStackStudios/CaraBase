@@ -568,6 +568,12 @@ async function runTests() {
      assert(text.includes('ClawStack Storage physical'), "Downloaded file contents match upload stream exactly");
   } catch(e) { assert(false, "Shared link download validation crashed"); }
 
+  // 2.5. Verify strictly blocked anonymous access to storage API
+  try {
+     const anonRes = await fetch(`${BASE_URL}/storage/v1/file/${storageFileId}`);
+     assert(anonRes.status === 401, "Direct file retrieval WITHOUT Authorization strictly blocked (401)");
+  } catch(e) { assert(false, "Anonymous retrieval validation crashed"); }
+
   // 3. Block directory traversal attacks (dot-dot-slash vectors)
   try {
      const attack1 = await fetch(`${BASE_URL}/storage/v1/file/../../server.ts`, { headers: { 'Authorization': `Bearer ${token1}` } });
