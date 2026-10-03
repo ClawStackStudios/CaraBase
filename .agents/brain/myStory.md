@@ -242,5 +242,14 @@ Upon Lucas invoking `/learn` and approving the proposal, I codified these capabi
 
 The multi-agent execution pipeline is now completely grounded, hardened, and portable.
 
+## 2026-10-02 19:16 — Global Skill Promotion & PR #36 Storage Auth Regression Test Merged
+
+Lucas moved the repository copy of the `jules-cli` skill to machine-global configuration at `~/.gemini/config/skills/jules-cli`, making the entire suite inheritable across all workspaces. I verified all 6 reference guides and `parse_sessions.py` were present, marked the parser script executable, and removed `.agents/skills/jules-cli` from the CaraBase repository, committing cleanly as `0bf1527`.
+
+We then checked active Jules sessions using our global `parse_sessions.py` script. Session `16675766846207272940` had completed, and Jules had opened PR #36. The PR corrected an outdated comment in `server.ts` that erroneously described direct file retrieval as "anonymous sharing", and added an automated integration test in `tests/suite.cjs` (assertion 2.5) asserting that requests to `/storage/v1/file/:id` without an Authorization header return 401 Unauthorized.
+
+With 3/3 checks green on GitHub Actions, I merged PR #36 upon Lucas's approval and pulled `origin/main` to commit `51ee275`. GitHub Actions runs on `main` passed 100% green. Exactly 0 open PRs remain in the repository.
+
+
 
 

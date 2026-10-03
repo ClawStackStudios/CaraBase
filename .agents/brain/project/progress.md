@@ -20,10 +20,11 @@
 - Antigravity Brain initialized with Self vs Environment architecture.
 - Jules Fleet Architecture centered on `.jules/JULES.md` briefing and atomic task specs in `.jules/tasks/task-<N>.md`.
 - Fortified `jules-cli` skill with Local-First triage, git slug auto-detection, TTY `< /dev/null` safety, stdin task piping, native REST API contracts (`v1alpha/sessions`), structured task templates, and PTY JSON session parsing.
+- Automated integration regression test enforcing `requireAuth` on `/storage/v1/file/:id` (`tests/suite.cjs`).
 
 ## What's In Flight
 - **GitHub Pull Requests**:
-  - All 15 Jules PRs across Round 1 (#21-#27), Round 2 (#28-#30), and Round 3 (#31-#35) fully reconciled and merged/closed.
+  - All 16 Jules PRs across Round 1 (#21-#27), Round 2 (#28-#30), Round 3 (#31-#35), and Round 4 (#36) fully reconciled and merged/closed.
   - Exactly **0 open PRs** remain in the repository.
 - **Dedicated Sub-Agents**:
   - Tailored security sub-agent `Sentinel` active in runtime (`agent.md`).

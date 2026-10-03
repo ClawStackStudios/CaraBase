@@ -19,6 +19,7 @@
 - Created canonical `.jules/JULES.md` fleet briefing and atomic task separation under `.jules/tasks/task-<N>.md`.
 - Synthesized 4 external skills into `.agents/skills/jules-cli/`: added Local-First rubric, git repo auto-detection, TTY `< /dev/null` redirection, stdin piping, direct patch pull (`jules remote pull --apply`), REST API reference (`api-reference.md`), task templates (`task-templates.md`), and session parser script (`parse_sessions.py`).
 - Codified inviolable CI/CD workflow security redlines across `.jules/JULES.md` and promoted `jules-cli` skill to machine-global configuration (`~/.gemini/config/skills/jules-cli`) for universal cross-workspace availability.
+- Merged Jules PR #36: updated outdated route comment in `server.ts` and added automated integration test 2.5 in `tests/suite.cjs` asserting that anonymous requests to `/storage/v1/file/:id` return 401 Unauthorized.
 
 ## [v0.2.0] — Phase 2 Ratification
 - Production-ready embedded SQLite database with SQLCipher encryption.
