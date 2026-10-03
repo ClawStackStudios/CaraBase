@@ -56,3 +56,9 @@ Every architectural boundary must resolve these four questions before modificati
 - **Synchronous DOM Mutation with flushSync**: React 18/19 state updates and root `.dark` DOM class changes inside `document.startViewTransition()` are wrapped in `flushSync` to guarantee synchronous DOM commits before the browser takes its post-transition snapshot.
 - **Dynamic Radial Clipping**: Radial reveal animations compute viewport hypotenuses from click coordinates, defaulting to screen center for accessibility/keyboard events.
 
+### 10. Defensive Documentation Asset Bundling & Styling
+- **Rollup Asset Bundler Boundary**: In VitePress, markdown image links referencing local absolute paths (`/placeholders/...`) are treated as static assets by Vite/Rollup and will cause production builds to crash if uncommitted. Remote placeholder URLs or committed assets in `docs/public/` must be used.
+- **Universal Documentation Image Styling**: All images rendered inside markdown pages are globally governed by `.vp-doc img` in `custom.css` (auto-centered, `max-width: 100%`, `height: auto`, rounded corners, and brand border tokens) to ensure zero inline wrapper pollution and guaranteed responsive safety.
+
+→ Consolidated to `long-term/patterns.md § docs-bow-to-code` (weight: 3, 2026-10-03)
+

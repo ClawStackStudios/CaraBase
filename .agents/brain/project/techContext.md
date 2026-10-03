@@ -21,3 +21,8 @@
 - SQLite write concurrency handled by single writer queue in WAL mode.
 - In-memory database keys must be 64-char hex strings if encryption is enabled (`DB_ENCRYPTION_KEY`).
 - Server binds to `127.0.0.1` by default; production uses reverse proxy / Cloudflare Tunnel.
+
+## Documentation Toolchain
+- **VitePress**: v1.6.4 configured with `ignoreDeadLinks: true`, custom Vue components (`CardGrid`, `Card`, `Steps`, `Step`, `CopyPage`), and Shiki syntax highlighting.
+- **Static Asset Serving**: Public assets live in `docs/public/`; production SSG uses Rollup which requires strict path resolution for local images.
+- **CI Deployment**: GitHub Actions workflow `.github/workflows/deploy-docs.yml` triggers on push to `main` across `docs/**` and root documentation files, publishing static HTML artifacts to GitHub Pages.

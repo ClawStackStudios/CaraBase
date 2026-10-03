@@ -34,6 +34,20 @@ In React 18/19, `document.startViewTransition()` callbacks that trigger theme or
 
 ---
 
+## docs-bow-to-code
+**weight**: 3 | **last validated**: 2026-10-03 | **first observed**: 2026-10-02
+
+Documentation must never invent or anticipate reality; when code and documentation disagree, the documentation is the defect. All documented endpoints, signatures, status codes, and commands must be verified against executable AST types and passing test assertions.
+
+**History:**
+- 2026-10-02: Created `doc-automation` skill enforcing region imports and claim batteries after finding drifted token prefixes and synthetic `RealtimeClient` signatures.
+- 2026-10-02: Overhauled root documentation (`README.md`, `ARCHITECTURE.md`), aligning run commands and ports to code reality while deleting stale scaffolding (`CRUSTAGENT.md`, `HEART.md`).
+- 2026-10-03: Audited and overhauled entire VitePress walkthrough; restricted SDK claims to local manual compilation to reflect genuine project status without phantom npm packages.
+
+**Shaped perspective:** Developers tolerate incomplete documentation; they do not forgive false documentation. The cost of maintaining parity is verifying AST signatures and test oracle gates before writing documentation prose.
+
+---
+
 ## Ratified Metaphorical Wisdom Seeds
 - **Incomplete reflections crack the state.**  
   Missing API response fragments corrupt UI invariants.

@@ -22,24 +22,27 @@
 - Fortified `jules-cli` skill with Local-First triage, git slug auto-detection, TTY `< /dev/null` safety, stdin task piping, native REST API contracts (`v1alpha/sessions`), structured task templates, and PTY JSON session parsing.
 - Automated integration regression test enforcing `requireAuth` on `/storage/v1/file/:id` (`tests/suite.cjs`).
 - Tri-state Theme Engine (`light` | `dark` | `system`) with dynamic OS `prefers-color-scheme` listener, Settings selection UI, and restored `flushSync` View Transition circular reveal wipe.
-- VitePress documentation suite on branch `docs/vitepress-setup` with ClawStack brand styling, local search, and 18-page sidebar.
+- VitePress documentation suite overhauled with end-to-end user walkthroughs (Quickstart, Secrets, Installation, First Login, Setup Wizard, Tables, SQL Editor, Views/Indexes/Triggers, RLS, API Builder, Storage, Realtime, Backups, SuperAdmin).
+- Ported ShellGuard landing page UI architecture into CaraBase docs with native Teal/Cyan color scheme (`#14b8a6` / `#06b6d4`), responsive `<CardGrid>`, and `<Steps>` components.
+- Integrated first wave of real application UI screenshots (SuperAdmin login screen, Project Overview dashboard) with global responsive CSS guards (`.vp-doc img`).
+- Resolved VitePress production static site Rollup asset bundling crash by replacing missing local image paths with remote placeholder URLs.
+- Version pointer bumped monotonically to `v0.2.0.2` (Build 2) and git tags deployed to GitHub Pages CI.
 - Root `CHANGELOG.md` adhering to Keep a Changelog 1.1.0 with 4-digit Semantic Versioning (`vX.Y.Z.W`).
 - Dedicated `changelog-automation` skill and Conventional Commits 1.0.0 integration across `git-hygiene.md`, `docs-hygiene.md`, and `semantic-versioning.md`.
 - Root `BRAIN.md` retired after full knowledge consolidation into long-term memory and changelog.
 
-
 ## What's In Flight
+- **Application Screenshots**:
+  - Wave 1 landed (Login, Overview Dashboard).
+  - Wave 2 pending from Lucas (Table Editor, Storage buckets, SQL Editor).
 - **GitHub Pull Requests**:
   - All 16 Jules PRs across Round 1 (#21-#27), Round 2 (#28-#30), Round 3 (#31-#35), and Round 4 (#36) fully reconciled and merged/closed.
   - Exactly **0 open PRs** remain in the repository.
 - **Dedicated Sub-Agents**:
   - Tailored security sub-agent `Sentinel` active in runtime (`agent.md`).
 - **Next Planned Milestone**:
-  - Planned UI additions and adjustments with Lucas.
-  - Comprehensive live app walkthrough.
-  - Decomposition of `server.ts` into modular route controllers under `src/server/routes/` to meet the 500-line hard ceiling (target ~250 lines).
+  - Complete live app walkthrough on `npm run scuttle`.
+  - Route decomposition of monolithic `server.ts` into `src/server/routes/` to meet the 500-line hard ceiling.
 
 ## Known Issues & Debt
 - `server.ts` is currently ~1,600 lines; needs decomposition into modular route controllers under `src/server/routes/` to adhere to Lucas's 500-line hard ceiling.
-
-
