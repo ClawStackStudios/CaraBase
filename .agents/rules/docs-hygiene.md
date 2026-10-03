@@ -66,3 +66,9 @@ For operational toolchains, templates, and automated workflows:
 - **[Changelog Automation](file:///config/Local-Storage/workspace-lucas/projects/Agents/CaraBase/.agents/skills/changelog-automation/SKILL.md)**: Conventional Commits tooling, Keep a Changelog 1.1.0 automation, and 4-digit release management.
 - **[Git Advanced Workflows](file:///config/Local-Storage/workspace-lucas/projects/Agents/CaraBase/.agents/skills/git-advanced-workflows/SKILL.md)**: Operational protocols for interactive rebase, autosquash, commit splitting, cherry-pick ranges, automated bisect, worktrees, and emergency reflog recovery.
 
+## 10. Code Example Signature Parity
+- Every code snippet in `docs/` demonstrating SDK or API usage must be verified against the literal TypeScript source signature (e.g., `RealtimeClient.ts`, `QueryBuilder.ts`, `CaraBaseClient.ts`) before committing.
+- Fabricated parameters, fictitious options, or obsolete prefixes (`pb-`, `sk-`, `su-`) are considered critical documentation defects.
+- Whenever practical, prefer VitePress region imports (`<<< @/...#region`) over copy-pasted blocks.
+
+

@@ -164,4 +164,12 @@
 **Outcome**: Modernized 7 documentation files in `docs/` and verified full build and test suites.
 **Pattern reference**: Link to `skills/doc-automation/SKILL.md`.
 
+## Calibration Note — 2026-10-02 23:45
+**Audit Scope**: Evaluated 14 historical decisions made during repository restructuring, hardening, and documentation phases.
+**Findings**: Empirical calibration accuracy is 92.8% (13 clean outcomes, 1 rework).
+- High-confidence decisions across architectural design, security boundaries, documentation synchronization, and UI refactors consistently yielded clean, single-pass implementations.
+- A singular overconfidence bias was identified during unbounded concurrent agent dispatch (7 simultaneous tasks targeting shared components), which produced duplicate and competing PRs requiring multi-phase manual reconciliation.
+**Suggested Adjustment**: When dispatching concurrent autonomous subagents, enforce a maximum concurrency of 3 tasks per round unless tasks are proven strictly orthogonal by filesystem partition.
+
+
 

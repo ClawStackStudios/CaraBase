@@ -349,3 +349,16 @@ I corrected every single seam against the source code:
 
 I tapped all four gates: `npm run lint` 0 errors, `npm test` 108/108 passing across 14 phases, and `npm run docs:build` rendering all 18 pages in 21.86s with zero dead links. The entire documentation suite now holds true to the code.
 
+## 2026-10-02 23:45 — Cross-Session Failure Synthesis: The Inaugural Deep-Learn Pass
+
+Lucas triggered `/deep-learn`. While `/learn` is a single scar—one event, one correction—`/deep-learn` is the cross-session synthesis that maps the taxonomy of repeating mistakes and identifies the precise boundary between where the hand succeeds and where it slips.
+
+I ingested the full history: 11 divergence points across October 1–2, 18 rules, 4 skills, and 15 decisions. Open coding revealed 4 distinct error categories:
+1. Specification-Code Asynchrony: Documentation drifting from code reality or citing obsolete token prefixes. (Boundary: Verify against TypeScript AST / compiler types before authoring).
+2. Framework Execution-Timing Incoherence: Concurrent microtask state batching decoupling from synchronous browser APIs. (Boundary: Force synchronous reconciliation via `flushSync`).
+3. Cross-Process Workspace Contamination: Concurrent builds crashing background file watchers. (Boundary: Explicitly ignore build directories in daemon watchers).
+4. Autonomous Agent Isolation Drift: Cloud container VMs hallucinating git roots or leaking conflict markers. (Boundary: Enforce single-task file scopes and explicit commit roots).
+
+Lucas reviewed and approved the synthesis report. I codified the two new meta-rules (`daemon-churn-shielding.md`, `synchronous-api-flushing.md`), refined `docs-hygiene.md` with a code signature parity mandate, and established `self-review-checklist.md` v1.0.0. The audit verified a 92.8% confidence calibration accuracy, tempering future concurrent agent dispatches to a ceiling of 3 tasks per round.
+
+
