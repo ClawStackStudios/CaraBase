@@ -1,31 +1,22 @@
 # Active Context
 
 ## Current Focus
-- Session Goal: Establish VitePress documentation suite on branch `docs/vitepress-setup`, synthesize Changelog Automation and Conventional Commits into hygiene rules, and clean up root `BRAIN.md`.
-- Immediate Task: Verify full pre-flight test and build gates, present changes to Lucas for review, and stage commits.
+- Session Goal: Modernize and polish CaraBase VitePress documentation suite, integrating ShellGuard layout with native teal/cyan palette and live application screenshots.
+- Immediate Task: Await next batch of UI screenshots (Table Editor, Storage views) from Lucas to replace remaining documentation placeholders.
 
 ## Active Decisions (Sliding 10)
-1. **[2026-10-02 19:25] System Theme Mode Added to Settings**: Added full 'System' theme selection beside the 'Dark Mode' button in `AppearanceSettings.tsx`, integrated dynamic `matchMedia('(prefers-color-scheme: dark)')` listener in `ThemeContext.tsx`, and updated `Header.tsx` and `LandingPage.tsx` with `resolvedTheme`.
-2. **[2026-10-02 19:35] View Transition flushSync & System Theme Learned**: Restored circular reveal animation by synchronizing React 18/19 state updates and DOM mutations with `flushSync` inside `document.startViewTransition`; added radial origin tracking and dynamic OS scheme listener; codified patterns into `ui-webdev/SKILL.md`, `systemPatterns.md`, and long-term memory.
-3. **[2026-10-02 20:15] VitePress Setup, Changelog Automation & 4-Digit SemVer**: Moved to fresh branch `docs/vitepress-setup`; set up VitePress suite with brand theme and 18-page sidebar; updated `git-hygiene.md`, `docs-hygiene.md`, and `semantic-versioning.md` with Conventional Commits, Keep a Changelog 1.1.0, and 4-digit versioning (`vX.Y.Z.W`); imported all knowledge from `BRAIN.md` into `CHANGELOG.md` and retired `BRAIN.md`.
-4. **[2026-10-02 20:25] Doc Automation Skill & GitHub Pages CI**: Authored `.agents/skills/doc-automation/SKILL.md` codifying zero-rot region imports (`<<< @/...#region`), test-verified snippets, and claim battery audits; updated `.github/workflows/deploy-docs.yml` for VitePress CI deployment; verified all 4 pre-flight gates 100% green.
-5. **[2026-10-02 20:30] Git Advanced Workflows Skill & Safety Net**: Synthesized `.agents/skills/git-advanced-workflows/SKILL.md` (interactive rebase, autosquash, split commits, cherry-picks, automated bisect, worktrees, reflog); bolstered `.agents/rules/git-hygiene.md` with mandatory safety branches, `--force-with-lease` mandate, and 90-day reflog recovery protocols.
-6. **[2026-10-02 20:38] Root Documentation Overhaul & Retirement of CRUSTAGENT/HEART**: Overhauled root docs (`README.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`, `SECURITY.md`, `RULES.md`, `USER.md`) to 100% bow to code with VitePress commands, port 5353/5454, two-layer attribution, and 4-digit SemVer; retired `CRUSTAGENT.md`, `src/CRUSTAGENT.md`, and `HEART.md` with cognitive knowledge preserved in long-term memory.
-7. **[2026-10-02 23:30] VitePress Core Docs Overhaul (docs/)**: Modernized core guides (`installation.md`, `architecture.md`, `storage.md`, `dashboard.md`, `realtime.md`) with code groups, `npm run scuttle` run commands, port 5353/5454, Tri-State theming, View Transition `flushSync`, `dangerousMimes` verification, and fixed VitePress dead-link audit on external skill URLs.
-8. **[2026-10-02 23:35] VitePress Full Suite Modernization**: Modernized second wave of `docs/` (`index.md`, `cloudflare-tunnel.md`, `react-integration.md`, `rls-integration-guides.md`, `android-sdk.md`, `api-builder.md`, `realtime-example.md`); corrected `/rest/v1/:table` paths, port 5353, token prefixes (`ls-`/`ls-p-`/`api-`/`lb-`), and synced `RealtimeClient.ts` subscribe signature; verified all 18 pages compile in 21s with 0 dead links.
-9. **[2026-10-02 23:45] Inaugural Deep-Learn Pass (v1.0.0)**: Executed `/deep-learn` cross-session analysis across 11 divergence points; codified 2 new meta-rules (`daemon-churn-shielding.md`, `synchronous-api-flushing.md`), refined `docs-hygiene.md` with signature parity mandate, ratified `self-review-checklist.md` v1.0.0, and recorded confidence calibration note (92.8% empirical accuracy).
-10. **[2026-10-02 23:45] Multi-Agent Concurrency Guard**: Established safe concurrency policy capping concurrent autonomous agent tasks at 3 unless partitioned by orthogonal filesystem boundaries.
-
-
-
-
-
-
-
-
+1. **[2026-10-02 23:30] VitePress Core Docs Overhaul (docs/)**: Modernized core guides (`installation.md`, `architecture.md`, `storage.md`, `dashboard.md`, `realtime.md`) with code groups, `npm run scuttle` run commands, port 5353/5454, Tri-State theming, and View Transition `flushSync`.
+2. **[2026-10-02 23:35] VitePress Full Suite Modernization**: Modernized second wave of `docs/` (`index.md`, `cloudflare-tunnel.md`, `react-integration.md`, `rls-integration-guides.md`, `android-sdk.md`, `api-builder.md`, `realtime-example.md`); corrected `/rest/v1/:table` paths, port 5353, token prefixes, and `RealtimeClient.ts` subscribe signature.
+3. **[2026-10-02 23:45] Inaugural Deep-Learn Pass (v1.0.0)**: Executed `/deep-learn` cross-session analysis across 11 divergence points; codified 2 new meta-rules, refined `docs-hygiene.md`, and ratified `self-review-checklist.md` v1.0.0.
+4. **[2026-10-02 23:45] Multi-Agent Concurrency Guard**: Established safe concurrency policy capping concurrent autonomous agent tasks at 3 unless partitioned by orthogonal filesystem boundaries.
+5. **[2026-10-03 09:15] VitePress Walkthrough & SDK Boundary**: Structured complete user documentation suite from installation and key generation to dashboard features; presented TypeScript SDK strictly as an advanced locally-built feature without phantom npm package claims.
+6. **[2026-10-03 10:45] Monotonic Build Version Bump (v0.2.0.2)**: Bumped 4th monotonic build digit to `0.2.0.2` in `package.json` and `productVersion.md`; pushed git tag to trigger CI cloud builds.
+7. **[2026-10-03 11:10] CI Asset Resolution (Remote Placeholders)**: Resolved GitHub Actions `deploy-docs.yml` Rollup static asset failure by replacing unbuilt local image paths with remote placeholder URLs.
+8. **[2026-10-03 11:26] ShellGuard Component Port & Teal Adaptation**: Ported `CardGrid`, `Card`, `Steps`, and `Step` Vue components from ShellGuard; rebuilt `docs/index.md` and `custom.css` with CaraBase's native teal (`#14b8a6`) and cyan (`#06b6d4`) branding.
+9. **[2026-10-03 11:48] Real Application Screenshot Ingestion**: Ingested first wave of 5 real application PNG screenshots into `docs/public/assets/`, replacing placeholders in `docs/first-login.md` and embedding the dashboard overview on `docs/index.md`.
+10. **[2026-10-03 11:53] Global Screenshot Styling Hardening**: Corrected index screenshot margin to `4rem auto` and implemented universal `.vp-doc img` rules in `custom.css` (auto-centering, responsive bounds, rounded corners, subtle brand shadow).
 
 ## Next Steps
-1. Collaborate with Lucas on upcoming UI additions and adjustments.
-2. Verify local dev stack via `npm run scuttle` for the comprehensive manual walkthrough.
+1. Ingest upcoming batches of application screenshots (Table Editor, Storage buckets, Settings) and replace remaining placeholders.
+2. Complete comprehensive manual walkthrough of the live web application on `npm run scuttle`.
 3. Complete remaining backend milestone (modular route decomposition of `server.ts`).
-4. Evaluate release version bump upon walkthrough completion.

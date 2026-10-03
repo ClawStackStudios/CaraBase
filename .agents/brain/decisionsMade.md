@@ -171,5 +171,46 @@
 - A singular overconfidence bias was identified during unbounded concurrent agent dispatch (7 simultaneous tasks targeting shared components), which produced duplicate and competing PRs requiring multi-phase manual reconciliation.
 **Suggested Adjustment**: When dispatching concurrent autonomous subagents, enforce a maximum concurrency of 3 tasks per round unless tasks are proven strictly orthogonal by filesystem partition.
 
+## VitePress Walkthrough Architecture & SDK Distribution Boundary — 2026-10-03 09:15
+**Context**: Structuring the complete user documentation suite from installation and key generation to dashboard features, while deciding how to present the TypeScript SDK.
+**Options considered**:
+- Option A: Document the SDK as `npm install @carabase/sdk` and describe ideal cloud workflows.
+- Option B: Document the exact current reality—manual local compilation of the SDK for advanced developers, with zero false claims about external package managers.
+**Chosen**: Option B
+**Why**: Felt reason: A developer's trust breaks the moment a documented command (`npm install`) fails with a 404; honoring the project's actual identity as a self-hosted hobby BaaS keeps the docs grounded and respectable.
+**Confidence**: high — Verified against repository root and user intent.
+**Outcome**: Authored complete guides (`installation.md`, `generate-secrets.md`, `first-login.md`, `api-reference.md`, `error-codes.md`, `troubleshooting.md`) with zero phantom dependencies.
+**Pattern reference**: Link to `long-term/patterns.md § The Schema For Metaphorical Wisdom Seeds`.
 
+## CI Asset Resolution: Remote Placeholders vs. Dummy Git Files — 2026-10-03 11:10
+**Context**: `deploy-docs.yml` failed in GitHub Actions because VitePress Rollup bundler failed to resolve missing local paths `/placeholders/*.png`.
+**Options considered**:
+- Option A: Commit blank 1x1 dummy PNG files to `docs/public/placeholders/`.
+- Option B: Replace local paths with remote placeholder service URLs (`https://via.placeholder.com/800x400.png?text=...`).
+**Chosen**: Option B
+**Why**: Felt reason: Dummy binary assets committed to git easily become permanent dead weight or get mistaken for actual assets; remote URLs bypass Rollup bundling checks cleanly without polluting the repository tree.
+**Confidence**: high — Verified via local `npm run docs:build` and passing GitHub Actions run.
+**Outcome**: CI run transitioned to 100% green; documentation deployed cleanly to GitHub Pages.
+**Pattern reference**: New pattern — first instance.
 
+## ShellGuard Component Port & CaraBase Theme Adaptation — 2026-10-03 11:26
+**Context**: Lucas requested adopting ShellGuard's structured VitePress landing page (Hero, Features, CardGrid, Steps) while retaining CaraBase's distinctive visual identity.
+**Options considered**:
+- Option A: Copy the layout and keep ShellGuard's dark magenta CSS tokens for speed.
+- Option B: Port the Vue components (`CardGrid.vue`, `Card.vue`, `Steps.vue`, `Step.vue`, `CopyPage.vue`) and systematically translate all CSS variables and accent colors to CaraBase's native teal (`#14b8a6`) and cyan (`#06b6d4`).
+**Chosen**: Option B
+**Why**: Felt reason: Brand consistency is an aesthetic invariant; borrowing layout structure shouldn't dilute product voice or color psychology.
+**Confidence**: high — Tested in local build (passed in 22.86s).
+**Outcome**: Landed modern card grid, responsive steps, and ambient teal glows in `docs/index.md` and `docs/.vitepress/theme/`.
+**Pattern reference**: Link to `project/brandIdentity.md`.
+
+## Global Defensive Screenshot Styling vs. Ad-Hoc Inline Wrappers — 2026-10-03 11:53
+**Context**: An image margin overlap was reported on `docs/index.md`, raising the question of how all documentation screenshots should be governed.
+**Options considered**:
+- Option A: Fix the margin on `docs/index.md` and use custom inline styles whenever new screenshots are added.
+- Option B: Fix `docs/index.md` to `margin: 4rem auto;` and inject a universal `.vp-doc img` rule in `custom.css` with auto-centering, responsive bounds (`max-width: 100%`), rounded corners, and brand borders.
+**Chosen**: Option B
+**Why**: Felt reason: Individual inline fixes invite recurring layout bugs as more images arrive; putting the guardrail into the CSS engine protects every future markdown document automatically.
+**Confidence**: high — Full test build verified clean in 22.98s; all pages render consistently.
+**Outcome**: Cleaned index layout and hardened global documentation image presentation across all screens.
+**Pattern reference**: Link to `long-term/patterns.md § The Schema For Metaphorical Wisdom Seeds`.

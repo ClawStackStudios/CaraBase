@@ -57,8 +57,8 @@ Modernized `docs/installation.md`, `docs/architecture.md`, `docs/storage.md`, `d
 ## 2026-10-02 — VitePress full suite alignment & SDK signature parity
 Audited remaining docs suite: corrected `/rest/v1/:table` route paths in index.md, eliminated legacy `pb-`/`sk-` token prefixes in react-integration.md and android-sdk.md, updated cloudflare-tunnel.md and rls guides to port 5353, enriched api-builder.md with full endpoint schema and System API routes, and repaired realtime-example.md to match RealtimeClient.ts callback and unsubscribe signatures. Verified 18 pages build clean in 21s.
 
-
-
+## 2026-10-03 — VitePress walkthrough overhaul, Rollup CI fix & ShellGuard UI port
+Overhauled VitePress docs suite end-to-end with verified claims; resolved Rollup static asset bundler failure in GitHub Actions CI by swapping unbuilt local paths for remote placeholder URLs; ported ShellGuard's card grid and 3-step onboarding components adapted to CaraBase's teal brand identity; integrated first wave of real application screenshots and enforced global defensive styling on `.vp-doc img`.
 
 
 

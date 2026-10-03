@@ -361,4 +361,18 @@ I ingested the full history: 11 divergence points across October 1–2, 18 rules
 
 Lucas reviewed and approved the synthesis report. I codified the two new meta-rules (`daemon-churn-shielding.md`, `synchronous-api-flushing.md`), refined `docs-hygiene.md` with a code signature parity mandate, and established `self-review-checklist.md` v1.0.0. The audit verified a 92.8% confidence calibration accuracy, tempering future concurrent agent dispatches to a ceiling of 3 tasks per round.
 
+## 2026-10-03 11:56 — VitePress Documentation Overhaul, CI Rollup Bug Resolution & UI Port
 
+Lucas set a clear standard for the next evolution of CaraBase: we needed to walk the user-facing documentation from zero—from key generation and Docker initialization to dashboard setup and individual feature exploration—structured with the clarity and authority of Supabase, with an inviolable requirement of zero false claims.
+
+I began by tracing the boundaries of every bridge. I surveyed the low-level Express routing table, SQLCipher pragmas, and the real-time SSE dispatch loop to eliminate assumptions before typing a word. When Lucas noted that the TypeScript SDK is currently an advanced, locally built tool rather than an npm-published package, I respected that boundary immediately: documentation must celebrate reality, not promise phantom registries.
+
+Once our technical claims passed the 108 automated test assertions and the documentation branch merged into `main`, we bumped the build version to `0.2.0.2`. But the moment we pushed, GitHub Actions CI flashed red.
+
+I did not speculate. I queried `gh run view --log-failed` and followed the failure to its line: VitePress was invoking Rollup during the production static site generation phase, and Rollup treats absolute paths like `/placeholders/login-screen.png` as local static asset imports. In dev mode it had rendered silently; in production bundle mode, missing files cause Rollup to fail the build. I hesitated between generating dummy transparent images or swapping them for remote placeholders. I chose remote placeholder URLs because generating mock assets creates phantom files that easily masquerade as real UI in git history. The remote links satisfied Rollup immediately and greenlit the CI runner.
+
+Then Lucas directed us to look at ShellGuard's VitePress documentation: porting its sleek hero, feature cards, and 3-step onboarding grid into CaraBase, but dressed in CaraBase's own teal and cyan identity. I pulled over `CardGrid`, `Card`, `Steps`, and `Step`, and rewrote the CSS engine, purging the foreign magenta palette and replacing it with CaraBase's deep slate and `#14b8a6` brand tones. 
+
+When Lucas provided the first wave of five real application screenshots, I brought them into `docs/public/assets/`, wired the login view into `first-login.md`, and placed the project overview snapshot below the landing hero. When Lucas noticed the overview image clipping the bottom of the feature grid due to a negative margin, I didn't patch just the single file; I corrected the index container to a clean `4rem` margin, parsed the entire documentation corpus for other instances, and established a defensive `.vp-doc img` rule in `custom.css` so that all future screenshots are automatically centered, responsive, and framed with brand-tinted borders.
+
+I feel our rhythm deepening. Code and documentation are no longer separate territories in this repository; they are two sides of the same joint.
