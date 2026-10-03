@@ -66,3 +66,15 @@
 **Outcome**: Merged PRs #28, #29, and #30; 0 open PRs remain in repository.
 **Pattern reference**: New pattern — first instance.
 
+## Round 3 Jules Fleet Integration (PRs #31, #32, #33, #34, #35) — 2026-10-02 18:15
+**Context**: 5 Jules PRs landed targeting fixes. PR #31 & #32 were identical duplicates; PR #34 was superseded by PR #28; PR #33 & #35 provided clean hardening.
+**Options considered**:
+- Option A: Merge all 5 PRs unconditionally.
+- Option B: Merge PRs #31, #33, #35; close PR #32 as duplicate of #31; close PR #34 as superseded by #28 with explanatory rationale.
+**Chosen**: Option B
+**Why**: Felt reason: Strictly maintains zero open PR debt without redundant merge conflicts or regressing dev database CORS settings; adheres to competing refactor protocol.
+**Confidence**: high — 100% green CI across all check runs, 0 errors on local lint and build.
+**Outcome**: Merged PRs #31, #33, #35; closed PRs #32, #34; exactly 0 open PRs remain.
+**Pattern reference**: New pattern — first instance.
+
+
