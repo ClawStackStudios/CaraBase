@@ -90,20 +90,26 @@ async function startServer() {
       cb(null, uuidv4() + ext);
     }
   });
-  // TODO(security): Enforce strict upload file size limit and validate MIME types / magic-bytes in Multer to prevent unconstrained storage exhaustion
-  // Constraints: Set limits: { fileSize: 50 * 1024 * 1024 } (50MB) and configure fileFilter validating MIME types and magic bytes on all upload instances.
   const upload = multer({
-  storage: storageOptions,
-  limits: { fileSize: process.env.MAX_UPLOAD_SIZE_MB ? parseInt(process.env.MAX_UPLOAD_SIZE_MB, 10) * 1024 * 1024 : 50 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const dangerousExts = ['.exe', '.dll', '.sh', '.bat', '.cmd', '.elf', '.bin'];
-    if (dangerousExts.includes(ext)) {
-      return cb(new Error('Dangerous file type rejected.'));
+    storage: storageOptions,
+    limits: { fileSize: process.env.MAX_UPLOAD_SIZE_MB ? parseInt(process.env.MAX_UPLOAD_SIZE_MB, 10) * 1024 * 1024 : 50 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      const dangerousExts = ['.exe', '.dll', '.sh', '.bat', '.cmd', '.elf', '.bin'];
+      const dangerousMimes = [
+        'application/x-msdownload',
+        'application/x-executable',
+        'application/x-sh',
+        'application/x-bat',
+        'application/x-bsh'
+      ];
+
+      if (dangerousExts.includes(ext) || dangerousMimes.includes(file.mimetype.toLowerCase())) {
+        return cb(new Error('Dangerous file type rejected.'));
+      }
+      cb(null, true);
     }
-    cb(null, true);
-  }
-});
+  });
 
   // --- Core API Routes ---
   app.get('/api/health', (req, res) => res.json({ 
