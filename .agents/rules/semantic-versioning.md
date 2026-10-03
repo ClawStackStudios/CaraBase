@@ -85,7 +85,7 @@ To keep `ROADMAP.md` dense, actionable, and token-efficient:
 1. **3-Completed-Milestones Ceiling**:
    - The "Completed Releases" section of `ROADMAP.md` strictly holds the **3 most recently completed milestones**.
 2. **Historical Archival**:
-   - When a newly completed phase is added to Completed Releases (bringing the total to 4), the oldest of the four MUST be retired into `.agents/memory-bank/ROADMAP-HISTORY.md`.
+   - When a newly completed phase is added to Completed Releases (bringing the total to 4), the oldest of the four MUST be retired into `.agents/brain/ROADMAP-HISTORY.md`.
 3. **Queue Advancement**:
    - Remove the completed phase from the active forward queue.
    - Advance `current_position` to `vX.Y.Z.W (Build N) — released & live; next Phase N+1 (vX.Y.Z.W+1 / Build N+1)`.
@@ -101,24 +101,62 @@ My goal is to ensure all technical and maintenance documentation reflects the ne
     - **`Changed`**: If a process was changed, locate its existing description and propose updates to reflect the new behavior (e.g., updating an API endpoint's documentation).
     - **`Removed`**: If a feature was removed, find its documentation and propose either removing the section or clearly marking it as deprecated with migration steps.
     - **`Fixed`**: Bug fixes typically do not require documentation updates unless they clarify a previously misunderstood behavior.
-4.  **AWAIT USER APPROVAL:** 🚨 **CRITICAL:** I MUST NOT apply these changes directly. I MUST present a clear summary of the proposed documentation updates (e.g., as a `diff` or a before/after summary) to the user for review and approval before proceeding.
+4.  **AWAIT USER APPROVAL:** 🚨 **CRITICAL:** I MUST NOT apply these changes directly. I MUST present a clear summary of the proposed documentation updates to the user for review and approval before proceeding.
 
-### Step 5: Prepare Git Commit Message
+### Step 5: Prepare Release Git Commit Message
 
-Once all file changes are approved and applied, I will prepare and output the following commit message text. **DO NOT execute the commit.**
+Once all file changes are approved and applied, prepare the release commit adhering to Conventional Commits and Two-Layer Attribution:
 
-**✅ Template:**
+**✅ 4-Digit Release Commit Template:**
 ```
-<version number> <short, descriptive title>
+chore(release): vX.Y.Z.W (Build N)
 
-- A bulleted list summarizing the key feature/fix changes.
-- Update project documentation to reflect new changes.
+User: Approve version bump and release generation for milestone vX.Y.Z.W.
+AI: Synchronize 5 central anchors, promote [Unreleased] to ## [X.Y.Z.W] in CHANGELOG.md, update compare links, and draft release notes.
 ```
 
-**Example Output:**
-```
-1.10.0 Introduce User Profile Caching
+### Step 6: Standard Release Notes Templates
 
-- Implemented Redis caching for user profile data to reduce database load.
-- Added new environment variables for Redis connection.
-- Updated ARCHITECTURE.md with details on the new caching layer.
+#### A. GitHub Release Notes Template
+```markdown
+## What's Changed in v{{ .Version }}
+
+### 🚀 Features
+- {{ .Summary }} in #{{ .PR }}
+
+### 🐛 Bug Fixes
+- {{ .Summary }} in #{{ .PR }}
+
+### 🔒 Security & Hardening
+- {{ .Summary }} in #{{ .PR }}
+
+### 📚 Documentation
+- {{ .Summary }} in #{{ .PR }}
+
+**Full Changelog**: https://github.com/ClawStackStudios/CaraBase/compare/v{{ .PreviousVersion }}...v{{ .Version }}
+```
+
+#### B. Internal Release Notes Template
+```markdown
+# Release vX.Y.Z.W (Build N) — YYYY-MM-DD
+
+## Summary
+Brief 2-3 sentence overview of this milestone.
+
+## Highlights
+### 🌟 [Key Feature Name]
+Detailed explanation of why this was built and what it accomplishes.
+
+## Breaking Changes
+None (or migration guide if applicable).
+
+## Verification Status
+- Lint: 100% green
+- Tests: Passed (N/N)
+- Build: Production bundle verified
+
+## Dependencies Updated
+| Package | From | To | Rationale |
+| :--- | :--- | :--- | :--- |
+| example | 1.0.0 | 1.1.0 | Feature enhancement |
+```

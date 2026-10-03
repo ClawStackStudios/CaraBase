@@ -99,6 +99,34 @@
 **Outcome**: Restored circular reveal animation, added System theme mode, and codified patterns into `ui-webdev/SKILL.md`, `systemPatterns.md`, and `long-term/patterns.md`.
 **Pattern reference**: Link to `long-term/patterns.md § view-transition-flushsync`.
 
+## Conventional Commits, Keep a Changelog & 4-Digit SemVer Bolstering — 2026-10-02 20:15
+**Context**: Lucas shared a comprehensive Changelog Automation skill to bolster repository hygiene, git standards, and documentation practices.
+**Options considered**:
+- Option A: Retain loose commit style and unstructured changelog notes.
+- Option B: Integrate Conventional Commits 1.0.0 directly into the Two-Layer Attribution format (header <= 72 chars, imperative lowercase), enforce Keep a Changelog 1.1.0 categorized subheadings (`Added`, `Changed`, `Fixed`, `Security`), enforce 4-digit Semantic Versioning (`vX.Y.Z.W`), establish a root `CHANGELOG.md`, create the `changelog-automation` skill, and retire root `BRAIN.md` after full knowledge import.
+**Chosen**: Option B
+**Why**: Felt reason: Standardizing commits and changelogs turns git history into an automated, auditable, and human-readable stream; 4-digit versioning aligns build counters monotonically with CI releases.
+**Confidence**: high — All rules, skills, and changelogs verified; 108/108 tests passing and VitePress docs build passing in 21s.
+**Outcome**: Updated `git-hygiene.md`, `docs-hygiene.md`, `semantic-versioning.md`, created `changelog-automation/SKILL.md`, created root `CHANGELOG.md`, and retired `BRAIN.md`.
+**Pattern reference**: Link to `skills/changelog-automation/SKILL.md`.
+## Deterministic Doc Automation Skill & GitHub Pages CI Workflow — 2026-10-02 20:25
+**Context**: Lucas requested a sibling skill to changelog automation tailored to CaraBase and VitePress, codifying the law that documentation 100% bows to code and is perpetually synchronized.
+**Options considered**:
+- Option A: Write high-level prose rules without concrete tooling or syntax patterns.
+- Option B: Synthesize a dedicated `doc-automation` skill structured around 4 deterministic pillars: zero-rot region imports (`<<< @/...#region`), test-verified living snippets, claim battery verification, and wire-exact contract types. Update `.github/workflows/deploy-docs.yml` to build VitePress and deploy `docs/.vitepress/dist` to GitHub Pages. Link skill in `docs-hygiene.md`.
+**Chosen**: Option B
+**Why**: Felt reason: Documentation rot begins the instant documentation diverges from executable reality; region imports and claim batteries make documentation breakage fail fast in CI rather than mislead users in production.
+**Confidence**: high — Verified all 4 pre-flight gates: lint, 108/108 tests, build, and docs:build (18 pages, 0 broken links).
+**Outcome**: Created `.agents/skills/doc-automation/SKILL.md`, updated `.agents/rules/docs-hygiene.md`, and upgraded `.github/workflows/deploy-docs.yml`.
+**Pattern reference**: Link to `skills/doc-automation/SKILL.md`.
 
-
-
+## Git Advanced Workflows Skill & Git Hygiene Bolstering — 2026-10-02 20:30
+**Context**: Lucas shared an advanced Git workflows skill to bolster repository hygiene, history editing, and safety protocols.
+**Options considered**:
+- Option A: Keep minimal git hygiene rules without concrete rebase, bisect, worktree, or reflog guidelines.
+- Option B: Bolster `.agents/rules/git-hygiene.md` with strict safety mandates (safety backup branches before rebase, `--force-with-lease` mandate, reflog 90-day retention invariant, clean bisect and worktree lifecycle rules) and synthesize `.agents/skills/git-advanced-workflows/SKILL.md` with executable step-by-step recipes.
+**Chosen**: Option B
+**Why**: Felt reason: Git history should be atomic and expressive for PRs, but engineers need an inviolable safety net (backup branches, reflog, and clean abort commands) so history manipulation is fearless rather than fragile.
+**Confidence**: high — All rules, skills, and links verified; lint, 108/108 tests, application build, and VitePress docs build passing.
+**Outcome**: Bolstered `git-hygiene.md`, linked in `docs-hygiene.md`, and created `git-advanced-workflows/SKILL.md`.
+**Pattern reference**: Link to `skills/git-advanced-workflows/SKILL.md`.

@@ -17,7 +17,10 @@
     "scuttle:prod-start": "npm run build && NODE_ENV=production PORT=5353 tsx server.ts",
     "scuttle:reset": "npm run scuttle:stop && rm -rf dist && rm -rf data && mkdir -p data",
     "scuttle:reset-db": "rm -f data/carabase.sqlite data/carabase.sqlite-wal data/carabase.sqlite-shm && echo '✅ Database reset. Restart server to recreate schema.'",
-    "scuttle:stop": "fuser -k -15 5454/tcp 5353/tcp || true"
+    "scuttle:stop": "fuser -k -15 5454/tcp 5353/tcp || true",
+    "docs:dev": "vitepress dev docs --port 5173",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -61,6 +64,7 @@
     "tailwindcss": "^4.1.14",
     "tsx": "^4.23.15",
     "typescript": "~5.8.2",
-    "vite": "^6.2.3"
+    "vite": "^6.2.3",
+    "vitepress": "^1.6.4"
   }
 }

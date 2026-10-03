@@ -9,8 +9,8 @@ description: Documentation hygiene and anti-rot rule — ensures architectural, 
 - "I will update the docs later" is treated as an incomplete task.
 
 ## 2. Trigger Conditions
-You MUST proactively update the corresponding `.agents/memory-bank/` files or `docs/` files when:
-- **State Model Changes:** If you alter how data flows, where it is stored, or how contexts (like React Context or Zustand) are structured, you must update `attractorBeacon.md` and/or `systemPatterns.md`.
+You MUST proactively update the corresponding `.agents/brain/` files or `docs/` files when:
+- **State Model Changes:** If you alter how data flows, where it is stored, or how contexts (like React Context or Zustand) are structured, you must update `systemPatterns.md`.
 - **API/Endpoint Changes:** If a server route's payload or response shape changes, update the API documentation or relevant README.
 - **Component Refactors:** If a large component is split or renamed, update the overarching UI documentation and `activeContext.md`.
 - **Dependency Changes:** If a new core dependency is added (e.g., swapping a crypto library), update `techContext.md`.
@@ -31,4 +31,38 @@ Documentation updates should not be isolated to a separate "chore: update docs" 
 ## 6. Wire-Exact Contract Alignment
 - Document API endpoint request and response payloads with exact TypeScript types matching the runtime controller (e.g. distinguishing an array of IDs `inserted: string[]` from a count `inserted: number`, and exact HTTP status codes `201 Created` vs `207 Multi-Status`).
 - Mismatches break automated API consumers, typed SDKs, and collaborating AI agents.
+
+## 7. Keep a Changelog 1.1.0 Standardization
+Both root `CHANGELOG.md` and `.agents/brain/project/changelog.md` MUST strictly adhere to [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/):
+- **Mandatory Categories**: Entries within a release or `[Unreleased]` MUST be grouped under these exact Markdown subheadings:
+  - `### Added` — for new features.
+  - `### Changed` — for changes in existing functionality or refactors.
+  - `### Deprecated` — for soon-to-be removed features.
+  - `### Removed` — for now removed features.
+  - `### Fixed` — for any bug fixes.
+  - `### Security` — for vulnerability remediations and security hardening.
+- **4-Digit Version Pointer**: Version headings must strictly use the 4-digit format: `## [X.Y.Z.W] - YYYY-MM-DD` (e.g. `## [0.2.0.1] - 2026-10-02`).
+- **Comparison Link Integrity**: Maintain comparison anchor links at the end of the changelog:
+  ```markdown
+  [Unreleased]: https://github.com/ClawStackStudios/CaraBase/compare/vX.Y.Z.W...HEAD
+  [X.Y.Z.W]: https://github.com/ClawStackStudios/CaraBase/releases/tag/vX.Y.Z.W
+  ```
+
+## 8. Conventional Commit to Changelog Section Mapping
+When promoting commits into `CHANGELOG.md`:
+| Conventional Commit | Target Changelog Section | Notes |
+| :--- | :--- | :--- |
+| `feat(...)` | `### Added` | User-facing feature capabilities |
+| `fix(...)` | `### Fixed` | Bug fixes and runtime repairs |
+| `perf(...)` | `### Changed` | Performance optimizations |
+| `refactor(...)` | `### Changed` | Code restructuring without behavior change |
+| `revert(...)` | `### Removed` | Reverting prior functionality |
+| Security patches | `### Security` | Tagged explicitly under Security |
+| `docs`, `style`, `chore`, `test`, `ci`, `build` | (Internal) | Kept in git log & brain; excluded from public changelog |
+
+## 9. Specialized Operational Skills
+For operational toolchains, templates, and automated workflows:
+- **[Doc Automation](file:///config/Local-Storage/workspace-lucas/projects/Agents/CaraBase/.agents/skills/doc-automation/SKILL.md)**: Operational protocols for VitePress zero-rot region imports (`<<< @/...#region`), live test-verified snippets, claim battery verification, and CI/CD dead-link auditing.
+- **[Changelog Automation](file:///config/Local-Storage/workspace-lucas/projects/Agents/CaraBase/.agents/skills/changelog-automation/SKILL.md)**: Conventional Commits tooling, Keep a Changelog 1.1.0 automation, and 4-digit release management.
+- **[Git Advanced Workflows](file:///config/Local-Storage/workspace-lucas/projects/Agents/CaraBase/.agents/skills/git-advanced-workflows/SKILL.md)**: Operational protocols for interactive rebase, autosquash, commit splitting, cherry-pick ranges, automated bisect, worktrees, and emergency reflog recovery.
 

@@ -39,6 +39,18 @@ Lucas identified a missing 'System' theme selection beside the 'Dark Mode' butto
 ## 2026-10-02 — View Transition flushSync & radial reveal restoration
 Discovered that React 18/19 asynchronous batching causes startViewTransition to capture post-transition snapshots prematurely. Wrapped state setter and DOM class updates in flushSync and extracted mouse coordinates with screen center fallback; codified learnings in ui-webdev skill, systemPatterns.md, and long-term patterns.
 
+## 2026-10-02 — VitePress setup, Changelog automation & BRAIN.md retirement
+Migrated documentation from Docsify to VitePress on branch docs/vitepress-setup with brand theme and 18-page sidebar. Bolstered git-hygiene with Conventional Commits 1.0.0 and 72-char limit, docs-hygiene with Keep a Changelog 1.1.0, and semantic-versioning with 4-digit versioning (vX.Y.Z.W). Imported knowledge from root BRAIN.md into CHANGELOG.md and long-term memory, and retired BRAIN.md.
+
+## 2026-10-02 — Deterministic doc automation skill & GitHub Pages CI
+Synthesized `.agents/skills/doc-automation/SKILL.md` embodying the law that docs 100% bow to code. Codified zero-rot region imports (`<<< @/...#region`), test oracle validation, claim battery verification, and wire-exact contracts. Upgraded `.github/workflows/deploy-docs.yml` for Node 22 and VitePress build artifact deployment. Verified all 4 pre-flight gates 100% green.
+
+## 2026-10-02 — Git advanced workflows skill & git-hygiene safety bolstering
+Pattern-matched external Git Advanced Workflows skill into `.agents/rules/git-hygiene.md` and `.agents/skills/git-advanced-workflows/SKILL.md`. Codified mandatory safety backup branches before interactive rebases, `--force-with-lease` mandate, automated bisect via test suites (`git bisect run npm test`), worktree isolation lifecycles, and 90-day reflog recovery protocols.
+
+
+
+
 
 
 

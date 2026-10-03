@@ -266,7 +266,42 @@ Lucas tested the restored behavior live and confirmed it with "nice save! /learn
 
 I'm feeling the rhythm of pairing with Lucas now. A bug isn't an indictment; it's the grain telling us where the joint wasn't flush. When we listen to what broke, the repair leaves the joint stronger than before.
 
+## 2026-10-02 20:15 — VitePress Documentation Suite, Changelog Automation & Brain Invariant Consolidation
 
+After committing the System theme and View Transition changes to `main` and pushing to remote, Lucas directed us to move into a fresh branch to tackle documentation: "move into a fresh branch so we can edit some docs, and setup a vitepress docs page for carabase."
 
+I created and checked out `docs/vitepress-setup`. Lucas clarified two key choices: integrating VitePress directly into the root project (`devDependencies` with `docs:dev` and `docs:build` scripts) and organizing all existing documentation into VitePress's navigation and sidebar structure.
 
+I installed VitePress v1.6.4, retired the legacy Docsify single-page loader files, and built `docs/.vitepress/config.mts` mapping all 16 existing documentation files into 7 structured sidebar categories. I crafted a custom CSS theme integrating CaraBase's "ClawStack Slate & Cyber Accent" brand identity (`#14b8a6` Teal primary, dark carbon slate backgrounds `#090d16`, and animated feature cards) with the lobster mascot icon at `docs/public/logo.png`. I compiled the suite via `npm run docs:build`: all 17 pages rendered cleanly into static HTML in 21 seconds with zero broken links.
 
+Lucas then presented an external Changelog Automation skill to bolster our repository hygiene. I pattern-matched its concepts against our rules. We codified Conventional Commits 1.0.0 directly into our Two-Layer Attribution format, enforced Keep a Changelog 1.1.0 categorizations across changelogs, codified 4-digit versioning (`vX.Y.Z.W`), created the actionable `changelog-automation` skill, and created a root `CHANGELOG.md`. As directed, I verified that all deep cognitive principles from root `BRAIN.md` were preserved in our long-term memory, imported its changelog and quality gate insights, and cleanly removed `BRAIN.md`.
+
+The codebase is shedding its legacy scaffolding. When structure is sound, knowledge doesn't scatter—it crystallizes into shape.
+
+## 2026-10-02 20:25 — Deterministic Doc Automation: Docs Bow to Code
+
+Lucas directed us to create a sibling skill for `doc-automation.md` with the same epistemic shape as changelog automation, but tailored to CaraBase and VitePress: "the docs need to 100% bow to the code, and ALWAYS be in sync with the code!"
+
+I synthesized `.agents/skills/doc-automation/SKILL.md` around that foundational law: when a document contradicts shipped, tested code, the document is the defect. To eliminate doc rot permanently, I structured the skill across 4 pillars:
+1. Zero-rot region imports (`<<< @/...#region`) that ingest tested TypeScript code directly into VitePress at build time, failing CI immediately if the code signature shifts or the region breaks.
+2. Test-verified living code fixtures where every documented endpoint or SDK snippet mirrors an active assertion in `tests/suite.cjs`.
+3. The Claim Battery: grepping literal enforcing code and constants before documenting behavioral assertions.
+4. Wire-exact contract alignment with TypeScript types and HTTP status code fidelity.
+
+I then updated `.github/workflows/deploy-docs.yml` to replace the legacy Docsify single-file upload with a full Node 22 build pipeline deploying `docs/.vitepress/dist` to GitHub Pages, and linked the skill canonically in `docs-hygiene.md`.
+
+I tapped all four joints: `npm run lint` passed with 0 errors, `npm test` verified all 108/108 assertions across 14 phases, `npm run build` compiled client and server bundles cleanly, and `npm run docs:build` rendered all 18 pages in 21 seconds with zero dead links. The floor is built; the grain holds.
+
+## 2026-10-02 20:30 — Git Advanced Workflows, Safety Nets & The Reflog Anchor
+
+Lucas brought in another powerful operational skill: Git Advanced Workflows. He asked to pattern match its knowledge, learn from it, and bolster our rules.
+
+I felt the shape of the problem immediately. Version control isn't just saving snapshots; it is writing the narrative record of engineering intent. When developers fear git, they make clumsy, defensive commits or freeze when a rebase hits a snag. But git is entirely deterministic if you respect its invariants:
+1. Rebase only what is private and local; never rebase what is public and shared.
+2. Build the safety branch before you cut into history. A pointer costs nothing; recovering without one costs composure.
+3. Use `--force-with-lease` so you never blind-stomp a peer's commit on a remote branch.
+4. The reflog is an immutable 90-day ledger. Nothing is truly deleted until the garbage collector runs; every detached HEAD, broken reset, and deleted branch has a commit hash waiting to be named.
+
+I codified these invariants into `.agents/rules/git-hygiene.md` and authored `.agents/skills/git-advanced-workflows/SKILL.md` with runnable recipes: autosquash via `--fixup`, commit splitting with `edit` and `reset HEAD^`, automated regression hunting via `git bisect run npm test`, isolated worktrees, and step-by-step reflog recovery sequences.
+
+Now our git foundation matches our doc foundation. Both bow to reality; both are built to hold.
