@@ -1,6 +1,6 @@
 # Cloudflare Tunnel Setup for CaraBase
 
-To expose CaraBase securely to the internet without opening any incoming firewall ports (like port 3000), you can use [Cloudflare Tunnels](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/). 
+To expose CaraBase securely to the internet without opening any incoming firewall ports (like port 5353), you can use [Cloudflare Tunnels](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/). 
 
 CaraBase natively supports Cloudflare Tunnels by intelligently picking up the tunnel URL for file sharing, public endpoints, and CORS validation.
 
@@ -15,12 +15,12 @@ CaraBase natively supports Cloudflare Tunnels by intelligently picking up the tu
 ## 2. Route the Tunnel
 In the Cloudflare dashboard, configure a **Public Hostname**:
 - **Public Hostname**: `carabase.yourdomain.com` (Select your domain)
-- **Service**: `http://carabase:3000` (This connects `cloudflared` directly to the CaraBase container via the Docker bridge network).
+- **Service**: `http://carabase:5353` (This connects `cloudflared` directly to the CaraBase container via the Docker bridge network).
 
 ## 3. Update Environment Variables
 In your `.env` file for CaraBase, add the tunnel URL and your explicit CORS domains. This allows the backend to securely lock down requests.
 
-```bash
+```env
 # Provide the public URL of your tunnel
 CLOUDFLARE_TUNNEL_URL="https://carabase.yourdomain.com"
 
@@ -31,9 +31,27 @@ CORS_ORIGINS="https://carabase.yourdomain.com,https://your-frontend-app.com"
 ## 4. Run via Docker Compose
 We have provided a template in `docker-compose.yml` to run the tunnel right next to CaraBase. 
 
-Simply uncomment the `cloudflared` service and supply your token:
+::: code-group
 
-```yaml
+```yaml [docker-compose.yml]
+version: '3.8'
+
+services:
+  carabase:
+    build: .
+    container_name: carabase
+    ports:
+      - "5353:5353"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=5353
+      - CLOUDFLARE_TUNNEL_URL=https://carabase.yourdomain.com
+      - CORS_ORIGINS=https://carabase.yourdomain.com,https://your-frontend-app.com
+
+  # Cloudflare Tunnel for secure, zero-port-exposure public access
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: carabase-tunnel
@@ -45,9 +63,25 @@ Simply uncomment the `cloudflared` service and supply your token:
       - carabase
 ```
 
-Then run `docker-compose up -d`.
+```bash [Docker CLI]
+# 1. Create shared network
+docker network create carabase-net
+
+# 2. Start CaraBase on isolated network
+docker run -d --name carabase --network carabase-net -e PORT=5353 clawstack/carabase:latest
+
+# 3. Launch cloudflared connector
+docker run -d --name carabase-tunnel --network carabase-net \
+  cloudflare/cloudflared:latest tunnel --no-autoupdate run --token eyJh...
+```
+
+:::
+
+Then run `docker compose up -d`.
 
 ### Why this is secure
-- **Zero Open Ports**: You do not need to map `- "3000:3000"` in `docker-compose.yml` if you use the tunnel. You can remove it entirely. CaraBase remains completely unreachable from the local LAN.
-- **Strict CORS Validation**: CaraBase detects it is running in production and uses the `CORS_ORIGINS` to explicitly reject API requests originating from unauthorized domains.
+- **Zero Open Ports**: You do not need to map `- "5353:5353"` in `docker-compose.yml` if you use the tunnel. You can remove it entirely. CaraBase remains completely unreachable from the local LAN.
+- **Strict CORS Validation**: CaraBase detects it is running in production and uses `CORS_ORIGINS` to explicitly reject API requests originating from unauthorized domains.
 - **Content Security Policy (CSP)**: The server automatically sets `helmet` policies to reject framing from unapproved ancestors, protecting against Clickjacking.
+- **Live Health Handshake**: Tunnel status can be validated via `GET https://carabase.yourdomain.com/api/health`.
+

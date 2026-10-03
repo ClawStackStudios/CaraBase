@@ -153,3 +153,15 @@
 **Outcome**: Updated 5 core documentation guides in `docs/` and added `watch.ignored` in `vite.config.ts`.
 **Pattern reference**: Link to `skills/doc-automation/SKILL.md`.
 
+## VitePress Full Suite Modernization & SDK Parity — 2026-10-02 23:35
+**Context**: Remaining documentation pages contained outdated REST routes (`/api/rest`), legacy token prefixes (`pb-`, `sk-`, `su-`), port 3000 references, and a mismatched `RealtimeClient` subscription signature in `realtime-example.md`.
+**Options considered**:
+- Option A: Leave client SDK docs and integration examples as loosely descriptive approximations.
+- Option B: Rewrite client integration and architecture docs (`index.md`, `cloudflare-tunnel.md`, `react-integration.md`, `rls-integration-guides.md`, `android-sdk.md`, `api-builder.md`, `realtime-example.md`) to 100% match shipped code, exact TypeScript signatures (`RealtimeClient.ts`), and the `ls-`/`ls-p-`/`api-`/`lb-` token standard.
+**Chosen**: Option B
+**Why**: Felt reason: An SDK example that invents method signatures or calls dead prefixes breaks developer trust on the first try; code and documentation must speak the exact same language.
+**Confidence**: high — Verified against `RealtimeClient.ts`, `server.ts`, and `tests/suite.cjs`; all 108 tests passing; 18 VitePress pages compile cleanly with zero dead links.
+**Outcome**: Modernized 7 documentation files in `docs/` and verified full build and test suites.
+**Pattern reference**: Link to `skills/doc-automation/SKILL.md`.
+
+

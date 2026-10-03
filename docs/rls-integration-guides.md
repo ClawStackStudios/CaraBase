@@ -21,11 +21,22 @@ Before connecting any application, you must select the correct Key Topology:
 When building a client-side application, you must use a Public Key (`ls-`) to ensure no user can read another user's data.
 
 ### Step 1: Initialize the Client
-In your React application, initialize your HTTP client using the Public Key.
+In your React application, initialize your HTTP client using the Public Key (`ls-`).
 
-```javascript
+::: code-group
+
+```typescript [carabase-js SDK]
+import { createClient } from 'carabase-js';
+
+const CARABASE_URL = "http://localhost:5353";
+const CARABASE_PUBLIC_KEY = "ls-your-public-key-here";
+
+export const cb = createClient(CARABASE_URL, CARABASE_PUBLIC_KEY);
+```
+
+```javascript [Native fetch]
 // src/lib/carabase.js
-const CARABASE_URL = "http://localhost:3000";
+const CARABASE_URL = "http://localhost:5353";
 const CARABASE_PUBLIC_KEY = "ls-your-public-key-here";
 
 export const carabaseFetch = async (endpoint, options = {}) => {
@@ -39,6 +50,8 @@ export const carabaseFetch = async (endpoint, options = {}) => {
   }).then(res => res.json());
 };
 ```
+
+:::
 
 ### Step 2: Define the RLS Policy in CaraBase
 In the CaraBase SuperAdmin dashboard, navigate to **Policies** for your `posts` table and create a `SELECT` policy:
@@ -132,7 +145,7 @@ Instead of `ls-`, initialize your backend connection using the Private Key.
 # python_backend.py
 import requests
 
-CARABASE_URL = "http://localhost:3000"
+CARABASE_URL = "http://localhost:5353"
 CARABASE_PRIVATE_KEY = "ls-p-your-secret-admin-key"
 
 def trigger_global_backup():

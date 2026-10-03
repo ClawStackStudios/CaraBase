@@ -54,6 +54,10 @@ Overhauled root documentation (README.md, ARCHITECTURE.md, CONTRIBUTING.md, SECU
 ## 2026-10-02 — VitePress docs page modernization & dead-link repair
 Modernized `docs/installation.md`, `docs/architecture.md`, `docs/storage.md`, `docs/dashboard.md`, and `docs/realtime.md` with VitePress code groups, correct 5353/5454 ports, scuttle run commands, Tri-State theme and flushSync View Transition details, Multer dangerousMimes validation, and 401 unauthenticated storage guards. Resolved VitePress dead-link audit failure on relative skill reference; verified 100% green compilation across all 18 pages in 21s.
 
+## 2026-10-02 — VitePress full suite alignment & SDK signature parity
+Audited remaining docs suite: corrected `/rest/v1/:table` route paths in index.md, eliminated legacy `pb-`/`sk-` token prefixes in react-integration.md and android-sdk.md, updated cloudflare-tunnel.md and rls guides to port 5353, enriched api-builder.md with full endpoint schema and System API routes, and repaired realtime-example.md to match RealtimeClient.ts callback and unsubscribe signatures. Verified 18 pages build clean in 21s.
+
+
 
 
 

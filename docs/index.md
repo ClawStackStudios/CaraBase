@@ -25,7 +25,7 @@ features:
     details: Fine-grained SQLite WHERE clause logic injected directly into API reads/writes based on calling token scope.
   - icon: 🔌
     title: Dynamic REST & Realtime SSE
-    details: Instant REST endpoints (/api/rest/:table) with live SSE event broadcasts deferred to post-commit atomicity.
+    details: Instant REST endpoints (/rest/v1/:table) with live SSE event broadcasts deferred to post-commit atomicity.
   - icon: 📦
     title: Secure Physical Storage
     details: File storage engine with magic-bytes inspection, dangerous MIME guards, and expiring cryptographic share links.
@@ -45,7 +45,7 @@ Many projects don't need a sprawling, multi-node PostgreSQL cluster. For local t
 
 - **Instant SQLite Backend:** Tables are real SQLite tables. Data persists instantly via `better-sqlite3`.
 - **Dynamic Schema Editor:** Create any table shapes, types, and constraints right from the dashboard.
-- **REST APIs Built-In:** Your data is accessible immediately over `/api/rest/:table`.
+- **REST APIs Built-In:** Your data is accessible immediately over `/rest/v1/:table`.
 - **Role Level Security (RLS):** Fine-grained SQLite `WHERE` clause logic injected directly into API reads/writes based on the type of API key used to query.
 - **Secure File Storage & Membrane Shares:** Upload and manage physical files. Create secure, expiring public links via cryptographic `share_hash`.
 - **SuperAdmin Dashboard:** Built-in environment-gated admin portal (`/admin`) for comprehensive system monitoring, uptime tracking, and sovereign metadata auditing.

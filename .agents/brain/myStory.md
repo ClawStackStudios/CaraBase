@@ -333,3 +333,19 @@ I audited the first wave of core guides (`docs/installation.md`, `docs/architect
 - When `npm run docs:build` triggered file watcher conflicts on the running Vite dev server, I configured `server.watch.ignored` in `vite.config.ts` to shield Vite from documentation build churn permanently.
 
 I verified the stack of 4 gates: `npm run lint` clean (0 errors), `npm test` 100% green (108/108 assertions across 14 phases), and `npm run docs:build` compiling all 18 pages in 21.95s with zero dead links. The core guides now bow strictly to code.
+
+## 2026-10-02 23:35 — The SDK Signature Bridge: Eliminating Synthetic Examples
+
+Lucas directed us to proceed deep into the VitePress documentation suite. I moved across the remaining pages (`index.md`, `cloudflare-tunnel.md`, `react-integration.md`, `rls-integration-guides.md`, `android-sdk.md`, `api-builder.md`, `realtime-example.md`).
+
+Here I found the quiet friction that forms in fast-moving projects: examples that drifted from source reality.
+In `react-integration.md`, the documentation still spoke of long-dead token prefixes (`pb-`, `sk-`, `su-`). In `realtime-example.md`, the code invented a 3-argument `.subscribe('activities', '*', callback)` signature with `subscription.unsubscribe()`, while the literal TypeScript source in `sdk/src/RealtimeClient.ts` takes `(table, callback, options)` and returns the unsubscribe function directly as `() => void`, accompanied by built-in `onStatusChange` hooks. In `index.md`, the routes claimed `/api/rest/:table` while Express registers `/rest/v1/:table`. In `cloudflare-tunnel.md` and RLS guides, port 3000 was cited instead of CaraBase's standard 5353.
+
+I corrected every single seam against the source code:
+1. Replaced all legacy key prefixes with our verified standard (`ls-`, `ls-p-`, `api-`, `lb-`).
+2. Wired `realtime-example.md` to the exact TypeScript signature of `RealtimeClient.ts`.
+3. Documented the full schema configuration and System API routes for `api-builder.md`.
+4. Unified port 5353 and added Docker CLI / Compose code groups in `cloudflare-tunnel.md`.
+
+I tapped all four gates: `npm run lint` 0 errors, `npm test` 108/108 passing across 14 phases, and `npm run docs:build` rendering all 18 pages in 21.86s with zero dead links. The entire documentation suite now holds true to the code.
+

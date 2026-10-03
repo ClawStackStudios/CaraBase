@@ -8,7 +8,7 @@ The `carabase-android` SDK is a native Kotlin library that transforms CaraBase i
 
 ## 1. Initialization
 
-Initialize the SDK singleton in your `Application` class or main activity using your CaraBase instance URL and an `lb-` (Lobster Key) public key.
+Initialize the SDK singleton in your `Application` class or main activity using your CaraBase instance URL and an `ls-` (LobsterService) public key (or `lb-` LobsterKey for delegated agent sessions).
 
 ```kotlin
 import com.clawstack.carabase.CaraBase
@@ -19,7 +19,7 @@ class MainApplication : Application() {
         
         CaraBase.init(
             url = "https://carabase.yourdomain.com",
-            key = "lb-your-public-key",
+            key = "ls-your-public-key", // or lb- for agent delegation
             context = this
         )
     }
