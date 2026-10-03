@@ -36,6 +36,10 @@ features:
 
 <div class="vp-doc">
 
+<div style="margin: -2rem auto 4rem auto; max-width: 1000px; padding: 0 20px;">
+  <img src="/assets/dashboard.png" alt="CaraBase Dashboard" style="border-radius: 12px; border: 1px solid var(--vp-c-border); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3); width: 100%;" />
+</div>
+
 ## Explore the Documentation
 
 <CardGrid cols="3">
