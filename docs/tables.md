@@ -1,6 +1,6 @@
 # Tables and the Table Editor
 
-![Screenshot: Table Editor Overview Placeholder](/placeholders/table-editor.png)
+![Screenshot: Table Editor Overview Placeholder](https://via.placeholder.com/800x400.png?text=Table+Editor)
 
 The CaraBase Table Editor is a visual spreadsheet-like interface for managing your SQLite database. It allows you to create tables, modify schemas, and insert or update data directly from the browser.
 

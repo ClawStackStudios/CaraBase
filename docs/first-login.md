@@ -15,7 +15,7 @@ If you started your server with an `ADMIN_TOKEN` in your environment variables, 
 3. You will be prompted to enter your Admin Token.
 4. Once completed, you will be in the SuperAdmin Dashboard.
 
-![Screenshot: SuperAdmin Login Screen Placeholder](/placeholders/login-screen.png)
+![Screenshot: SuperAdmin Login Screen Placeholder](https://via.placeholder.com/800x400.png?text=Login+Screen)
 
 **What happens to the first human?**
 Because the `superlobster` was automatically created, it took the 1st slot in the database. When the first human signs up via the public `/setup` route or your application's registration page, they will automatically be assigned the standard `viewer` role.
