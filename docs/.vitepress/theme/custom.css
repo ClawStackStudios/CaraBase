@@ -1,8 +1,21 @@
+/**
+ * CaraBase Modern Theme for VitePress
+ * Colors: Teal/Cyan
+ */
+
 :root {
   --vp-c-brand-1: #14b8a6;
   --vp-c-brand-2: #0d9488;
   --vp-c-brand-3: #0f766e;
   --vp-c-brand-soft: rgba(20, 184, 166, 0.14);
+
+  --vp-c-bg: #ffffff;
+  --vp-c-bg-alt: #f8fafc;
+  --vp-c-bg-elv: #ffffff;
+
+  --cb-card-bg: rgba(248, 250, 252, 0.85);
+  --cb-card-border: rgba(20, 184, 166, 0.15);
+  --cb-card-hover-bg: rgba(20, 184, 166, 0.04);
 }
 
 .dark {
@@ -14,7 +27,26 @@
   --vp-c-bg: #090d16;
   --vp-c-bg-alt: #0d1320;
   --vp-c-bg-elv: #131b2e;
-  --vp-c-bg-soft: #17223b;
+
+  --vp-c-text-1: #f8fafc;
+  --vp-c-text-2: #94a3b8;
+  --vp-c-text-3: #64748b;
+
+  --vp-c-border: rgba(45, 212, 191, 0.12);
+  --vp-c-divider: rgba(255, 255, 255, 0.08);
+  --vp-c-gutter: rgba(255, 255, 255, 0.05);
+
+  --cb-card-bg: rgba(13, 19, 32, 0.65);
+  --cb-card-border: rgba(45, 212, 191, 0.18);
+  --cb-card-hover-bg: rgba(45, 212, 191, 0.08);
+}
+
+/* Background gradient ambient glow */
+body {
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(20, 184, 166, 0.04) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.04) 0px, transparent 50%);
+  background-attachment: fixed;
 }
 
 /* Hero Badge & Accent Styling */
@@ -22,6 +54,84 @@
   background: linear-gradient(135deg, #14b8a6 0%, #06b6d4 50%, #38bdf8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+/* Header & Nav */
+.VPNav {
+  backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid var(--vp-c-border) !important;
+}
+
+.dark .VPNav {
+  background-color: rgba(9, 13, 22, 0.85) !important;
+}
+
+/* Top Nav Links / Tabs */
+.VPNavBarMenuLink.active {
+  color: #2dd4bf !important;
+  font-weight: 700;
+}
+
+/* Sidebar Styling */
+.VPSidebar {
+  border-right: 1px solid var(--vp-c-border) !important;
+}
+
+.dark .VPSidebar {
+  background-color: rgba(13, 19, 32, 0.75) !important;
+  backdrop-filter: blur(12px);
+}
+
+.VPSidebarItem.is-active > .item .text {
+  color: var(--vp-c-brand-1) !important;
+  font-weight: 700;
+}
+
+.VPSidebarItem.is-active > .item .indicator {
+  background-color: var(--vp-c-brand-1) !important;
+}
+
+/* Code Blocks */
+.vp-doc div[class*='language-'] {
+  border-radius: 12px;
+  border: 1px solid rgba(45, 212, 191, 0.15);
+  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.5);
+}
+
+/* Custom Callout Alert Styling */
+.custom-block.tip,
+.custom-block.info {
+  border-color: #06b6d4 !important;
+  background-color: rgba(6, 182, 212, 0.08) !important;
+}
+
+.custom-block.warning {
+  border-color: #f59e0b !important;
+  background-color: rgba(245, 158, 11, 0.08) !important;
+}
+
+.custom-block.danger {
+  border-color: #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(20, 184, 166, 0.25);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(20, 184, 166, 0.5);
 }
 
 .VPFeature {

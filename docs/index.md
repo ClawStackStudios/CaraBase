@@ -1,47 +1,129 @@
 ---
-layout: doc
+layout: home
+
+hero:
+  name: "CaraBase"
+  text: "The Core You Actually Use"
+  tagline: "LAN-First, Self-Hosted SQLite DBaaS. Supabase experience, single-file simplicity, zero-config."
+  image:
+    src: /logo.png
+    alt: CaraBase Logo
+  actions:
+    - theme: brand
+      text: Quickstart Guide
+      link: /quickstart
+    - theme: alt
+      text: Architecture Blueprint
+      link: /architecture
+    - theme: alt
+      text: React SDK Integration
+      link: /react-integration
+
+features:
+  - icon: 🗄️
+    title: SQLite Bedrock
+    details: Robust SQLite running in WAL mode with SQLCipher encryption at rest. No sprawling multi-node PostgreSQL cluster needed.
+  - icon: 🔒
+    title: Row-Level Security (RLS)
+    details: Fine-grained SQLite WHERE clause logic injected directly into your API reads/writes to isolate user data securely.
+  - icon: ⚡
+    title: Realtime SSE
+    details: Application-level event bus that broadcasts table mutations instantly to connected clients via Server-Sent Events.
+  - icon: 🦞
+    title: SuperLobster Dashboard
+    details: Token-gated administrative plane to manage table schemas, audit logs, automated backups, and storage buckets.
 ---
 
-# Introduction to CaraBase
+<div class="vp-doc">
 
-**The Core You Actually Use — Your LAN-First, Self-Hosted SQLite DBaaS.**
+## Explore the Documentation
 
-CaraBase is an open-source, SQLite-backed Database-as-a-Service (BaaS) designed for developers who want the developer experience of Supabase or Firebase, but with the simplicity, portability, and zero-config nature of a single-file SQLite database. 
+<CardGrid cols="3">
+  <Card title="Getting Started" href="/quickstart" icon="🚀" tag="Guide">
+    Generate your secrets, launch the Docker container, and complete the 5-minute setup wizard.
+  </Card>
+  <Card title="Database & Tables" href="/tables" icon="🗃️" tag="Database">
+    Visual Table Editor, SQL Editor, Views, Indexes, and Triggers.
+  </Card>
+  <Card title="Row-Level Security" href="/rls" icon="🛡️" tag="Security">
+    Protect your REST API with policy expressions evaluated statically at the connection layer.
+  </Card>
+  <Card title="Storage Engine" href="/storage" icon="📦" tag="Storage">
+    Secure file uploads with Magic Bytes inspection, dangerous MIME guards, and cryptographic share links.
+  </Card>
+  <Card title="Custom API Builder" href="/api-builder" icon="⚙️" tag="API">
+    Map dynamic SQLite queries to standard REST GET endpoints directly from the dashboard.
+  </Card>
+  <Card title="Client Libraries" href="/react-integration" icon="💻" tag="SDK">
+    Integrate the fully-typed JS/TS SDK into React or hook up a custom Android Kotlin client.
+  </Card>
+</CardGrid>
 
-It provides all the backend features you need to build modern applications—a dynamic REST API, Realtime subscriptions, Storage, and Row-Level Security—packaged into a single lightweight Docker container.
-
-## What is CaraBase?
-
-Many projects don't need a sprawling, multi-node PostgreSQL cluster. For local tooling, internal dashboards, and medium-scale applications, SQLite is often more than enough. CaraBase wraps SQLite in a secure, opaque-token ecosystem.
-
-CaraBase provides a full suite of backend tools:
-
-- **Database**: A robust SQLite database running in WAL mode with SQLCipher encryption at rest.
-- **Dynamic REST API**: Instant REST endpoints (`/rest/v1/:table`) for your tables, plus a Custom API Builder.
-- **Row-Level Security (RLS)**: Fine-grained SQLite `WHERE` clause logic injected directly into API reads/writes.
-- **Storage**: A secure file storage engine with magic-bytes inspection, dangerous MIME guards, and cryptographic share links.
-- **Realtime**: Live SSE event broadcasts synced with database mutations.
-- **Dashboard**: A built-in SuperAdmin portal and Setup Wizard to manage tables, users, and system health.
-
-## The Mental Model
-
-CaraBase is designed around a strict separation of concerns, divided into two distinct planes:
-
-1. **The System Plane (Admin Dashboard)**: Accessed via the browser at `/admin-login`. This is the control plane where you manage the server, configure settings, and view audit logs. It is protected by an in-memory volatile session using your `ADMIN_TOKEN`.
-2. **The Data Plane (Your App)**: Accessed via the REST API or the client SDKs. This is where your application data lives. It is protected by standard user accounts and Row-Level Security (RLS) policies.
+---
 
 ## The Three Doors of Access
 
-When interacting with CaraBase, you will pass through one of three conceptual "doors" depending on your role:
+```mermaid
+flowchart TD
+  subgraph Data ["Data Plane (Your App)"]
+    A["Human User (hu-)"] -->|Governed by RLS| C["REST API (/rest/v1)"]
+    B["Agent Token (lb-)"] -->|Full / Scoped Access| C
+  end
 
-1. **The SuperAdmin (The `ADMIN_TOKEN`)**: The highest level of access. Used to manage the CaraBase server itself. It bypasses all RLS policies and can provision the initial "SuperLobster" root user.
-2. **The Agent (The `lb-` token)**: A programmatic access token with full or restricted permissions, designed for server-to-server communication or background workers.
-3. **The Human (The `hu-` token)**: An end-user of your application. Humans authenticate with a username and password, and their data access is strictly governed by your Row-Level Security (RLS) policies.
+  subgraph System ["System Plane (Control Plane)"]
+    D["Developer (ADMIN_TOKEN)"] -->|Volatile Memory Session| E["SuperAdmin Dashboard"]
+    E -->|Bypasses RLS| C
+  end
+```
 
-## Next Steps
+---
 
-Ready to get started?
+## 3-Step Rapid Onboarding
 
-- [Quickstart (5-minute path)](/quickstart) - Launch CaraBase and build your first app.
-- [Architecture Deep Dive](/architecture) - Learn how CaraBase works under the hood.
-- [Client SDKs](/react-integration) - Connect your frontend app.
+<Steps>
+  <Step title="1. Generate Your Secrets" number="1">
+
+Generate your master database encryption key and SuperAdmin token:
+
+```bash
+# Generate 256-bit DB Encryption Key (SQLCipher)
+openssl rand -hex 32
+
+# Generate secure SuperAdmin Token
+openssl rand -hex 24
+```
+  </Step>
+
+  <Step title="2. Launch the Container" number="2">
+
+Create a `docker-compose.yml` file:
+
+```yaml
+services:
+  carabase:
+    image: ghcr.io/clawstackstudios/carabase:latest
+    ports:
+      - "5353:5353"
+    environment:
+      - DB_ENCRYPTION_KEY=YOUR_GENERATED_KEY
+      - ADMIN_TOKEN=YOUR_GENERATED_ADMIN_TOKEN
+    volumes:
+      - ./data:/app/data
+```
+
+Launch the stack:
+
+```bash
+docker compose up -d
+```
+  </Step>
+
+  <Step title="3. Complete the Setup Wizard" number="3">
+
+Open http://localhost:5353 in your web browser. 
+
+You'll be redirected to the Setup Wizard. Enter your `ADMIN_TOKEN` to provision the foundational `superlobster` account, and you'll immediately land in the CaraBase SuperAdmin dashboard where you can start creating tables.
+  </Step>
+</Steps>
+
+</div>
