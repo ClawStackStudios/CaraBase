@@ -223,4 +223,24 @@ All 5 pull requests arrived simultaneously with 100% green check runs across the
 
 I pulled `origin/main` into the local repository, confirmed clean fast-forward integration, and verified our local stack: `npm run lint` exited with 0 errors and `npm run build` completed in 46.94s. On GitHub Actions, all check runs on `main` passed 100% green. Exactly zero open PRs remain. The foundations and security membranes are hardened; we are now primed to collaborate on Lucas's planned UI additions and refinements.
 
+## 2026-10-02 19:05 — Jules Fleet Architecture & Multi-Skill Synthesis
+
+Lucas proposed evolving how we interact with Jules. Instead of treating Jules as an arbitrary command runner with a monolithic task plan, we established a dedicated, clean architecture: `.jules/JULES.md` acts as the canonical, malleable fleet briefing, while each delegated task receives its own atomic file under `.jules/tasks/task-<N>.md`. We cleaned up obsolete task plans and purged redundant docs to give Jules an uncluttered context window.
+
+Lucas then led a deep-dive review of four external Jules operational skills. We examined them with rigorous security and git hygiene:
+- From Review 1: We adopted TTY `< /dev/null` redirection, multi-word status regex parsing, and the Local-First complexity rubric.
+- From Review 2: We extracted clean GitHub repo slug auto-detection via pure read-only `sed`, stdin task piping (`cat task.md | jules new`), and smart git context injection, while firmly rejecting hazardous patterns like `git add -A` and raw while-sleep polling loops.
+- From Review 3: We uncovered the native Google Cloud REST API (`jules.googleapis.com/v1alpha`), structured `/activities` polling, and an inviolable security redline: forbidding AI agents from modifying CI/CD workflows under `.github/workflows/**`.
+- From Review 4: We discovered direct patch extraction (`jules remote pull --session <ID> --apply`), identified the `~/.jules/cache/oauth_creds.json` path for deterministic pre-flight checks, and clarified GitHub repo formatting against `$USER`.
+
+Upon Lucas invoking `/learn` and approving the proposal, I codified these capabilities into CaraBase:
+1. Updated `.jules/JULES.md` with Section 3: Inviolable Security Redlines.
+2. Updated `.agents/skills/jules-cli/SKILL.md` with the Local-First decision matrix, pre-flight validation, stdin task piping, TTY redirection, direct patch pulling, and security boundaries.
+3. Created `references/api-reference.md` documenting the complete REST API schemas and activity stream.
+4. Created `references/task-templates.md` with battle-tested archetypes for Unit Tests, Component Decomposition, and Security Remediation.
+5. Authored `scripts/parse_sessions.py` to parse `jules remote list --session` into structured JSON using an expanded pseudo-terminal buffer to eliminate session ID truncation.
+
+The multi-agent execution pipeline is now completely grounded, hardened, and portable.
+
+
 

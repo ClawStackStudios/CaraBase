@@ -77,4 +77,16 @@
 **Outcome**: Merged PRs #31, #33, #35; closed PRs #32, #34; exactly 0 open PRs remain.
 **Pattern reference**: New pattern — first instance.
 
+## Jules Fleet Architecture & Multi-Skill Synthesis — 2026-10-02 19:05
+**Context**: Lucas requested organizing Jules into a dedicated external subagent architecture centered around `.jules/JULES.md` and atomic task plans (`.jules/tasks/task-<N>.md`), followed by a review of four external Jules operational skills.
+**Options considered**:
+- Option A: Retain monolithic `jules-task-plan.md` and only add basic CLI notes.
+- Option B: Separate fleet briefing (`JULES.md`) from atomic task files (`task-<N>.md`), purge legacy planning files, and synthesize the 4 reviews into `SKILL.md`, `references/api-reference.md`, `references/task-templates.md`, and `scripts/parse_sessions.py` with an inviolable CI/CD security redline.
+**Chosen**: Option B
+**Why**: Felt reason: Jules is an independent container agent; giving it a single, focused task file prevents context contamination, while synthesizing all 4 skills arms Antigravity with TTY safety, stdin task piping, native REST API contracts, and an inviolable CI/CD boundary.
+**Confidence**: high — All files verified, lint and build invariant preserved.
+**Outcome**: Updated `JULES.md` and `SKILL.md`; created `api-reference.md`, `task-templates.md`, and `parse_sessions.py`.
+**Pattern reference**: New pattern — first instance.
+
+
 

@@ -17,6 +17,37 @@ In the **Google Antigravity** multi-agent paradigm:
 
 ---
 
+## ⚖️ Local-First vs. Jules Delegation Decision Matrix
+
+To optimize agent velocity and prevent excessive remote session creation, apply this triage rubric before dispatching:
+
+| Criteria | Execute Locally (Antigravity) | Delegate to Google Jules |
+| :--- | :--- | :--- |
+| **Change Scope** | Small, localized fixes (< 50 lines, single file) | Large-scale, cross-file refactors or feature extractions |
+| **Verification Cycle** | Instant lint/test checks (< 30 seconds) | Heavy, end-to-end test suites or extensive compile loops |
+| **Environment Sensitivity** | Directly reproducible in local dev container | Benefits from pristine, isolated cloud VM environment |
+| **Security & Pipelines** | **MANDATORY**: CI/CD workflows (`.github/workflows/**`), secrets, tokens | Application business logic, routers, components, unit tests |
+| **Iteration Pacing** | Interactive step-by-step pair programming with human | Asynchronous, background execution while human focuses elsewhere |
+
+---
+
+## 🔑 Pre-Flight Validation & Environment Grounding
+
+Before executing remote commands, run these deterministic checks to prevent TTY lockups or credential errors:
+
+```bash
+# 1. Verify OAuth credentials cache exists (avoids "GET request without valid client" in subshells)
+test -f "$HOME/.jules/cache/oauth_creds.json" || { echo "OAuth cache missing. Run 'jules login' first."; exit 1; }
+
+# 2. Auto-detect GitHub owner/repo slug cleanly (handles HTTPS and SSH git remotes)
+REPO_SLUG=$(git remote get-url origin 2>/dev/null | sed -E 's#.*(github\.com)[/:]([^/]+/[^/.]+)(\.git)?#\2#')
+
+# 3. Verify repository format: strictly GitHub owner/repo, NEVER local system $USER
+echo "Targeting repository: $REPO_SLUG"
+```
+
+---
+
 ## 💻 Portable Jules CLI Command Reference
 
 All interactions rely strictly on the standard `jules` CLI binary in the user's `PATH`.
@@ -29,11 +60,17 @@ jules
 # Create a session in current working directory's repository
 jules new "task description or prompt"
 
-# Create a session targeting a specific repository
-jules new --repo owner/repo "task description"
+# Create a session targeting a specific repository (strictly owner/repo)
+jules new --repo "$REPO_SLUG" "task description"
+
+# Non-interactive dispatch with TTY redirection (prevents TTY hang in automation)
+jules new --repo "$REPO_SLUG" "task description" < /dev/null
+
+# Stdin task piping directly from atomic task file (eliminates shell escaping errors)
+cat .jules/tasks/task-1.md | jules new --repo "$REPO_SLUG" < /dev/null
 
 # Launch multiple parallel exploration sessions
-jules new --repo owner/repo --parallel 3 "task description"
+jules new --repo "$REPO_SLUG" --parallel 3 "task description"
 ```
 
 ### 2. Inspecting Remote Sessions
@@ -43,15 +80,18 @@ jules remote list --session
 
 # List all repositories connected to Jules
 jules remote list --repo
+
+# Parse sessions into structured JSON without ID truncation using the PTY script:
+./.agents/skills/jules-cli/scripts/parse_sessions.py
+
+# Filter for sessions that have finished work and are awaiting review:
+./.agents/skills/jules-cli/scripts/parse_sessions.py --status "Ready for review"
 ```
 
 > [!TIP]
 > **Extracting Full Session IDs (Overcoming Terminal Ellipsis Truncation):**  
 > In standard terminal widths, `jules remote list --session` truncates 19–20 digit numeric session IDs with an ellipsis (e.g. `17983432046…`). Passing a truncated ID to subsequent commands triggers a `404 Not Found` API error.  
-> To capture the full session ID in non-interactive scripts or narrow shells, invoke Jules through a wide pseudo-terminal buffer (cols >= 250):
-> ```bash
-> python3 -c "import pty, os, termios, struct, subprocess; master, slave = pty.openpty(); fcntl = __import__('fcntl'); fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack('HHHH', 50, 300, 0, 0)); p = subprocess.Popen(['jules', 'remote', 'list', '--session'], stdin=slave, stdout=slave, stderr=slave); os.close(slave); print(os.read(master, 10000).decode('utf-8', errors='ignore'))"
-> ```
+> Use `./.agents/skills/jules-cli/scripts/parse_sessions.py` or the direct Google Cloud REST API documented in [references/api-reference.md](./references/api-reference.md) to inspect un-truncated IDs and structured JSON activity streams.
 
 ### 3. Reviewing & Pulling Patches
 ```bash
@@ -253,3 +293,22 @@ flowchart LR
    - Run `npm run lint` and `npm run build` locally.
    - Monitor remote GitHub Actions check suites on `main` until CI and Docker workflows pass 100% green.
    - Verify that `gh pr list --state open` reports **0 open PRs**.
+
+---
+
+## 🔒 Inviolable Security Redlines
+
+1. **NEVER delegate CI/CD workflow edits**: Neither Antigravity nor Google Jules may create, modify, or delete files under `.github/workflows/`. All pipeline changes must be authored directly by project maintainers.
+2. **NEVER force-push or rewrite git history**: Never pass instructions or commands that perform `git push --force`, `git reset --hard`, or rebase `main`.
+3. **NEVER touch secrets or environment files**: Keep `.env`, `.env.*`, and secret credentials strictly outside of Jules prompts, task files, and commits.
+
+---
+
+## 📚 References & Tooling Assets
+
+- 🌐 [references/api-reference.md](./references/api-reference.md) — Complete Google Jules REST API reference (`v1alpha/sessions`), payload schemas, and `/activities` stream.
+- 📋 [references/task-templates.md](./references/task-templates.md) — Battle-tested prompt templates for Unit Tests, Component Decomposition, and Security Remediation.
+- 🔍 [references/suggested-tasks.md](./references/suggested-tasks.md) — Syntax rules and examples for inline `// TODO:` task discovery.
+- 🌳 [references/git-topology.md](./references/git-topology.md) — Git tree grounding invariants and multi-PR branch reconciliation.
+- 🔄 [references/ci-fixer.md](./references/ci-fixer.md) — Autonomous CI Fixer webhook lifecycle and check-suite debugging.
+- 🐍 [scripts/parse_sessions.py](./scripts/parse_sessions.py) — Standalone PTY script to parse `jules remote list --session` into structured JSON.

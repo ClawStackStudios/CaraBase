@@ -18,6 +18,8 @@
 - Unified CommandPalette keyboard navigation guard for ArrowDown, ArrowUp, and Enter on empty result states.
 - GitHub CI Pipeline with 3 parallel validation gates (Lint/Build, E2E, Docker) passing 100% green.
 - Antigravity Brain initialized with Self vs Environment architecture.
+- Jules Fleet Architecture centered on `.jules/JULES.md` briefing and atomic task specs in `.jules/tasks/task-<N>.md`.
+- Fortified `jules-cli` skill with Local-First triage, git slug auto-detection, TTY `< /dev/null` safety, stdin task piping, native REST API contracts (`v1alpha/sessions`), structured task templates, and PTY JSON session parsing.
 
 ## What's In Flight
 - **GitHub Pull Requests**:

@@ -34,6 +34,14 @@ Read your assigned task file carefully. It defines the exact scope, targeted fil
 
 ---
 
+## 🔒 Inviolable Security Redlines
+
+1. **NEVER modify CI/CD workflows**: You are strictly forbidden from modifying, deleting, or creating files under `.github/workflows/`. All CI/CD pipeline changes must be authored manually by project maintainers.
+2. **NEVER force-push or rewrite git history**: Never execute `git push --force`, `git reset --hard`, or rebase `main`.
+3. **NEVER touch secrets or environment files**: Do not inspect, create, or commit `.env`, `.env.*`, or secrets files.
+
+---
+
 ## 🚦 Verification Gates
 
 Before opening your Pull Request or marking your task complete, you must verify that all three automated gates pass cleanly:

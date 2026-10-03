@@ -16,6 +16,9 @@
 - Reconciled and integrated 7 Jules overnight PRs across 3 architectural phases (PR #25, #23, #24, #22, #26, #21), resolved merge conflicts, closed superseded PR #27, and achieved 100% green CI with 0 open PRs remaining.
 - Reconciled and integrated Round 2 Jules PRs (PR #28 CORS sanitization, PR #29 CommandPalette cleanup, PR #30 storage direct file requireAuth); verified 100% green CI on GitHub Actions with 0 open PRs.
 - Reconciled and integrated Round 3 Jules PRs (PR #31 dataAuth comment cleanup, PR #33 Multer dangerousMimes guard, PR #35 CommandPalette key handler); closed duplicate PR #32 and superseded PR #34; verified 100% green CI on GitHub Actions with 0 open PRs.
+- Created canonical `.jules/JULES.md` fleet briefing and atomic task separation under `.jules/tasks/task-<N>.md`.
+- Synthesized 4 external skills into `.agents/skills/jules-cli/`: added Local-First rubric, git repo auto-detection, TTY `< /dev/null` redirection, stdin piping, direct patch pull (`jules remote pull --apply`), REST API reference (`api-reference.md`), task templates (`task-templates.md`), and session parser script (`parse_sessions.py`).
+- Codified inviolable CI/CD workflow security redlines across `.jules/JULES.md` and `jules-cli` skill.
 
 ## [v0.2.0] — Phase 2 Ratification
 - Production-ready embedded SQLite database with SQLCipher encryption.
