@@ -21,3 +21,21 @@ Improvements_Identified_For_Consolidation:
 - General pattern: View Transitions in React 18/19 require `flushSync` for DOM snapshot synchronization.
 - General pattern: Tri-state theme architecture with dynamic OS preference change subscriptions.
 ---
+
+---
+Date: 2026-10-03
+TaskRef: "Overhaul VitePress User-Facing Docs"
+
+Learnings:
+- Discovered massive gap between documentation and reality regarding Realtime SSE architecture: the original docs claimed RLS was rigorously enforced per client on every event broadcast, but the trace revealed RLS is only evaluated statically at connection time, creating a security vector for multi-tenant environments.
+- Discovered that the Storage Membrane actually unlinks files proactively if magic bytes (MZ, ELF, #!) are detected during buffer validation, which wasn't documented previously.
+- Discovered that Custom APIs execute outside of the `rlsContext.run()` wrapper, meaning `auth_uid()` resolves to `null`, creating another RLS constraint vector.
+
+Difficulties:
+- VitePress `ignoreDeadLinks` must be configured when utilizing symlinked markdown files (like `ARCHITECTURE.md`) that internally link to `.agents/` folders, as the relative pathing breaks when symlinked into `docs/`. Resolved by adding `ignoreDeadLinks: true` to `.vitepress/config.mts`.
+
+Successes:
+- Effectively utilized up to 5 subagents to deeply trace the codebase to ensure 100% accuracy of the documentation overhaul, successfully avoiding the introduction of hallucinations or false claims.
+
+Improvements_Identified_For_Consolidation:
+- When writing documentation for custom architectures, ALWAYS perform a full AST or execution trace of the core security boundaries (Realtime, Custom APIs) before assuming standard PostgreSQL/Supabase behaviors apply.

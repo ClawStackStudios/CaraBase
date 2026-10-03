@@ -38,18 +38,12 @@ version: '3.8'
 
 services:
   carabase:
-    build: .
+    image: ghcr.io/clawstackstudios/carabase:latest
     container_name: carabase
-    ports:
-      - "5353:5353"
     volumes:
       - ./data:/app/data
     restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-      - PORT=5353
-      - CLOUDFLARE_TUNNEL_URL=https://carabase.yourdomain.com
-      - CORS_ORIGINS=https://carabase.yourdomain.com,https://your-frontend-app.com
+    env_file: .env
 
   # Cloudflare Tunnel for secure, zero-port-exposure public access
   cloudflared:
@@ -68,7 +62,7 @@ services:
 docker network create carabase-net
 
 # 2. Start CaraBase on isolated network
-docker run -d --name carabase --network carabase-net -e PORT=5353 clawstack/carabase:latest
+docker run -d --name carabase --network carabase-net -v ./data:/app/data --env-file .env ghcr.io/clawstackstudios/carabase:latest
 
 # 3. Launch cloudflared connector
 docker run -d --name carabase-tunnel --network carabase-net \

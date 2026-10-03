@@ -11,6 +11,9 @@ on:
       - main
     paths:
       - 'docs/**'
+      - 'ARCHITECTURE.md'
+      - 'CHANGELOG.md'
+      - 'CONTRIBUTING.md'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/deploy-docs.yml'

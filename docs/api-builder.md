@@ -114,6 +114,8 @@ const users = await response.json();
 
 1. **Table Integrity**: Table names are validated against strict regex (`/^[a-zA-Z0-9_]+$/`) to prevent dynamic SQL injection in table selectors.
 2. **Column Projection**: Even if an underlying SQLite row contains sensitive columns (such as `password_hash` or `auth_token`), CaraBase strips all unpermitted columns before JSON serialization.
-3. **RLS Composition**: Custom endpoints compose seamlessly with table RLS. RLS predicates (`applyRls()`) are combined with query filters and static schema filters using safe parameterized bindings (`?`).
+3. **RLS Composition & Active Constraint**: 
+   > [!WARNING]
+   > **RLS Context Gap (Security Vector):** Currently, Custom API Builder endpoints evaluate Row-Level Security (RLS) policies without the `rlsContext.run()` wrapper. This means that UDFs like `auth_uid()` and `auth_role()` will evaluate to `null` (anon) during custom endpoint execution. Do not rely on identity-bound RLS policies for custom endpoints until this gap is patched. Use static schema filters instead.
 4. **Audit Trail**: Every endpoint creation (`ENDPOINT_CREATED`) and deletion (`ENDPOINT_DELETED`) is immutably logged to `audit_logs` with actor UUID, IP address, and timestamp.
 

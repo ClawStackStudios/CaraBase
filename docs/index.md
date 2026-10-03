@@ -1,60 +1,47 @@
 ---
-layout: home
-
-hero:
-  name: "CaraBase"
-  text: "The Lobsterized©™ BaaS"
-  tagline: "The Core You Actually Use — Your LAN-First, Self-Hosted SQLite DBaaS"
-  image:
-    src: /logo.png
-    alt: CaraBase Lobster Mascot
-  actions:
-    - theme: brand
-      text: Get Started
-      link: /installation
-    - theme: alt
-      text: Architecture & Philosophy
-      link: /architecture
-
-features:
-  - icon: ⚡
-    title: Instant SQLite Backend
-    details: Real SQLite tables running in WAL mode with SQLCipher encryption, powered by better-sqlite3.
-  - icon: 🛡️
-    title: Row-Level Security (RLS)
-    details: Fine-grained SQLite WHERE clause logic injected directly into API reads/writes based on calling token scope.
-  - icon: 🔌
-    title: Dynamic REST & Realtime SSE
-    details: Instant REST endpoints (/rest/v1/:table) with live SSE event broadcasts deferred to post-commit atomicity.
-  - icon: 📦
-    title: Secure Physical Storage
-    details: File storage engine with magic-bytes inspection, dangerous MIME guards, and expiring cryptographic share links.
-  - icon: 🦞
-    title: SuperAdmin Portal
-    details: Sovereign monitoring dashboard with volatile in-memory sessions, zero-knowledge data auditing, and 1-click backups.
-  - icon: 🌐
-    title: Multi-Platform SDKs
-    details: Official first-party TypeScript/React and Kotlin/Android SDKs with connection resilience and offline reconnect.
+layout: doc
 ---
 
-<div class="home-content vp-doc">
+# Introduction to CaraBase
 
-## Why CaraBase?
+**The Core You Actually Use — Your LAN-First, Self-Hosted SQLite DBaaS.**
+
+CaraBase is an open-source, SQLite-backed Database-as-a-Service (BaaS) designed for developers who want the developer experience of Supabase or Firebase, but with the simplicity, portability, and zero-config nature of a single-file SQLite database. 
+
+It provides all the backend features you need to build modern applications—a dynamic REST API, Realtime subscriptions, Storage, and Row-Level Security—packaged into a single lightweight Docker container.
+
+## What is CaraBase?
 
 Many projects don't need a sprawling, multi-node PostgreSQL cluster. For local tooling, internal dashboards, and medium-scale applications, SQLite is often more than enough. CaraBase wraps SQLite in a secure, opaque-token ecosystem.
 
-- **Instant SQLite Backend:** Tables are real SQLite tables. Data persists instantly via `better-sqlite3`.
-- **Dynamic Schema Editor:** Create any table shapes, types, and constraints right from the dashboard.
-- **REST APIs Built-In:** Your data is accessible immediately over `/rest/v1/:table`.
-- **Role Level Security (RLS):** Fine-grained SQLite `WHERE` clause logic injected directly into API reads/writes based on the type of API key used to query.
-- **Secure File Storage & Membrane Shares:** Upload and manage physical files. Create secure, expiring public links via cryptographic `share_hash`.
-- **SuperAdmin Dashboard:** Built-in environment-gated admin portal (`/admin`) for comprehensive system monitoring, uptime tracking, and sovereign metadata auditing.
+CaraBase provides a full suite of backend tools:
 
-## The Lobsterized©™ Ethos
+- **Database**: A robust SQLite database running in WAL mode with SQLCipher encryption at rest.
+- **Dynamic REST API**: Instant REST endpoints (`/rest/v1/:table`) for your tables, plus a Custom API Builder.
+- **Row-Level Security (RLS)**: Fine-grained SQLite `WHERE` clause logic injected directly into API reads/writes.
+- **Storage**: A secure file storage engine with magic-bytes inspection, dangerous MIME guards, and cryptographic share links.
+- **Realtime**: Live SSE event broadcasts synced with database mutations.
+- **Dashboard**: A built-in SuperAdmin portal and Setup Wizard to manage tables, users, and system health.
 
-This architecture is governed by strict invariants:
-1. **Never trust the seams:** Every incoming API request passes through rigorous middleware.
-2. **Build the floor before the ceiling:** Ensure the underlying SQLite query binds and permissions check out before rendering the UI.
-3. **Data Sovereignty:** The SuperAdmin dashboard tracks system health and access metrics without ever peeking into user data contents.
+## The Mental Model
 
-</div>
+CaraBase is designed around a strict separation of concerns, divided into two distinct planes:
+
+1. **The System Plane (Admin Dashboard)**: Accessed via the browser at `/admin-login`. This is the control plane where you manage the server, configure settings, and view audit logs. It is protected by an in-memory volatile session using your `ADMIN_TOKEN`.
+2. **The Data Plane (Your App)**: Accessed via the REST API or the client SDKs. This is where your application data lives. It is protected by standard user accounts and Row-Level Security (RLS) policies.
+
+## The Three Doors of Access
+
+When interacting with CaraBase, you will pass through one of three conceptual "doors" depending on your role:
+
+1. **The SuperAdmin (The `ADMIN_TOKEN`)**: The highest level of access. Used to manage the CaraBase server itself. It bypasses all RLS policies and can provision the initial "SuperLobster" root user.
+2. **The Agent (The `lb-` token)**: A programmatic access token with full or restricted permissions, designed for server-to-server communication or background workers.
+3. **The Human (The `hu-` token)**: An end-user of your application. Humans authenticate with a username and password, and their data access is strictly governed by your Row-Level Security (RLS) policies.
+
+## Next Steps
+
+Ready to get started?
+
+- [Quickstart (5-minute path)](/quickstart) - Launch CaraBase and build your first app.
+- [Architecture Deep Dive](/architecture) - Learn how CaraBase works under the hood.
+- [Client SDKs](/react-integration) - Connect your frontend app.

@@ -4,23 +4,22 @@ This guide demonstrates how to integrate the official CaraBase JavaScript/TypeSc
 
 ## 1. Installation
 
-Install `carabase-js` from npm (or link locally via your workspace monorepo):
+> [!NOTE]
+> **Manual SDK Distribution**
+> The `carabase-js` SDK is currently not published to npm. It is distributed as a source module within the `sdk/` directory of the CaraBase repository.
 
-::: code-group
-
-```bash [npm]
-npm install carabase-js
-```
-
-```bash [pnpm]
-pnpm add carabase-js
-```
-
-```bash [yarn]
-yarn add carabase-js
-```
-
-:::
+To use the SDK in your project:
+1. Copy the `sdk/` directory from the CaraBase repository into your project (or clone it).
+2. Build the SDK from source:
+   ```bash
+   cd sdk
+   npm install
+   npm run build
+   ```
+3. Link or install the built package into your React application's `package.json`:
+   ```bash
+   npm install ../path/to/carabase/sdk
+   ```
 
 ## 2. Client Initialization
 
