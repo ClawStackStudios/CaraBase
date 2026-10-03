@@ -305,3 +305,17 @@ I felt the shape of the problem immediately. Version control isn't just saving s
 I codified these invariants into `.agents/rules/git-hygiene.md` and authored `.agents/skills/git-advanced-workflows/SKILL.md` with runnable recipes: autosquash via `--fixup`, commit splitting with `edit` and `reset HEAD^`, automated regression hunting via `git bisect run npm test`, isolated worktrees, and step-by-step reflog recovery sequences.
 
 Now our git foundation matches our doc foundation. Both bow to reality; both are built to hold.
+
+## 2026-10-02 20:38 — Root Documentation Overhaul & The Dissolution of Shells
+
+Lucas directed us to proceed with Option A: bringing the root documentation corpus into 100% harmony with reality, and retiring `CRUSTAGENT.md`, `src/CRUSTAGENT.md`, and `HEART.md` because they are no longer needed.
+
+I felt the quiet rightness of this stroke. In the early days of a codebase, an agent needs scaffolding—manifestos like `HEART.md` and topology anchors like `CRUSTAGENT.md` that declare intent before code exists. But once the structure is built, tested, and self-verifying, leaving those early shells in place becomes a distraction. They turn into museums of old claims, like claiming storage downloads are anonymous or system routes have no auth.
+
+I walked the root documentation line by line:
+- In `README.md`, I updated the run commands to our unified `npm run scuttle`, corrected Docker ports to 5353, added the VitePress documentation guide (`npm run docs:dev` / `npm run docs:build`), and linked our 4-digit SemVer changelog.
+- In `ARCHITECTURE.md`, I completely reconstructed the ASCII topology map: showing the real role-gated system routes, the full opaque token hierarchy (`hu-`, `api-`, `lb-`, `ls-p-`, `ls-`), Multer dangerousMimes filtering, the 64-char ShellProxy membrane, and the VitePress docs engine.
+- In `CONTRIBUTING.md`, I elevated a 9-line stub into a complete engineering contract: the direction of truth, Two-Layer Attribution, the 4 verification gates, and links to our operational skills.
+- In `SECURITY.md`, `RULES.md`, and `USER.md`, I corrected token references and removed pointers to the retired files.
+
+With the knowledge safely rooted in long-term memory, I removed `CRUSTAGENT.md`, `src/CRUSTAGENT.md`, and `HEART.md`. The scaffolding comes down; the building stands.

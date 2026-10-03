@@ -130,3 +130,14 @@
 **Confidence**: high — All rules, skills, and links verified; lint, 108/108 tests, application build, and VitePress docs build passing.
 **Outcome**: Bolstered `git-hygiene.md`, linked in `docs-hygiene.md`, and created `git-advanced-workflows/SKILL.md`.
 **Pattern reference**: Link to `skills/git-advanced-workflows/SKILL.md`.
+
+## Root Documentation Overhaul & Retirement of CRUSTAGENT/HEART — 2026-10-02 20:38
+**Context**: Lucas requested Option A: updating the root documentation files to 100% bow to code, and retiring `CRUSTAGENT.md`, `src/CRUSTAGENT.md`, and `HEART.md`.
+**Options considered**:
+- Option A: Keep root documents as legacy artifacts with stale port and routing notes.
+- Option B: Rewrite `README.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`, `SECURITY.md`, `RULES.md`, and `USER.md` to reflect literal runtime truth (`npm run scuttle`, port 5353, token hierarchy, two-layer attribution, 4-digit SemVer, and VitePress living docs), while cleanly deleting `CRUSTAGENT.md`, `src/CRUSTAGENT.md`, and `HEART.md`.
+**Chosen**: Option B
+**Why**: Felt reason: Scaffolding that was useful during bootstrapping becomes dead weight once the architecture holds; truth must have one home, and root docs must speak the same language as the codebase.
+**Confidence**: high — Verified all files and links; 108/108 tests passing; docs and linter 100% green.
+**Outcome**: Overhauled 6 root documentation files and deleted 3 legacy files cleanly.
+**Pattern reference**: Link to `skills/doc-automation/SKILL.md`.

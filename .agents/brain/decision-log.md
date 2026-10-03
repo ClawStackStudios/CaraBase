@@ -48,6 +48,10 @@ Synthesized `.agents/skills/doc-automation/SKILL.md` embodying the law that docs
 ## 2026-10-02 — Git advanced workflows skill & git-hygiene safety bolstering
 Pattern-matched external Git Advanced Workflows skill into `.agents/rules/git-hygiene.md` and `.agents/skills/git-advanced-workflows/SKILL.md`. Codified mandatory safety backup branches before interactive rebases, `--force-with-lease` mandate, automated bisect via test suites (`git bisect run npm test`), worktree isolation lifecycles, and 90-day reflog recovery protocols.
 
+## 2026-10-02 — Root documentation overhaul & legacy file retirement
+Overhauled root documentation (README.md, ARCHITECTURE.md, CONTRIBUTING.md, SECURITY.md, RULES.md, USER.md) aligning 100% with shipped code, VitePress commands, port 5353/5454, two-layer attribution, and 4-digit SemVer. Retired legacy CRUSTAGENT.md, src/CRUSTAGENT.md, and HEART.md after confirming complete preservation of cognitive wisdom in long-term memory.
+
+
 
 
 

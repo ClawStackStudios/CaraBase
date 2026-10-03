@@ -31,12 +31,12 @@ graph TD
     B --> C[Global Rate Limiter]
     
     C -->|> 600 req/5m| Reject1[Drop Request 🛡️]:::reject
-    C -->|< 600 req/5m| D{Identify ClawKey}
+    C -->|< 600 req/5m| D{Identify Key Prefix}
     
-    D -->|Human Session api-| E[Management APIs & UI]:::human
-    D -->|LobsterService ls-| F[REST API Sandbox]:::agent
+    D -->|Human hu- / Session api-| E[Management APIs & UI]:::human
+    D -->|Agent lb- / Service ls-| F[REST API Sandbox]:::agent
     
-    F -->|Attempts Admin Access| Reject2[Drop Request 🦀]:::reject
+    F -->|Attempts Admin Access| Reject2[Drop Request 403 🦀]:::reject
     
     E --> G{RLS Engine & Schema Check}
     F --> G
@@ -58,13 +58,15 @@ graph TD
 * All public endpoints utilizing API tokens must explicitly enforce dynamic parameterized queries to guard against SQL injection.
 * **Private LobsterService Keys (`ls-p-`)** have implicit administrative bypass authority for RLS mappings and MUST be rotated if exposed.
 * **Anon Public Keys (`ls-`)** MUST evaluate `_carabase_policies` logic on every single invocation hitting `/rest/v1`. If zero policies exist for a table, the access evaluates to `DENY ALL`.
+* **Human Master Keys (`hu-`)** and ephemeral session tokens (`api-`) allow management of tables, policies, and keys via `/api/system`.
+* **Delegated Agent Keys (`lb-`)** operate within sandboxed RLS and are strictly prohibited from accessing management endpoints.
 </details>
 
 <details open>
 <summary><b>Internal System Protection</b></summary>
 
 1. `req.params.table` mapping must ALWAYS pass through regex sanitization stripping all non-alphanumeric/underscore characteristics.
-2. The core internal system tracking tables: `_carabase_api_keys` and `_carabase_policies` are hard-blocked from public HTTP API exposure.
+2. The core internal system tracking tables: `_carabase_api_keys`, `_carabase_policies`, and `_carabase_endpoints` are hard-blocked from public HTTP API exposure.
 3. Parameter injection requires direct generic `?` bounds tracking. We do NOT use string interpolation for SQL queries passing user values.
 </details>
 
@@ -78,8 +80,9 @@ These are the non-negotiable truths of the system—the constraint levers we con
 <summary><b>1. The Lobster Sandbox Invariant 🦀</b></summary>
 
 > **The Constraint:** LobsterKeys (`lb-`), acting on behalf of humans, can **never** access `/api/admin` or `/api/system` routes. 
-> **The Attack Surface:** Even if a LobsterKey is stolen, leaked, or goes rogue with "ALL" permissions, it is physically impossible for it to manage backups, alter the API builder, or drop system tables. The only surface that can reach system APIs is a human session (`api-`) authenticated via the ClawKeys UI login flow.
+> **The Attack Surface:** Even if a LobsterKey is stolen, leaked, or goes rogue with "ALL" permissions, it is physically impossible for it to manage backups, alter the API builder, or drop system tables. The only surface that can reach system APIs is a human key (`hu-`) or session (`api-`) authenticated via the ClawKeys UI login flow.
 </details>
+
 
 <details>
 <summary><b>2. The RLS Fail-Closed Invariant 🛑</b></summary>
