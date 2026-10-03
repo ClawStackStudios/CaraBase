@@ -49,3 +49,10 @@ Every architectural boundary must resolve these four questions before modificati
 - SuperAdmin access is guarded by `ADMIN_TOKEN`. Sessions live exclusively in volatile in-memory Maps with a 20-minute rolling TTL; process restarts immediately invalidate all sessions.
 - Plaintext secrets are never transmitted: the client computes SHA-256 via WebCrypto (`crypto.subtle.digest`) and the server validates via `timingSafeCompare()`.
 - Sovereign metadata principle: Dashboard renders health, audit metrics, and schema, but strictly forbids content browsing (table rows, file streams) to preserve zero-knowledge data sovereignty.
+
+### 9. Tri-State Theme Engine & Radial View Transition
+- **State Decoupling**: Frontend separates stored user preference (`theme`: `'light' | 'dark' | 'system'`) from runtime visual state (`resolvedTheme`: `'light' | 'dark'`).
+- **Dynamic OS Subscription**: Active `matchMedia('(prefers-color-scheme: dark)')` listener triggers seamless theme adaptation when the OS changes modes.
+- **Synchronous DOM Mutation with flushSync**: React 18/19 state updates and root `.dark` DOM class changes inside `document.startViewTransition()` are wrapped in `flushSync` to guarantee synchronous DOM commits before the browser takes its post-transition snapshot.
+- **Dynamic Radial Clipping**: Radial reveal animations compute viewport hypotenuses from click coordinates, defaulting to screen center for accessibility/keyboard events.
+

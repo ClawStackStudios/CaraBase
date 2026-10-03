@@ -33,4 +33,12 @@ Reviewed 4 external Jules skills with Lucas. Codified Local-First triage, TTY `<
 ## 2026-10-02 — PR #36 merged & zero PR debt maintained
 Checked on Jules session 16675766846207272940 using global parse_sessions.py. PR #36 updated the outdated comment in server.ts line 1283 and added test assertion 2.5 in tests/suite.cjs asserting 401 Unauthorized for unauthenticated storage retrieval. Merged cleanly with 3/3 green CI checks.
 
+## 2026-10-02 — System theme mode in settings & ThemeContext
+Lucas identified a missing 'System' theme selection beside the 'Dark Mode' button in settings. Upgraded ThemeContext with System mode, dynamic prefers-color-scheme media listener, and resolvedTheme, added the Monitor icon button in AppearanceSettings, and verified clean lint and build.
+
+## 2026-10-02 — View Transition flushSync & radial reveal restoration
+Discovered that React 18/19 asynchronous batching causes startViewTransition to capture post-transition snapshots prematurely. Wrapped state setter and DOM class updates in flushSync and extracted mouse coordinates with screen center fallback; codified learnings in ui-webdev skill, systemPatterns.md, and long-term patterns.
+
+
+
 

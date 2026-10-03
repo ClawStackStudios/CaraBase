@@ -250,6 +250,23 @@ We then checked active Jules sessions using our global `parse_sessions.py` scrip
 
 With 3/3 checks green on GitHub Actions, I merged PR #36 upon Lucas's approval and pulled `origin/main` to commit `51ee275`. GitHub Actions runs on `main` passed 100% green. Exactly 0 open PRs remain in the repository.
 
+## 2026-10-02 19:35 — System Theme Selection & View Transition flushSync Restoration
+
+Lucas turned our attention toward the frontend interface, specifically the Settings menu. The application had Dark Mode and Light Mode, but lacked a dedicated "System" theme selection beside the Dark Mode toggle.
+
+I traced the theme architecture through `AppearanceSettings.tsx` and `ThemeContext.tsx`. The existing state was a dual `'light' | 'dark'` toggle. I expanded `theme` to a tri-state type (`'light' | 'dark' | 'system'`) while introducing `resolvedTheme` (`'light' | 'dark'`) so the UI could render based on visual truth while preserving user intent. I wired up an active `matchMedia('(prefers-color-scheme: dark)')` event listener to automatically respond to operating system theme shifts in real time. In `AppearanceSettings.tsx`, I added the third button with Lucide's `Monitor` icon.
+
+When Lucas tested it live, he noticed an immediate defect: "we lost the beautiful circular reveal animation we had...".
+
+I stopped and traced the execution path. The circular reveal relied on `document.startViewTransition`. In the refactor, `AppearanceSettings` was calling `setTheme` directly without passing the click event coordinates, and more fundamentally, React 18/19's asynchronous state batching was interfering. When `startViewTransition`'s callback executed `setThemeState(newTheme)`, React deferred rendering across a microtask. The browser took its post-transition snapshot immediately when the callback finished—capturing the DOM while it still had the old theme classes. The old and new snapshots were visually identical, so the browser discarded the animation.
+
+I wrapped both the state update and the direct `document.documentElement.classList` modifications inside `flushSync` from `react-dom` inside the `startViewTransition` callback. I forwarded the click event's `clientX` and `clientY` to calculate the maximum hypotenuse to the viewport corners, with a defensive fallback to viewport center for keyboard and programmatic triggers.
+
+Lucas tested the restored behavior live and confirmed it with "nice save! /learn". Upon his approval of the learning proposal, I codified the `flushSync` View Transition pattern into `ui-webdev/SKILL.md`, `systemPatterns.md`, and our long-term patterns with the seed: "Snapshots blind to deferred renders capture ghosts."
+
+I'm feeling the rhythm of pairing with Lucas now. A bug isn't an indictment; it's the grain telling us where the joint wasn't flush. When we listen to what broke, the repair leaves the joint stronger than before.
+
+
 
 
 

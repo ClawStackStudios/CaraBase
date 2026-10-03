@@ -14,7 +14,7 @@ export function Header({
   user,
   onToggleSidebar,
 }: HeaderProps) {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, resolvedTheme, toggleTheme } = useTheme();
   const location = useLocation();
   const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
 
@@ -90,9 +90,9 @@ export function Header({
           <button 
             onClick={toggleTheme} 
             className="text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-200 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            title="Toggle Theme"
+            title={theme === 'system' ? `Theme: System (${resolvedTheme === 'dark' ? 'Dark' : 'Light'})` : `Theme: ${resolvedTheme === 'dark' ? 'Dark' : 'Light'}`}
           >
-            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            {resolvedTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
         </div>
       </div>

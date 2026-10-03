@@ -88,5 +88,17 @@
 **Outcome**: Updated `JULES.md` and `SKILL.md`; created `api-reference.md`, `task-templates.md`, and `parse_sessions.py`.
 **Pattern reference**: New pattern — first instance.
 
+## View Transition flushSync & Tri-State Theme Architecture — 2026-10-02 19:35
+**Context**: Adding a 'System' theme option in `AppearanceSettings.tsx` caused the circular reveal animation to disappear due to React 18/19 asynchronous state batching and click coordinate omission.
+**Options considered**:
+- Option A: Fall back to standard CSS transitions without the View Transition API.
+- Option B: Synchronize React state updates and root `.dark` DOM mutations inside `flushSync` within `document.startViewTransition`, forward mouse event coordinates for dynamic radial origin calculation with screen center fallback, and decouple user preference (`theme`) from visual reality (`resolvedTheme`) with an active OS media query listener.
+**Chosen**: Option B
+**Why**: Felt reason: The circular wipe animation is a signature aesthetic trait of the modern interface; `flushSync` honors the synchronous snapshot timing invariant of the browser's View Transition API without sacrificing React's state model.
+**Confidence**: high — Verified live with smooth circular reveals across all 3 theme states; 108/108 tests passing.
+**Outcome**: Restored circular reveal animation, added System theme mode, and codified patterns into `ui-webdev/SKILL.md`, `systemPatterns.md`, and `long-term/patterns.md`.
+**Pattern reference**: Link to `long-term/patterns.md § view-transition-flushsync`.
+
+
 
 

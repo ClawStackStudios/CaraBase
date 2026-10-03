@@ -22,6 +22,18 @@ Every compressed pattern seed must satisfy four invariants:
 
 ---
 
+## view-transition-flushsync
+**weight**: 3 | **last validated**: 2026-10-02 | **first observed**: 2026-10-02
+
+In React 18/19, `document.startViewTransition()` callbacks that trigger theme or DOM class changes must wrap React state updates and direct root DOM class mutations inside `flushSync` from `react-dom`.
+
+**History:**
+- 2026-10-02: After adding the System theme option, the circular reveal animation was lost because asynchronous state updates in React 18/19 caused the post-transition snapshot to be taken before the DOM updated. Wrapping in `flushSync` restored synchronous commit before the snapshot, and radial hypotenuse calculation enabled fluid directional wipes.
+
+**Shaped perspective:** The browser's View Transition API is fundamentally synchronous in snapshot timing: old snapshot -> callback -> new snapshot. Frameworks with concurrent rendering or automatic batching defer DOM updates across microtasks, resulting in identical snapshots unless forced to flush synchronously.
+
+---
+
 ## Ratified Metaphorical Wisdom Seeds
 - **Incomplete reflections crack the state.**  
   Missing API response fragments corrupt UI invariants.
@@ -39,3 +51,6 @@ Every compressed pattern seed must satisfy four invariants:
   SuperAdmin sessions are volatile in-memory Maps with 20-min TTL, destroyed on server restart.
 - **A lock turned twice resists the ghost.**  
   Row-Level Security evaluates both during static query construction and within isolated runtime context.
+- **Snapshots blind to deferred renders capture ghosts.**  
+  View transitions require synchronous DOM mutation; async batching drops animations.
+

@@ -97,6 +97,92 @@ border-theme-subtle /* Carapace borders and subtle separators */
 
 ---
 
+## 🌓 Fluid Theme Transitions & The View Transition API
+
+Modern web applications require smooth, visually delightful transitions when changing color schemes or views. When implementing theme toggling via the native View Transitions API (`document.startViewTransition`) in React:
+
+### 1. React 18/19 `flushSync` DOM Synchronization Invariant
+- **The Async Batching Hazard**: `document.startViewTransition(callback)` takes an "old" snapshot of the viewport, executes the callback, and captures the "new" snapshot immediately after the callback returns. In React 18 and 19 (Concurrent React / Automatic Batching), calling `setState()` schedules an asynchronous update. If executed normally, the callback terminates before React applies changes to the DOM, causing the browser to capture an identical "new" snapshot and drop the transition animation entirely.
+- **The Mandatory Fix**: Always wrap React state setters AND root DOM class mutations inside `flushSync(() => { ... })` from `react-dom` inside the `startViewTransition` callback:
+  ```tsx
+  import { flushSync } from 'react-dom';
+
+  const transition = document.startViewTransition(() => {
+    flushSync(() => {
+      setThemeState(newTheme);
+      if (targetResolved === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      localStorage.setItem('cb_theme', newTheme);
+    });
+  });
+  ```
+
+### 2. Radial Click Coordinates & Viewport Hypotenuse
+- **Click Origin Tracking**: Pass the trigger event `(e: React.MouseEvent | React.SyntheticEvent)` from UI buttons to `setTheme(theme, e)` to root the circular reveal animation at the exact point of user interaction.
+- **Defensive Center Fallback**: If `clientX` is not present (keyboard navigation via `Tab`/`Enter`, programmatic toggles, or OS system events), gracefully fall back to the viewport center:
+  ```typescript
+  let x = window.innerWidth / 2;
+  let y = window.innerHeight / 2;
+  if (event && 'clientX' in event && typeof (event as any).clientX === 'number') {
+    x = (event as any).clientX;
+    y = (event as any).clientY;
+  }
+  ```
+- **Viewport Hypotenuse Radius**: Calculate the maximum distance to the furthest screen corner:
+  ```typescript
+  const endRadius = Math.hypot(
+    Math.max(x, window.innerWidth - x),
+    Math.max(y, window.innerHeight - y)
+  );
+  ```
+- **Circular Reveal Mask**: Animate `::view-transition-new(root)` once `transition.ready` resolves:
+  ```typescript
+  transition.ready.then(() => {
+    document.documentElement.animate(
+      {
+        clipPath: [
+          `circle(0px at ${x}px ${y}px)`,
+          `circle(${endRadius}px at ${x}px ${y}px)`
+        ],
+      },
+      {
+        duration: 900,
+        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        pseudoElement: '::view-transition-new(root)',
+      }
+    );
+  }).catch(() => {
+    // Graceful fallback if unsupported or interrupted
+  });
+  ```
+
+### 3. Tri-State Theme Engine Architecture (`'light' | 'dark' | 'system'`)
+- **Intent vs. Visual Truth**: Decouple the user's stored selection (`theme`: `'light' | 'dark' | 'system'`) from the computed visual reality (`resolvedTheme`: `'light' | 'dark'`).
+- **Dynamic OS Listener**: In system mode, subscribe to `window.matchMedia('(prefers-color-scheme: dark)')` change events to react dynamically when the operating system changes mode.
+- **UI Decoupling**: Settings controls check `theme` to show which toggle is selected, while visual components (icons, borders, backgrounds) inspect `resolvedTheme` or `isDark`.
+- **Reduced Motion Guard**: Always bypass animation when `window.matchMedia('(prefers-reduced-motion: reduce)').matches` is true.
+
+### 4. CSS View Transition Reset Invariant
+In global CSS, disable default opacity cross-fades and elevate the new view so the expanding circular mask renders smoothly above the old snapshot:
+```css
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 9999;
+}
+```
+
+---
+
 ## 🔐 Cryptographic Secret Presentation & Terminal Ergonomics
 
 When building or refactoring interfaces that display or edit cryptographic credentials, keypairs, or compound secrets (e.g. SSH keys, TLS certificates):

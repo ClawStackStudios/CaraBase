@@ -72,8 +72,8 @@ function KeyPill({ prefix, label, color }: { prefix: string; label: string; colo
 // ── Main landing page ─────────────────────────────────────────────────────────
 export default function LandingPage() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
-  const isDark = theme === 'dark';
+  const { theme, resolvedTheme, toggleTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0a0f14] text-slate-900 dark:text-slate-100 transition-colors duration-300 font-[Outfit,sans-serif]">

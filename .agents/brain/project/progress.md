@@ -21,6 +21,8 @@
 - Jules Fleet Architecture centered on `.jules/JULES.md` briefing and atomic task specs in `.jules/tasks/task-<N>.md`.
 - Fortified `jules-cli` skill with Local-First triage, git slug auto-detection, TTY `< /dev/null` safety, stdin task piping, native REST API contracts (`v1alpha/sessions`), structured task templates, and PTY JSON session parsing.
 - Automated integration regression test enforcing `requireAuth` on `/storage/v1/file/:id` (`tests/suite.cjs`).
+- Tri-state Theme Engine (`light` | `dark` | `system`) with dynamic OS `prefers-color-scheme` listener, Settings selection UI, and restored `flushSync` View Transition circular reveal wipe.
+
 
 ## What's In Flight
 - **GitHub Pull Requests**:
