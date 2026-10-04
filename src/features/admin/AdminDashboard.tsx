@@ -9,6 +9,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useAdmin } from './AdminContext';
+import { useToast } from '@/context/ToastContext';
 import {
   Users,
   Database,
@@ -39,6 +40,7 @@ interface SystemStats {
 
 export function AdminDashboard() {
   const { logout } = useAdmin();
+  const toast = useToast();
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -92,19 +94,24 @@ export function AdminDashboard() {
     }
   }, [showUptimeHistory]);
 
-  // TODO(bug): implement rollback and user toast error notification on handleSettingChange failure in AdminDashboard
-  // Constraints: Verify res.ok, revert to previousSettings on catch or non-200 response, and emit toast.error.
   const handleSettingChange = async (key: string, value: string) => {
+    const previousSettings = settings;
     const newSettings = { ...settings, [key]: value };
     setSettings(newSettings);
     try {
-      await fetch('/api/admin/settings', {
+      const res = await fetch('/api/admin/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newSettings)
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `HTTP error ${res.status}`);
+      }
     } catch (err) {
       console.error('Failed to save settings', err);
+      setSettings(previousSettings);
+      toast.error('Failed to save settings: ' + (err instanceof Error ? err.message : 'Request failed'));
     }
   };
 
