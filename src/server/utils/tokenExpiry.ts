@@ -11,14 +11,19 @@ export function calculateExpiry(ttl: string): string {
   const now = Date.now();
   let ms = 0;
 
+  const value = parseInt(ttl);
+  if (isNaN(value)) {
+    throw new Error(`Invalid TTL format: ${ttl}`);
+  }
+
   if (ttl.endsWith('m')) {
-    ms = parseInt(ttl) * 60 * 1000;
+    ms = value * 60 * 1000;
   } else if (ttl.endsWith('h')) {
-    ms = parseInt(ttl) * 60 * 60 * 1000;
+    ms = value * 60 * 60 * 1000;
   } else if (ttl.endsWith('d')) {
-    ms = parseInt(ttl) * 24 * 60 * 60 * 1000;
+    ms = value * 24 * 60 * 60 * 1000;
   } else if (ttl.endsWith('y')) {
-    ms = parseInt(ttl) * 365 * 24 * 60 * 60 * 1000;
+    ms = value * 365 * 24 * 60 * 60 * 1000;
   } else {
     throw new Error(`Invalid TTL format: ${ttl}`);
   }
