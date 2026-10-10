@@ -803,27 +803,26 @@ async function startServer() {
   externalApi.use(authenticateDataApi);
 
   // Dynamic REST API Generator Catch-all Interceptor Router
-  // TODO(security): Wrap custom endpoint database operations in rlsContext.run to enforce RLS membrane functions
-  // Constraints: Execute all SQL within rlsContext.run({ userUuid, username }, ...) so auth_uid() and auth_role() correctly resolve in policies.
   externalApi.all('/custom/:path(*)', async (req, res) => {
       const path = req.params.path;
       const method = req.method.toUpperCase();
 
       try {
-          const endpoint = db.prepare('SELECT * FROM _carabase_custom_endpoints WHERE path = ? AND method = ?').get(path, method) as any;
-          if (!endpoint) {
-              return res.status(404).json({ error: `Custom endpoint not found for path: /custom/${path} and method: ${method}` });
-          }
+          rlsContext.run({ userUuid: (req as any).userUuid || null, username: (req as any).username || null }, () => {
+              const endpoint = db.prepare('SELECT * FROM _carabase_custom_endpoints WHERE path = ? AND method = ?').get(path, method) as any;
+              if (!endpoint) {
+                  return res.status(404).json({ error: `Custom endpoint not found for path: /custom/${path} and method: ${method}` });
+              }
 
-          const schema = JSON.parse(endpoint.schema);
-          const table = endpoint.table_name;
+              const schema = JSON.parse(endpoint.schema);
+              const table = endpoint.table_name;
 
-          // Strict Regex Validation for Dynamic SQL injection prevention
-          if (!/^[a-zA-Z0-9_]+$/.test(table)) {
-              return res.status(400).json({ error: 'Invalid table name pattern in endpoint configuration.' });
-          }
+              // Strict Regex Validation for Dynamic SQL injection prevention
+              if (!/^[a-zA-Z0-9_]+$/.test(table)) {
+                  return res.status(400).json({ error: 'Invalid table name pattern in endpoint configuration.' });
+              }
 
-          // 1. Validate request body against builder parameters (POST / PATCH / PUT)
+              // 1. Validate request body against builder parameters (POST / PATCH / PUT)
           if (['POST', 'PATCH', 'PUT'].includes(method)) {
               if (schema.validation && Array.isArray(schema.validation)) {
                   for (const rule of schema.validation) {
@@ -1009,9 +1008,10 @@ async function startServer() {
                   details: { endpoint: path, table, affected_count: targets.length }
               });
 
-              return res.json({ deleted: targets.length });
-          }
+                  return res.json({ deleted: targets.length });
+              }
 
+          });
       } catch (e: any) {
           if (e.message === 'RLS_VIOLATION') {
               return res.status(403).json({ error: 'Row-Level Security policy violation' });
