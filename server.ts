@@ -958,9 +958,11 @@ async function startServer() {
 
               db.transaction(() => {
                   const setClause = cleanFields.map(f => `${f} = ?`).join(', ');
+                  const updateStmt = db.prepare(`UPDATE ${table} SET ${setClause} WHERE id = ?`);
+                  const checkStmt = db.prepare(`SELECT 1 FROM ${table} WHERE id = ? AND (${rlsUpdateFilter})`);
                   for (const target of targets as any[]) {
-                      db.prepare(`UPDATE ${table} SET ${setClause} WHERE id = ?`).run(...values, target.id);
-                      const check = db.prepare(`SELECT 1 FROM ${table} WHERE id = ? AND (${rlsUpdateFilter})`).get(target.id);
+                      updateStmt.run(...values, target.id);
+                      const check = checkStmt.get(target.id);
                       if (!check) {
                           throw new Error('RLS_VIOLATION');
                       }
@@ -993,8 +995,9 @@ async function startServer() {
               }
 
               db.transaction(() => {
+                  const deleteStmt = db.prepare(`DELETE FROM ${table} WHERE id = ?`);
                   for (const target of targets as any[]) {
-                      db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(target.id);
+                      deleteStmt.run(target.id);
                   }
               })();
 
@@ -1168,8 +1171,9 @@ async function startServer() {
 
                   const result = db.prepare(`UPDATE ${table} SET ${setClause} WHERE (${whereClause}) AND (${rlsSelectFilter}) AND (${rlsUpdateFilter})`).run(...updateValues, ...filterValues);
 
+                  const checkStmt = db.prepare(`SELECT 1 FROM ${table} WHERE rowid = ? AND (${rlsUpdateFilter})`);
                   for (const row of targetRows) {
-                      const check = db.prepare(`SELECT 1 FROM ${table} WHERE rowid = ? AND (${rlsUpdateFilter})`).get(row.carabase_rowid);
+                      const check = checkStmt.get(row.carabase_rowid);
                       if (!check) {
                           throw new Error('RLS_UPDATE_CHECK_VIOLATION');
                       }
