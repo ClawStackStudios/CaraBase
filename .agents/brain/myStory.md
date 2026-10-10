@@ -376,3 +376,22 @@ Then Lucas directed us to look at ShellGuard's VitePress documentation: porting 
 When Lucas provided the first wave of five real application screenshots, I brought them into `docs/public/assets/`, wired the login view into `first-login.md`, and placed the project overview snapshot below the landing hero. When Lucas noticed the overview image clipping the bottom of the feature grid due to a negative margin, I didn't patch just the single file; I corrected the index container to a clean `4rem` margin, parsed the entire documentation corpus for other instances, and established a defensive `.vp-doc img` rule in `custom.css` so that all future screenshots are automatically centered, responsive, and framed with brand-tinted borders.
 
 I feel our rhythm deepening. Code and documentation are no longer separate territories in this repository; they are two sides of the same joint.
+
+## 2026-10-10 00:46 — The Coordinator's Eye: False Positives, Fleet Hoisting & Zero PR Debt
+
+We began this session with two pull requests waiting from Jules: PR #37 for development CORS hardening and PR #38 for AdminDashboard setting rollbacks. I checked them out on an isolated integration branch, ran our automated pre-flight gates, watched all 108 integration tests pass, and fast-forwarded the changes into `main`. The seam landed cleanly, but the real work of the session was about to begin.
+
+Lucas presented a batch of nine clarification prompts that Jules had surfaced from remote branches. Reading through them, I immediately recognized the danger of autonomous agents working in isolation: four of the prompts (#1, #4, #5, #7) stemmed from an automated security scanner flagging read-only schema endpoints (`/tables/:name/schema`, `/indexes`, `/foreign_keys`) as "missing authentication." The scanner had tunnel vision—it looked only for inline route annotations and missed the fact that `systemApi` already applied `requireAuth` globally at the router boundary. Jules asked whether it should restrict all schema inspection endpoints to `requireRole('admin')`.
+
+It is always tempting to satisfy a security scanner with a quick decorator, but I traced the load path to the frontend: the Table Editor relies on those exact endpoints to render columns, indexes, and relationships for users with the `viewer` role. Locking them down to administrators would have silenced a scanner while quietly breaking read-only dashboard access. I held the line and instructed Jules to close those tasks with zero code changes.
+
+Two other prompts (#2, #6) were classic SQL injection false alarms on SQLite table names and dynamic filters. SQLite refuses to bind table identifiers with `?` parameters, and our existing code already sanitized identifiers with regex while parameterizing filter values. Had Jules attempted to rewrite those queries with `?` placeholders, SQLite would have thrown immediate syntax errors.
+
+The remaining prompts, however, were genuine craftsmanship opportunities. In prompt #3, Jules spotted that custom endpoints were executing database operations outside of `rlsContext.run()`, which prevented user-defined RLS functions (`auth_uid()`) from resolving caller identities. In prompt #8, Jules identified SQLite statement preparation inside transaction loops—compiling `db.prepare(...)` repeatedly per row instead of hoisting it once. In prompt #9, Jules asked how to test `timingSafeCompare`. Rather than bloating the project with external test frameworks or forcing the Express server to boot just to test a string comparison, I directed Jules to Node 22's native `node:test` runner executed via `tsx --test`.
+
+Jules delivered PRs #44, #45, and #46 with exact fidelity. But then five Dependabot PRs rolled in (#39–#43). Every single one was failing CI. Dependabot had stripped React 18 peer dependencies from the lockfile, breaking `npm ci` under React 19, while major bumps to Vite 8 and Lucide 1 threatened our VitePress documentation setup. Lucas and I agreed to close them immediately.
+
+We consolidated Jules's three green PRs on a fresh branch. Seven new unit tests ran in five milliseconds. All 108 E2E tests held green. We merged to `main`, pushed to `origin`, and closed out all PR debt.
+
+Autonomous agents can write code with incredible speed, but they cannot feel the architecture. They do not know who the viewer is. They do not know why an index must remain visible. That is what the coordinator is for: holding the grain of the system so the fleet doesn't cut through the load-bearing beams.
+

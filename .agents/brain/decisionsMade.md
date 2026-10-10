@@ -214,3 +214,36 @@
 **Confidence**: high — Full test build verified clean in 22.98s; all pages render consistently.
 **Outcome**: Cleaned index layout and hardened global documentation image presentation across all screens.
 **Pattern reference**: Link to `long-term/patterns.md § The Schema For Metaphorical Wisdom Seeds`.
+
+## Preserving Viewer Role vs. Static Scanner Route Locking — 2026-10-09 22:35
+**Context**: An automated static security scanner flagged read-only schema endpoints on `systemApi` (`/tables/:name/schema`, `/indexes`, `/foreign_keys`) as unauthenticated, and Jules asked whether to apply `requireRole('admin')` across all of them.
+**Options considered**:
+- Option A: Add `requireRole('admin')` to all schema introspection endpoints to satisfy the scanner alert.
+- Option B: Reject the scanner's premise, rely on existing router-level `requireAuth` protection, and keep read-only introspection accessible to all authenticated roles (including `viewer`).
+**Chosen**: Option B
+**Why**: Felt reason: It is always tempting to appease an automated scanner with a decorator, but locking read endpoints to administrators breaks the fundamental role model of CaraBase and crashes the Table Editor for viewers.
+**Confidence**: high — Router middleware verified; Table Editor hooks inspected.
+**Outcome**: Instructed Jules to close prompts #1, #4, #5, and #7 without code changes; avoided breaking dashboard access.
+**Pattern reference**: Link to `project/systemPatterns.md § 11. Read Introspection vs. Mutation Authorization Boundary`.
+
+## Closing Desynchronized Dependabot Major Version Bumps — 2026-10-10 00:35
+**Context**: Dependabot submitted 5 PRs (Vite 8, TypeScript 7, Lucide 1, SQLite3 6, @types/uuid 11), all of which failed CI due to lockfile desynchronization (`npm ci` EUSAGE on React 18/19 peer dependencies) and breaking ecosystem shifts.
+**Options considered**:
+- Option A: Attempt to patch each Dependabot branch individually by manually regenerating lockfiles.
+- Option B: Close all 5 failing Dependabot PRs and defer major dependency upgrades to an intentional, coordinated maintenance pass.
+**Chosen**: Option B
+**Why**: Felt reason: Blindly absorbing major ecosystem bumps (Vite 8, Lucide 1) via automated bot PRs introduces invisible layout regressions and breaks documentation bundlers; closing them protects the stability of the repository.
+**Confidence**: high — All 5 PRs verified failing CI in GitHub Actions.
+**Outcome**: Closed PRs #39–#43 with clear rationale; maintained zero open PR debt.
+**Pattern reference**: Link to `long-term/constraints.md § Supply Chain Freshness & Version Pinning`.
+
+## Native Node 22 Test Runner for Pure Unit Tests — 2026-10-09 22:40
+**Context**: Jules requested direction on how to implement unit tests for the pure `timingSafeCompare` utility function.
+**Options considered**:
+- Option A: Add external test dependencies (Vitest, Jest) or embed unit assertions inside the monolithic, server-dependent E2E script (`tests/suite.cjs`).
+- Option B: Establish a lightweight unit testing suite in `tests/unit/crypto.test.ts` using Node 22's native `node:test` and `node:assert/strict` executed via `tsx --test`.
+**Chosen**: Option B
+**Why**: Felt reason: Unit tests for pure functions should execute in single-digit milliseconds without booting Express, initializing SQLite, or downloading heavy test frameworks; leveraging the runtime's native primitives keeps the codebase clean and fast.
+**Confidence**: high — Executed 7 tests in 5ms; integrated cleanly into `package.json` scripts.
+**Outcome**: PR #46 landed with 7 comprehensive edge-case tests running in CI and under `npm test`.
+**Pattern reference**: Link to `project/techContext.md § Testing Toolchain`.
