@@ -32,6 +32,13 @@
 - Root `BRAIN.md` retired after full knowledge consolidation into long-term memory and changelog.
 
 ## What's In Flight
+- **Jules Fleet Direction (9 Clarifications Evaluated)**:
+  - **Auth on Read Introspection (#1, #4, #5, #7)**: Clarified global `systemApi.use(requireAuth)` coverage; kept read endpoints open to `viewer` role to prevent Table Editor UI regressions.
+  - **SQLi False Positives (#2, #6)**: Clarified SQLite inability to parameterize table/filter expressions via `?`; verified existing regex sanitization and query parameterization.
+  - **Active Implementation Tasks**:
+    1. Custom Endpoint RLS (`server.ts:806` TODO): Wrapping `/custom/:path(*)` DB calls in `rlsContext.run({ userUuid, username })` (#3).
+    2. Better-SQLite3 Statement Hoisting (`server.ts:961, 996, 1171`): Hoisting `db.prepare(...)` out of iteration loops (#8).
+    3. Pure Unit Testing Suite (`tests/unit/crypto.test.ts`): Adding native `node:test` + `tsx --test` suite for `timingSafeCompare` (#9).
 - **Application Screenshots**:
   - Wave 1 landed (Login, Overview Dashboard).
   - Wave 2 pending from Lucas (Table Editor, Storage buckets, SQL Editor).

@@ -26,3 +26,8 @@
 - **VitePress**: v1.6.4 configured with `ignoreDeadLinks: true`, custom Vue components (`CardGrid`, `Card`, `Steps`, `Step`, `CopyPage`), and Shiki syntax highlighting.
 - **Static Asset Serving**: Public assets live in `docs/public/`; production SSG uses Rollup which requires strict path resolution for local images.
 - **CI Deployment**: GitHub Actions workflow `.github/workflows/deploy-docs.yml` triggers on push to `main` across `docs/**` and root documentation files, publishing static HTML artifacts to GitHub Pages.
+
+## Testing Toolchain
+- **E2E Suite**: Custom integration runner (`tests/suite.cjs`) running against an active server instance on port 5353 (`npm test`).
+- **Unit Testing**: Native Node 22 test runner (`node:test`, `node:assert/strict`) executed via `tsx --test` for fast, serverless unit verification in `tests/unit/*.test.ts` (`npm run test:unit`).
+

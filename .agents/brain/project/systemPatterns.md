@@ -60,5 +60,16 @@ Every architectural boundary must resolve these four questions before modificati
 - **Rollup Asset Bundler Boundary**: In VitePress, markdown image links referencing local absolute paths (`/placeholders/...`) are treated as static assets by Vite/Rollup and will cause production builds to crash if uncommitted. Remote placeholder URLs or committed assets in `docs/public/` must be used.
 - **Universal Documentation Image Styling**: All images rendered inside markdown pages are globally governed by `.vp-doc img` in `custom.css` (auto-centered, `max-width: 100%`, `height: auto`, rounded corners, and brand border tokens) to ensure zero inline wrapper pollution and guaranteed responsive safety.
 
+### 11. Read Introspection vs. Mutation Authorization Boundary
+- **Baseline Authentication**: All internal system routes (`/api/system/*`) are authenticated globally via `systemApi.use(requireAuth, sandboxAgentKeys)`.
+- **Introspection Availability**: Introspection endpoints (`GET /tables`, `/columns`, `/schema`, `/indexes`, `/foreign_keys`, `/rows`) are intentionally open to all authenticated roles (including `viewer`), allowing the frontend Table Editor to render schema structures and data safely.
+- **Mutation Isolation**: Role escalation (`requireRole('admin')` or `requireRole('superadmin')`) is strictly reserved for mutating operations (`POST`, `DELETE`, `PATCH`). Locking read introspection to admin breaks non-admin dashboard sessions.
+
+### 12. Prepared Statement Lifecycle in Better-SQLite3
+- **Compilation Overhead**: In `better-sqlite3`, `db.prepare(...)` compiles SQL statements into native bytecode. Executing `db.prepare(...)` inside a `for` loop causes $O(N)$ repeated compilation overhead per row.
+- **Hoisting Principle**: Statement compilation must be hoisted outside the loop ($O(1)$) into a reusable statement handle, calling `.run(...)` or `.get(...)` inside the iteration loop.
+
 → Consolidated to `long-term/patterns.md § docs-bow-to-code` (weight: 3, 2026-10-03)
+→ Consolidated to `long-term/patterns.md § multi-agent-fleet-coordination` (weight: 4, 2026-10-09)
+
 

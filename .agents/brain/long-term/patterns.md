@@ -48,6 +48,22 @@ Documentation must never invent or anticipate reality; when code and documentati
 
 ---
 
+## multi-agent-fleet-coordination
+**weight**: 4 | **last validated**: 2026-10-09 | **first observed**: 2026-10-01
+**pinned**: false
+
+Autonomous sub-agent delegation requires strict scope partitioning (< 50 lines or orthogonal filesystem boundaries), explicit prompt grounding against git reality, and an orchestrating coordinator to resolve semantic ambiguities and prevent scanner false-positive regressions.
+
+**History:**
+- 2026-10-01: Tailored Sentinel sub-agent with < 50 lines ceiling and structured `// TODO(security)` handoff protocol for secondary findings.
+- 2026-10-02: Reconciled 7 concurrent Jules PRs across 3 architectural phases without semantic regressions.
+- 2026-10-04: Merged Jules PRs #37 and #38 onto an isolated integration branch before merging to `main`.
+- 2026-10-09: Evaluated 9 Jules clarification prompts; prevented breaking read authorization changes across 4 schema endpoints while validating real statement hoisting and RLS context fixes.
+
+**Shaped perspective:** Autonomous agents excel at focused execution but lack cross-boundary system awareness; without a central architectural coordinator, autonomous agents will over-fit to static security scanners and break legitimate system roles (e.g. locking read introspection to admin).
+
+---
+
 ## Ratified Metaphorical Wisdom Seeds
 - **Incomplete reflections crack the state.**  
   Missing API response fragments corrupt UI invariants.

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- **Insecure CORS Origin Policy in Development Hardened**: Strictly excluded database origins from `corsConfig.ts` in development, restricting local API access to configured environment origins and loopback/private IP addresses ([PR #37](https://github.com/ClawStackStudios/CaraBase/pull/37)).
+
+### Fixed
+- **AdminDashboard Error State & Rollback**: Added optimistic update stashing (`previousSettings`), state reversion on API non-200 responses or fetch failures, and user-facing error toast alerts via `ToastContext` ([PR #38](https://github.com/ClawStackStudios/CaraBase/pull/38)).
+
 ## [0.2.0.2] - 2026-10-03
 
 ### Added
